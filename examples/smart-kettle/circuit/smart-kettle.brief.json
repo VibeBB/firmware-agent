@@ -1,0 +1,424 @@
+{
+  "name": "smart-kettle",
+  "description": "Smart kettle controller: RP2040, I2C temperature probe, boil and lid switches, LED ring, buzzer, heater relay drive, water-level sensor.",
+  "parts": [
+    {
+      "reference": "U1",
+      "lib_id": "MCU_RaspberryPi:RP2040",
+      "footprint": "Package_DFN_QFN:QFN-56-1EP_7x7mm_P0.4mm_EP3.2x3.2mm",
+      "value": "RP2040",
+      "mcu": true
+    },
+    {
+      "reference": "U2",
+      "lib_id": "Memory_Flash:W25Q16JVSS",
+      "footprint": "Package_SO:SOIC-8_5.23x5.23mm_P1.27mm",
+      "value": "W25Q16JV"
+    },
+    {
+      "reference": "Y1",
+      "lib_id": "Device:Crystal_GND24",
+      "footprint": "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm",
+      "value": "12MHz"
+    },
+    {
+      "reference": "C1",
+      "lib_id": "Device:C",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "value": "100n"
+    },
+    {
+      "reference": "C2",
+      "lib_id": "Device:C",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "value": "1u"
+    },
+    {
+      "reference": "R1",
+      "lib_id": "Device:R",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "value": "4k7"
+    },
+    {
+      "reference": "R2",
+      "lib_id": "Device:R",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "value": "4k7"
+    },
+    {
+      "reference": "R3",
+      "lib_id": "Device:R",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "value": "10k"
+    },
+    {
+      "reference": "SW1",
+      "lib_id": "Switch:SW_Push",
+      "footprint": "Button_Switch_SMD:SW_SPST_TL3342",
+      "value": "BOIL"
+    },
+    {
+      "reference": "SW2",
+      "lib_id": "Switch:SW_Push",
+      "footprint": "Button_Switch_SMD:SW_SPST_TL3342",
+      "value": "LID"
+    },
+    {
+      "reference": "J1",
+      "lib_id": "Connector_Generic:Conn_01x04",
+      "footprint": "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical",
+      "value": "TEMP_PROBE",
+      "connector": true,
+      "housing": "JST PHR-4"
+    },
+    {
+      "reference": "J2",
+      "lib_id": "Connector_Generic:Conn_01x03",
+      "footprint": "Connector_JST:JST_PH_B3B-PH-K_1x03_P2.00mm_Vertical",
+      "value": "LED_RING",
+      "connector": true,
+      "housing": "JST PHR-3"
+    },
+    {
+      "reference": "J3",
+      "lib_id": "Connector_Generic:Conn_01x02",
+      "footprint": "Connector_JST:JST_PH_B2B-PH-K_1x02_P2.00mm_Vertical",
+      "value": "BUZZER",
+      "connector": true,
+      "housing": "JST PHR-2"
+    },
+    {
+      "reference": "J4",
+      "lib_id": "Connector_Generic:Conn_01x02",
+      "footprint": "Connector_JST:JST_PH_B2B-PH-K_1x02_P2.00mm_Vertical",
+      "value": "HEATER_RELAY",
+      "connector": true,
+      "housing": "JST PHR-2"
+    },
+    {
+      "reference": "J5",
+      "lib_id": "Connector_Generic:Conn_01x03",
+      "footprint": "Connector_JST:JST_PH_B3B-PH-K_1x03_P2.00mm_Vertical",
+      "value": "WATER_LEVEL",
+      "connector": true,
+      "housing": "JST PHR-3"
+    },
+    {
+      "reference": "J6",
+      "lib_id": "Connector_Generic:Conn_01x05",
+      "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical",
+      "value": "DEBUG"
+    }
+  ],
+  "nets": [
+    {
+      "name": "+3V3",
+      "pins": [
+        "U1.1",
+        "U1.10",
+        "U1.22",
+        "U1.33",
+        "U1.42",
+        "U1.43",
+        "U1.44",
+        "U1.48",
+        "U1.49",
+        "U2.8",
+        "C1.1",
+        "R1.1",
+        "R2.1",
+        "R3.1",
+        "J1.1",
+        "J2.1",
+        "J5.1",
+        "J6.5"
+      ],
+      "signal_class": "power",
+      "voltage_v": 3.3
+    },
+    {
+      "name": "+1V1",
+      "pins": [
+        "U1.23",
+        "U1.45",
+        "U1.50",
+        "C2.1"
+      ],
+      "signal_class": "power",
+      "voltage_v": 1.1
+    },
+    {
+      "name": "GND",
+      "pins": [
+        "U1.19",
+        "U1.57",
+        "U2.4",
+        "C1.2",
+        "C2.2",
+        "Y1.2",
+        "Y1.4",
+        "SW1.2",
+        "SW2.2",
+        "J1.2",
+        "J2.2",
+        "J3.2",
+        "J4.2",
+        "J5.3",
+        "J6.1"
+      ],
+      "signal_class": "ground"
+    },
+    {
+      "name": "QSPI_SS",
+      "pins": [
+        "U1.56",
+        "U2.1"
+      ],
+      "signal_class": "highspeed",
+      "voltage_v": 3.3
+    },
+    {
+      "name": "QSPI_SD1",
+      "pins": [
+        "U1.55",
+        "U2.2"
+      ],
+      "signal_class": "highspeed",
+      "voltage_v": 3.3
+    },
+    {
+      "name": "QSPI_SD2",
+      "pins": [
+        "U1.54",
+        "U2.3"
+      ],
+      "signal_class": "highspeed",
+      "voltage_v": 3.3
+    },
+    {
+      "name": "QSPI_SD0",
+      "pins": [
+        "U1.53",
+        "U2.5"
+      ],
+      "signal_class": "highspeed",
+      "voltage_v": 3.3
+    },
+    {
+      "name": "QSPI_SCLK",
+      "pins": [
+        "U1.52",
+        "U2.6"
+      ],
+      "signal_class": "highspeed",
+      "voltage_v": 3.3
+    },
+    {
+      "name": "QSPI_SD3",
+      "pins": [
+        "U1.51",
+        "U2.7"
+      ],
+      "signal_class": "highspeed",
+      "voltage_v": 3.3
+    },
+    {
+      "name": "XIN",
+      "pins": [
+        "U1.20",
+        "Y1.1"
+      ],
+      "signal_class": "analog",
+      "voltage_v": 1.1
+    },
+    {
+      "name": "XOUT",
+      "pins": [
+        "U1.21",
+        "Y1.3"
+      ],
+      "signal_class": "analog",
+      "voltage_v": 1.1
+    },
+    {
+      "name": "RUN",
+      "pins": [
+        "U1.26",
+        "R3.2"
+      ],
+      "signal_class": "signal",
+      "voltage_v": 3.3
+    },
+    {
+      "name": "SWCLK",
+      "pins": [
+        "U1.24",
+        "J6.2"
+      ],
+      "signal_class": "data",
+      "voltage_v": 3.3
+    },
+    {
+      "name": "SWDIO",
+      "pins": [
+        "U1.25",
+        "J6.3"
+      ],
+      "signal_class": "data",
+      "voltage_v": 3.3
+    },
+    {
+      "name": "DBG_TX",
+      "pins": [
+        "U1.2",
+        "J6.4"
+      ],
+      "signal_class": "data",
+      "voltage_v": 3.3
+    },
+    {
+      "name": "BTN_BOIL",
+      "pins": [
+        "U1.4",
+        "SW1.1"
+      ],
+      "signal_class": "signal",
+      "voltage_v": 3.3
+    },
+    {
+      "name": "LID_SW",
+      "pins": [
+        "U1.5",
+        "SW2.1"
+      ],
+      "signal_class": "signal",
+      "voltage_v": 3.3
+    },
+    {
+      "name": "I2C_SDA",
+      "pins": [
+        "U1.6",
+        "R1.2",
+        "J1.3"
+      ],
+      "signal_class": "data",
+      "voltage_v": 3.3
+    },
+    {
+      "name": "I2C_SCL",
+      "pins": [
+        "U1.7",
+        "R2.2",
+        "J1.4"
+      ],
+      "signal_class": "data",
+      "voltage_v": 3.3
+    },
+    {
+      "name": "LED_RING",
+      "pins": [
+        "U1.8",
+        "J2.3"
+      ],
+      "signal_class": "data",
+      "voltage_v": 3.3
+    },
+    {
+      "name": "HEATER_EN",
+      "pins": [
+        "U1.18",
+        "J4.1"
+      ],
+      "signal_class": "signal",
+      "voltage_v": 3.3
+    },
+    {
+      "name": "BUZZER",
+      "pins": [
+        "U1.27",
+        "J3.1"
+      ],
+      "signal_class": "signal",
+      "voltage_v": 3.3
+    },
+    {
+      "name": "WATER_LVL",
+      "pins": [
+        "U1.38",
+        "J5.2"
+      ],
+      "signal_class": "analog",
+      "voltage_v": 3.3
+    }
+  ],
+  "board": {
+    "width_mm": 60,
+    "height_mm": 40,
+    "placements": {
+      "U1": {
+        "x_mm": 5,
+        "y_mm": 8
+      },
+      "U2": {
+        "x_mm": 12,
+        "y_mm": 8
+      },
+      "Y1": {
+        "x_mm": 19,
+        "y_mm": 8
+      },
+      "C1": {
+        "x_mm": 26,
+        "y_mm": 8
+      },
+      "C2": {
+        "x_mm": 33,
+        "y_mm": 8
+      },
+      "R1": {
+        "x_mm": 40,
+        "y_mm": 8
+      },
+      "R2": {
+        "x_mm": 47,
+        "y_mm": 8
+      },
+      "R3": {
+        "x_mm": 54,
+        "y_mm": 8
+      },
+      "SW1": {
+        "x_mm": 5,
+        "y_mm": 22
+      },
+      "SW2": {
+        "x_mm": 12,
+        "y_mm": 22
+      },
+      "J1": {
+        "x_mm": 19,
+        "y_mm": 22
+      },
+      "J2": {
+        "x_mm": 26,
+        "y_mm": 22
+      },
+      "J3": {
+        "x_mm": 33,
+        "y_mm": 22
+      },
+      "J4": {
+        "x_mm": 40,
+        "y_mm": 22
+      },
+      "J5": {
+        "x_mm": 47,
+        "y_mm": 22
+      },
+      "J6": {
+        "x_mm": 54,
+        "y_mm": 22
+      }
+    }
+  }
+}
