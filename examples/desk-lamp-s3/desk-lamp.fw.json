@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "system": "firmware",
+  "artifact_kind": "firmware_contract",
+  "name": "desk-lamp",
+  "description": "Desk lamp controller firmware (ESP-IDF on ESP32-S3-WROOM-1).",
+  "mcu": {
+    "profile": "esp32s3",
+    "ref": "U1",
+    "clock_mhz": 160
+  },
+  "circuit": {
+    "connectivity": "circuit/desk-lamp.firmware.json"
+  },
+  "pins": [
+    {
+      "signal": "mode_button",
+      "pad": "GPIO4",
+      "net": "BTN_MODE",
+      "function": "gpio_in",
+      "pull": "up",
+      "active": "low",
+      "rationale": "Cycles OFF -> DIM -> BRIGHT; also the light-sleep wake source."
+    },
+    {
+      "signal": "lamp_led",
+      "pad": "GPIO5",
+      "net": "LED_PWM",
+      "function": "pwm",
+      "peripheral": "lamp_pwm",
+      "rationale": "Drives the low-side MOSFET gate of the LED string."
+    },
+    {
+      "signal": "debug_tx",
+      "pad": "GPIO43",
+      "net": "DBG_TX",
+      "function": "uart_tx",
+      "peripheral": "console"
+    },
+    {
+      "signal": "debug_rx",
+      "pad": "GPIO44",
+      "net": "DBG_RX",
+      "function": "uart_rx",
+      "peripheral": "console"
+    }
+  ],
+  "peripherals": [
+    {
+      "id": "lamp_pwm",
+      "kind": "pwm",
+      "instance": 0,
+      "frequency_hz": 5000,
+      "rationale": "LEDC low-speed timer 0, 8-bit duty; 5 kHz is above visible flicker."
+    },
+    {
+      "id": "console",
+      "kind": "uart",
+      "instance": 0,
+      "baud": 115200
+    }
+  ],
+  "power": {
+    "supply_net": "+3V3",
+    "average_budget_ua": 20000,
+    "modes": [
+      {
+        "id": "lit",
+        "kind": "run",
+        "current_ua": 40000,
+        "duty": 0.3,
+        "peripherals_on": ["lamp_pwm", "console"]
+      },
+      {
+        "id": "off",
+        "kind": "sleep",
+        "current_ua": 2000,
+        "duty": 0.7,
+        "wake": ["mode_button"]
+      }
+    ]
+  },
+  "build": {
+    "backend": "platformio",
+    "dir": "fw",
+    "env": "esp32s3",
+    "elf": "fw/.pio/build/esp32s3/firmware.elf",
+    "pins_header": "fw/include/fw_pins.h",
+    "budget": {
+      "flash_pct": 50,
+      "ram_pct": 60
+    },
+    "timeout_s": 1800
+  },
+  "analysis": {
+    "tool": "cppcheck",
+    "std": "c11",
+    "sources": ["fw/src"],
+    "includes": ["fw/include"],
+    "fail_on": ["error", "warning", "portability"]
+  },
+  "simulations": [
+    {
+      "id": "lamp_selftest",
+      "runner": "qemu-esp",
+      "machine": "esp32s3",
+      "fidelity": "mcu",
+      "image": "fw/.pio/build/esp32s3/flash.bin",
+      "expect": [
+        "BOOT desk-lamp",
+        "MODE DIM",
+        "MODE BRIGHT",
+        "MODE OFF",
+        "SELFTEST PASS"
+      ],
+      "forbid": ["SELFTEST FAIL", "Guru Meditation", "abort()"],
+      "timeout_s": 60
+    }
+  ]
+}

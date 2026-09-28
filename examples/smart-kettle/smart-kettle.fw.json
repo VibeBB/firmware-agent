@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "system": "firmware",
+  "artifact_kind": "firmware_contract",
+  "name": "smart-kettle",
+  "description": "Smart kettle controller firmware (bare-metal C on RP2040).",
+  "mcu": {
+    "profile": "rp2040",
+    "ref": "U1",
+    "flash_kb": 2048,
+    "clock_mhz": 125
+  },
+  "circuit": {
+    "connectivity": "circuit/smart-kettle.firmware.json"
+  },
+  "pins": [
+    {
+      "signal": "boil_button",
+      "pad": "GPIO2",
+      "net": "BTN_BOIL",
+      "function": "gpio_in",
+      "pull": "up",
+      "active": "low",
+      "rationale": "Wakes the MCU from dormant; internal pull-up, switch to GND."
+    },
+    {
+      "signal": "lid_switch",
+      "pad": "GPIO3",
+      "net": "LID_SW",
+      "function": "gpio_in",
+      "pull": "up",
+      "active": "low",
+      "rationale": "Heating is inhibited while the lid is open."
+    },
+    {
+      "signal": "temp_sda",
+      "pad": "GPIO4",
+      "net": "I2C_SDA",
+      "function": "i2c_sda",
+      "peripheral": "i2c_temp"
+    },
+    {
+      "signal": "temp_scl",
+      "pad": "GPIO5",
+      "net": "I2C_SCL",
+      "function": "i2c_scl",
+      "peripheral": "i2c_temp"
+    },
+    {
+      "signal": "led_ring",
+      "pad": "GPIO6",
+      "net": "LED_RING",
+      "function": "pwm",
+      "peripheral": "led_pwm"
+    },
+    {
+      "signal": "heater_en",
+      "pad": "GPIO15",
+      "net": "HEATER_EN",
+      "function": "gpio_out",
+      "initial": "low",
+      "rationale": "Heater relay must be off from reset."
+    },
+    {
+      "signal": "buzzer",
+      "pad": "GPIO16",
+      "net": "BUZZER",
+      "function": "pwm",
+      "peripheral": "buzzer_pwm",
+      "rationale": "Plays the bard product cues (boot/done/warning)."
+    },
+    {
+      "signal": "water_level",
+      "pad": "GPIO26",
+      "net": "WATER_LVL",
+      "function": "adc",
+      "peripheral": "water_adc"
+    },
+    {
+      "signal": "debug_tx",
+      "pad": "GPIO0",
+      "net": "DBG_TX",
+      "function": "uart_tx",
+      "peripheral": "debug_uart"
+    }
+  ],
+  "peripherals": [
+    {
+      "id": "i2c_temp",
+      "kind": "i2c",
+      "instance": 0,
+      "frequency_hz": 400000,
+      "rationale": "TMP117-class probe on J1."
+    },
+    {
+      "id": "led_pwm",
+      "kind": "pwm",
+      "instance": 3
+    },
+    {
+      "id": "buzzer_pwm",
+      "kind": "pwm",
+      "instance": 0
+    },
+    {
+      "id": "water_adc",
+      "kind": "adc",
+      "instance": 0
+    },
+    {
+      "id": "debug_uart",
+      "kind": "uart",
+      "instance": 0,
+      "baud": 115200
+    }
+  ],
+  "power": {
+    "supply_net": "+3V3",
+    "average_budget_ua": 1500,
+    "modes": [
+      {
+        "id": "heating",
+        "kind": "run",
+        "current_ua": 25000,
+        "duty": 0.02,
+        "peripherals_on": [
+          "i2c_temp",
+          "led_pwm",
+          "buzzer_pwm",
+          "water_adc"
+        ]
+      },
+      {
+        "id": "standby",
+        "kind": "idle",
+        "current_ua": 5000,
+        "duty": 0.08,
+        "peripherals_on": [
+          "led_pwm"
+        ]
+      },
+      {
+        "id": "dormant",
+        "kind": "deep_sleep",
+        "current_ua": 180,
+        "duty": 0.9,
+        "wake": [
+          "boil_button",
+          "lid_switch"
+        ]
+      }
+    ]
+  },
+  "build": {
+    "backend": "make",
+    "dir": "fw",
+    "target": "all",
+    "elf": "fw/build/smart-kettle.elf",
+    "pins_header": "fw/include/fw_pins.h",
+    "budget": {
+      "flash_pct": 25,
+      "ram_pct": 50
+    },
+    "timeout_s": 300
+  },
+  "analysis": {
+    "tool": "cppcheck",
+    "std": "c11",
+    "sources": [
+      "fw/src",
+      "fw/sim"
+    ],
+    "includes": [
+      "fw/include"
+    ],
+    "fail_on": [
+      "error",
+      "warning",
+      "portability"
+    ]
+  },
+  "simulations": [
+    {
+      "id": "kettle_logic",
+      "runner": "qemu-arm",
+      "machine": "mps2-an385",
+      "fidelity": "core",
+      "image": "fw/build/sim/kettle-sim.elf",
+      "build": {
+        "backend": "make",
+        "dir": "fw",
+        "target": "sim",
+        "elf": "fw/build/sim/kettle-sim.elf",
+        "timeout_s": 300
+      },
+      "expect": [
+        "BOOT",
+        "FEEDBACK WARNING",
+        "STATE HEATING",
+        "STATE DONE",
+        "FEEDBACK DONE",
+        "STATE FAULT",
+        "SIM PASS"
+      ],
+      "forbid": [
+        "SIM FAIL",
+        "MISMATCH"
+      ],
+      "exit_code": 0,
+      "timeout_s": 20
+    }
+  ]
+}

@@ -1,0 +1,257 @@
+{
+  "schema_version": 1,
+  "system": "circuit",
+  "artifact_kind": "circuit_firmware_connectivity",
+  "design": "smart-kettle",
+  "source": "brief",
+  "brief_sha256": "df2b76f8c319e613029e5a5cd110fb40a794555ad65d89001977fb93fca7fa2f",
+  "netlist_sha256": null,
+  "mcus": [
+    {
+      "ref": "U1",
+      "lib_id": "MCU_RaspberryPi:RP2040",
+      "value": "RP2040",
+      "footprint": "Package_DFN_QFN:QFN-56-1EP_7x7mm_P0.4mm_EP3.2x3.2mm",
+      "pins": [
+        {
+          "pin": "1",
+          "function": null,
+          "net": "+3V3",
+          "signal_class": "power",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "2",
+          "function": null,
+          "net": "DBG_TX",
+          "signal_class": "data",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "4",
+          "function": null,
+          "net": "BTN_BOIL",
+          "signal_class": "signal",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "5",
+          "function": null,
+          "net": "LID_SW",
+          "signal_class": "signal",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "6",
+          "function": null,
+          "net": "I2C_SDA",
+          "signal_class": "data",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "7",
+          "function": null,
+          "net": "I2C_SCL",
+          "signal_class": "data",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "8",
+          "function": null,
+          "net": "LED_RING",
+          "signal_class": "data",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "10",
+          "function": null,
+          "net": "+3V3",
+          "signal_class": "power",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "18",
+          "function": null,
+          "net": "HEATER_EN",
+          "signal_class": "signal",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "19",
+          "function": null,
+          "net": "GND",
+          "signal_class": "ground",
+          "voltage_v": null
+        },
+        {
+          "pin": "20",
+          "function": null,
+          "net": "XIN",
+          "signal_class": "analog",
+          "voltage_v": 1.1
+        },
+        {
+          "pin": "21",
+          "function": null,
+          "net": "XOUT",
+          "signal_class": "analog",
+          "voltage_v": 1.1
+        },
+        {
+          "pin": "22",
+          "function": null,
+          "net": "+3V3",
+          "signal_class": "power",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "23",
+          "function": null,
+          "net": "+1V1",
+          "signal_class": "power",
+          "voltage_v": 1.1
+        },
+        {
+          "pin": "24",
+          "function": null,
+          "net": "SWCLK",
+          "signal_class": "data",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "25",
+          "function": null,
+          "net": "SWDIO",
+          "signal_class": "data",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "26",
+          "function": null,
+          "net": "RUN",
+          "signal_class": "signal",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "27",
+          "function": null,
+          "net": "BUZZER",
+          "signal_class": "signal",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "33",
+          "function": null,
+          "net": "+3V3",
+          "signal_class": "power",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "38",
+          "function": null,
+          "net": "WATER_LVL",
+          "signal_class": "analog",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "42",
+          "function": null,
+          "net": "+3V3",
+          "signal_class": "power",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "43",
+          "function": null,
+          "net": "+3V3",
+          "signal_class": "power",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "44",
+          "function": null,
+          "net": "+3V3",
+          "signal_class": "power",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "45",
+          "function": null,
+          "net": "+1V1",
+          "signal_class": "power",
+          "voltage_v": 1.1
+        },
+        {
+          "pin": "48",
+          "function": null,
+          "net": "+3V3",
+          "signal_class": "power",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "49",
+          "function": null,
+          "net": "+3V3",
+          "signal_class": "power",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "50",
+          "function": null,
+          "net": "+1V1",
+          "signal_class": "power",
+          "voltage_v": 1.1
+        },
+        {
+          "pin": "51",
+          "function": null,
+          "net": "QSPI_SD3",
+          "signal_class": "highspeed",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "52",
+          "function": null,
+          "net": "QSPI_SCLK",
+          "signal_class": "highspeed",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "53",
+          "function": null,
+          "net": "QSPI_SD0",
+          "signal_class": "highspeed",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "54",
+          "function": null,
+          "net": "QSPI_SD2",
+          "signal_class": "highspeed",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "55",
+          "function": null,
+          "net": "QSPI_SD1",
+          "signal_class": "highspeed",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "56",
+          "function": null,
+          "net": "QSPI_SS",
+          "signal_class": "highspeed",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "57",
+          "function": null,
+          "net": "GND",
+          "signal_class": "ground",
+          "voltage_v": null
+        }
+      ]
+    }
+  ]
+}

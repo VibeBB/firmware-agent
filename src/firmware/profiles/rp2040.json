@@ -1,0 +1,618 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "mcu_profile",
+  "id": "rp2040",
+  "vendor": "Raspberry Pi",
+  "part": "RP2040",
+  "core": "cortex-m0plus",
+  "package": "QFN-56",
+  "io_voltage_max_v": 3.6,
+  "source": "RP2040 Datasheet (Raspberry Pi Ltd), sections 1.4 Pinout and 2.19.2 Function Select",
+  "flash_kb": 2048,
+  "ram_kb": 264,
+  "memory_regions": [
+    {
+      "name": "xip_flash",
+      "kind": "flash",
+      "origin": 268435456,
+      "length_kb": 16384
+    },
+    {
+      "name": "sram",
+      "kind": "ram",
+      "origin": 536870912,
+      "length_kb": 264
+    }
+  ],
+  "peripherals": {
+    "i2c": [
+      0,
+      1
+    ],
+    "spi": [
+      0,
+      1
+    ],
+    "uart": [
+      0,
+      1
+    ],
+    "pwm": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "adc": [
+      0
+    ],
+    "usb": [
+      0
+    ]
+  },
+  "sim_machine": null,
+  "pads": [
+    {
+      "name": "GPIO0",
+      "gpio": 0,
+      "pin": "2",
+      "functions": [
+        "gpio",
+        "spi0.miso",
+        "uart0.tx",
+        "i2c0.sda",
+        "pwm0.a"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO1",
+      "gpio": 1,
+      "pin": "3",
+      "functions": [
+        "gpio",
+        "spi0.cs",
+        "uart0.rx",
+        "i2c0.scl",
+        "pwm0.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO2",
+      "gpio": 2,
+      "pin": "4",
+      "functions": [
+        "gpio",
+        "spi0.sck",
+        "uart0.cts",
+        "i2c1.sda",
+        "pwm1.a"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO3",
+      "gpio": 3,
+      "pin": "5",
+      "functions": [
+        "gpio",
+        "spi0.mosi",
+        "uart0.rts",
+        "i2c1.scl",
+        "pwm1.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO4",
+      "gpio": 4,
+      "pin": "6",
+      "functions": [
+        "gpio",
+        "spi0.miso",
+        "uart1.tx",
+        "i2c0.sda",
+        "pwm2.a"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO5",
+      "gpio": 5,
+      "pin": "7",
+      "functions": [
+        "gpio",
+        "spi0.cs",
+        "uart1.rx",
+        "i2c0.scl",
+        "pwm2.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO6",
+      "gpio": 6,
+      "pin": "8",
+      "functions": [
+        "gpio",
+        "spi0.sck",
+        "uart1.cts",
+        "i2c1.sda",
+        "pwm3.a"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO7",
+      "gpio": 7,
+      "pin": "9",
+      "functions": [
+        "gpio",
+        "spi0.mosi",
+        "uart1.rts",
+        "i2c1.scl",
+        "pwm3.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO8",
+      "gpio": 8,
+      "pin": "11",
+      "functions": [
+        "gpio",
+        "spi1.miso",
+        "uart1.tx",
+        "i2c0.sda",
+        "pwm4.a"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO9",
+      "gpio": 9,
+      "pin": "12",
+      "functions": [
+        "gpio",
+        "spi1.cs",
+        "uart1.rx",
+        "i2c0.scl",
+        "pwm4.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO10",
+      "gpio": 10,
+      "pin": "13",
+      "functions": [
+        "gpio",
+        "spi1.sck",
+        "uart1.cts",
+        "i2c1.sda",
+        "pwm5.a"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO11",
+      "gpio": 11,
+      "pin": "14",
+      "functions": [
+        "gpio",
+        "spi1.mosi",
+        "uart1.rts",
+        "i2c1.scl",
+        "pwm5.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO12",
+      "gpio": 12,
+      "pin": "15",
+      "functions": [
+        "gpio",
+        "spi1.miso",
+        "uart0.tx",
+        "i2c0.sda",
+        "pwm6.a"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO13",
+      "gpio": 13,
+      "pin": "16",
+      "functions": [
+        "gpio",
+        "spi1.cs",
+        "uart0.rx",
+        "i2c0.scl",
+        "pwm6.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO14",
+      "gpio": 14,
+      "pin": "17",
+      "functions": [
+        "gpio",
+        "spi1.sck",
+        "uart0.cts",
+        "i2c1.sda",
+        "pwm7.a"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO15",
+      "gpio": 15,
+      "pin": "18",
+      "functions": [
+        "gpio",
+        "spi1.mosi",
+        "uart0.rts",
+        "i2c1.scl",
+        "pwm7.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO16",
+      "gpio": 16,
+      "pin": "27",
+      "functions": [
+        "gpio",
+        "spi0.miso",
+        "uart0.tx",
+        "i2c0.sda",
+        "pwm0.a"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO17",
+      "gpio": 17,
+      "pin": "28",
+      "functions": [
+        "gpio",
+        "spi0.cs",
+        "uart0.rx",
+        "i2c0.scl",
+        "pwm0.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO18",
+      "gpio": 18,
+      "pin": "29",
+      "functions": [
+        "gpio",
+        "spi0.sck",
+        "uart0.cts",
+        "i2c1.sda",
+        "pwm1.a"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO19",
+      "gpio": 19,
+      "pin": "30",
+      "functions": [
+        "gpio",
+        "spi0.mosi",
+        "uart0.rts",
+        "i2c1.scl",
+        "pwm1.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO20",
+      "gpio": 20,
+      "pin": "31",
+      "functions": [
+        "gpio",
+        "spi0.miso",
+        "uart1.tx",
+        "i2c0.sda",
+        "pwm2.a"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO21",
+      "gpio": 21,
+      "pin": "32",
+      "functions": [
+        "gpio",
+        "spi0.cs",
+        "uart1.rx",
+        "i2c0.scl",
+        "pwm2.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO22",
+      "gpio": 22,
+      "pin": "34",
+      "functions": [
+        "gpio",
+        "spi0.sck",
+        "uart1.cts",
+        "i2c1.sda",
+        "pwm3.a"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO23",
+      "gpio": 23,
+      "pin": "35",
+      "functions": [
+        "gpio",
+        "spi0.mosi",
+        "uart1.rts",
+        "i2c1.scl",
+        "pwm3.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO24",
+      "gpio": 24,
+      "pin": "36",
+      "functions": [
+        "gpio",
+        "spi1.miso",
+        "uart1.tx",
+        "i2c0.sda",
+        "pwm4.a"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO25",
+      "gpio": 25,
+      "pin": "37",
+      "functions": [
+        "gpio",
+        "spi1.cs",
+        "uart1.rx",
+        "i2c0.scl",
+        "pwm4.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO26",
+      "gpio": 26,
+      "pin": "38",
+      "functions": [
+        "gpio",
+        "spi1.sck",
+        "uart1.cts",
+        "i2c1.sda",
+        "pwm5.a",
+        "adc0.ch0"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO27",
+      "gpio": 27,
+      "pin": "39",
+      "functions": [
+        "gpio",
+        "spi1.mosi",
+        "uart1.rts",
+        "i2c1.scl",
+        "pwm5.b",
+        "adc0.ch1"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO28",
+      "gpio": 28,
+      "pin": "40",
+      "functions": [
+        "gpio",
+        "spi1.miso",
+        "uart0.tx",
+        "i2c0.sda",
+        "pwm6.a",
+        "adc0.ch2"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO29",
+      "gpio": 29,
+      "pin": "41",
+      "functions": [
+        "gpio",
+        "spi1.cs",
+        "uart0.rx",
+        "i2c0.scl",
+        "pwm6.b",
+        "adc0.ch3"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "IOVDD",
+      "pin": "1",
+      "functions": [],
+      "reserved": "power"
+    },
+    {
+      "name": "IOVDD",
+      "pin": "10",
+      "functions": [],
+      "reserved": "power"
+    },
+    {
+      "name": "TESTEN",
+      "pin": "19",
+      "functions": [],
+      "reserved": "test"
+    },
+    {
+      "name": "XIN",
+      "pin": "20",
+      "functions": [],
+      "reserved": "clock"
+    },
+    {
+      "name": "XOUT",
+      "pin": "21",
+      "functions": [],
+      "reserved": "clock"
+    },
+    {
+      "name": "IOVDD",
+      "pin": "22",
+      "functions": [],
+      "reserved": "power"
+    },
+    {
+      "name": "DVDD",
+      "pin": "23",
+      "functions": [],
+      "reserved": "power"
+    },
+    {
+      "name": "SWCLK",
+      "pin": "24",
+      "functions": [],
+      "reserved": "debug"
+    },
+    {
+      "name": "SWDIO",
+      "pin": "25",
+      "functions": [],
+      "reserved": "debug"
+    },
+    {
+      "name": "RUN",
+      "pin": "26",
+      "functions": [],
+      "reserved": "reset"
+    },
+    {
+      "name": "IOVDD",
+      "pin": "33",
+      "functions": [],
+      "reserved": "power"
+    },
+    {
+      "name": "ADC_AVDD",
+      "pin": "42",
+      "functions": [],
+      "reserved": "power"
+    },
+    {
+      "name": "IOVDD",
+      "pin": "43",
+      "functions": [],
+      "reserved": "power"
+    },
+    {
+      "name": "VREG_VOUT",
+      "pin": "44",
+      "functions": [],
+      "reserved": "power"
+    },
+    {
+      "name": "VREG_VIN",
+      "pin": "45",
+      "functions": [],
+      "reserved": "power"
+    },
+    {
+      "name": "USB_DM",
+      "pin": "46",
+      "functions": [
+        "usb0.dm"
+      ]
+    },
+    {
+      "name": "USB_DP",
+      "pin": "47",
+      "functions": [
+        "usb0.dp"
+      ]
+    },
+    {
+      "name": "USB_VDD",
+      "pin": "48",
+      "functions": [],
+      "reserved": "power"
+    },
+    {
+      "name": "IOVDD",
+      "pin": "49",
+      "functions": [],
+      "reserved": "power"
+    },
+    {
+      "name": "DVDD",
+      "pin": "50",
+      "functions": [],
+      "reserved": "power"
+    },
+    {
+      "name": "QSPI_SD3",
+      "pin": "51",
+      "functions": [],
+      "reserved": "flash"
+    },
+    {
+      "name": "QSPI_SCLK",
+      "pin": "52",
+      "functions": [],
+      "reserved": "flash"
+    },
+    {
+      "name": "QSPI_SD0",
+      "pin": "53",
+      "functions": [],
+      "reserved": "flash"
+    },
+    {
+      "name": "QSPI_SD2",
+      "pin": "54",
+      "functions": [],
+      "reserved": "flash"
+    },
+    {
+      "name": "QSPI_SD1",
+      "pin": "55",
+      "functions": [],
+      "reserved": "flash"
+    },
+    {
+      "name": "QSPI_SS",
+      "pin": "56",
+      "functions": [],
+      "reserved": "flash"
+    },
+    {
+      "name": "GND",
+      "pin": "57",
+      "functions": [],
+      "reserved": "power"
+    }
+  ]
+}

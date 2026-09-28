@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "system": "circuit",
+  "artifact_kind": "circuit_firmware_connectivity",
+  "design": "desk-lamp",
+  "source": "netlist",
+  "brief_sha256": "7dde864e1a7af8b1a652658b522b71efa86d6e4a3f62b505ad38a4c82135d985",
+  "netlist_sha256": "eb20298916fc83f17512395b55539e260f6a9a5ae3e9e5c2df17f0a1a0237461",
+  "mcus": [
+    {
+      "ref": "U1",
+      "lib_id": "RF_Module:ESP32-S3-WROOM-1",
+      "value": "ESP32-S3-WROOM-1-N8",
+      "footprint": "RF_Module:ESP32-S3-WROOM-1",
+      "pins": [
+        {
+          "pin": "1",
+          "function": "GND",
+          "net": "GND",
+          "signal_class": "ground",
+          "voltage_v": null
+        },
+        {
+          "pin": "2",
+          "function": "3V3",
+          "net": "+3V3",
+          "signal_class": "power",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "3",
+          "function": "EN",
+          "net": "EN",
+          "signal_class": "signal",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "4",
+          "function": "IO4",
+          "net": "BTN_MODE",
+          "signal_class": "signal",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "5",
+          "function": "IO5",
+          "net": "LED_PWM",
+          "signal_class": "signal",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "36",
+          "function": "RXD0",
+          "net": "DBG_RX",
+          "signal_class": "signal",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "37",
+          "function": "TXD0",
+          "net": "DBG_TX",
+          "signal_class": "signal",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "40",
+          "function": "GND",
+          "net": "GND",
+          "signal_class": "ground",
+          "voltage_v": null
+        }
+      ]
+    }
+  ]
+}
