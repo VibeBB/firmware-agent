@@ -1,0 +1,12 @@
+{
+  "name": "firmware",
+  "version": "0.1.0",
+  "description": "OpenHands plugin for firmware development (MCU, pin map, peripherals, power modes) gated by build, circuit netlist match, flash/RAM budget, static analysis, and QEMU simulation",
+  "author": {
+    "name": "VibeBB",
+    "url": "https://github.com/VibeBB/firmware-agent"
+  },
+  "license": "BSD-3-Clause",
+  "repository": "https://github.com/VibeBB/firmware-agent",
+  "entry_command": "doctor"
+}
