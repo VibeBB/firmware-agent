@@ -1,0 +1,49 @@
+[project]
+name = "firmware-agent"
+version = "0.1.0"
+description = "OpenHands plugin for firmware development (MCU, pin map, peripherals, power modes) gated by build, netlist match, flash/RAM budget, static analysis, and QEMU simulation"
+license = "BSD-3-Clause"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2",
+    "mcp>=1.29,<2",
+]
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.414",
+    "pytest>=9",
+    "pytest-xdist>=3",
+    "ruff>=0.16",
+]
+sdk-check = ["openhands-sdk==1.49.6", "openhands-tools==1.49.6"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/firmware"]
+
+[tool.uv]
+required-version = "==0.12.19"
+default-groups = ["dev", "sdk-check"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "scripts", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+include = ["src", "scripts", "tests"]
+exclude = ["**/__pycache__", ".venv", "examples"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q -n auto --dist loadgroup"
+pythonpath = ["."]
