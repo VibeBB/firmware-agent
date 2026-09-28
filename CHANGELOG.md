@@ -1,0 +1,15 @@
+# Changelog
+
+## 0.1.0 — unreleased
+
+- Firmware contract (`<name>.fw.json`) with MCU, pin map, peripherals,
+  power modes, build, static analysis and QEMU simulations.
+- MCU profiles: RP2040, ESP32-S3.
+- Gates: contract, pin functions, circuit netlist match, power modes,
+  pin header, build (make/CMake/PlatformIO), flash/RAM budget, cppcheck,
+  QEMU simulation (ARM, Espressif).
+- Advisory GDB debugging on QEMU.
+- Circuit interchange (`circuit_firmware_connectivity`, `firmware_pinmap`)
+  and sibling change requests (`fw_request`).
+- OpenHands plugin: 3 agents, 6 commands, 6 skills, 4 hooks, MCP server.
+- firmware-tools image and examples (smart-kettle RP2040, desk-lamp ESP32-S3).
