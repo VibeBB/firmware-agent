@@ -1,0 +1,10 @@
+.git
+.venv
+__pycache__
+*.py[cod]
+out/
+build/
+.pio/
+fw-reports/
+docs/
+tests/
