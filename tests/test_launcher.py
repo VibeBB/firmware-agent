@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import subprocess
 from pathlib import Path
 from types import ModuleType
@@ -20,6 +21,10 @@ def _load_launcher() -> ModuleType:
     return module
 
 
+def _empty_cache_dirs(_pattern: str) -> list[Path]:
+    return []
+
+
 def _docker_on_path(_name: str) -> str:
     return "docker"
 
@@ -35,6 +40,70 @@ def test_docker_argv_passes_workspace_root_for_subdirectory(
     env_pairs = [argv[index + 1] for index, arg in enumerate(argv) if arg == "-e"]
     assert f"OPENHANDS_PROJECT_DIR={tmp_path}" in env_pairs
     assert argv[argv.index("-w") + 1] == str(subdirectory)
+    assert argv[argv.index("--network") + 1] == "none"
+
+
+def test_null_image_locks_are_ignored(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    module = _load_launcher()
+    plugin_root = tmp_path / "plugins" / "firmware"
+    plugin_root.mkdir(parents=True)
+    (plugin_root / "tools-image.json").write_text(
+        json.dumps({"image": "ghcr.io/vibebb/firmware-tools", "digest": None, "tag": None}),
+        encoding="utf-8",
+    )
+    lock_dir = tmp_path / "docker"
+    lock_dir.mkdir()
+    (lock_dir / "image-digests.json").write_text(
+        json.dumps(
+            {
+                "firmware_tools": {
+                    "image": "ghcr.io/vibebb/firmware-tools",
+                    "digest": None,
+                    "tag": None,
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.delenv("FIRMWARE_TOOLS_IMAGE", raising=False)
+    monkeypatch.setattr(module, "_cache_dirs", _empty_cache_dirs)
+    assert module.image_ref(plugin_root) is None
+
+
+def test_plugin_image_digest_pin_precedes_repository_lock(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _load_launcher()
+    plugin_root = tmp_path / "plugins" / "firmware"
+    plugin_root.mkdir(parents=True)
+    plugin_digest = "sha256:" + "a" * 64
+    (plugin_root / "tools-image.json").write_text(
+        json.dumps(
+            {
+                "image": "ghcr.io/vibebb/firmware-tools",
+                "digest": plugin_digest,
+                "tag": "plugin",
+            }
+        ),
+        encoding="utf-8",
+    )
+    lock_dir = tmp_path / "docker"
+    lock_dir.mkdir()
+    (lock_dir / "image-digests.json").write_text(
+        json.dumps(
+            {
+                "firmware_tools": {
+                    "image": "ghcr.io/vibebb/firmware-tools",
+                    "digest": "sha256:" + "b" * 64,
+                    "tag": "repository",
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.delenv("FIRMWARE_TOOLS_IMAGE", raising=False)
+    monkeypatch.setattr(module, "_cache_dirs", _empty_cache_dirs)
+    assert module.image_ref(plugin_root) == (f"ghcr.io/vibebb/firmware-tools@{plugin_digest}")
 
 
 def test_inspect_timeout_fails_without_pulling(

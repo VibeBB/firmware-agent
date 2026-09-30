@@ -1,0 +1,99 @@
+name: Locked image check
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "40 0 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: locked-image-check
+  cancel-in-progress: false
+
+jobs:
+  check-lock:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    outputs:
+      present: ${{ steps.lock.outputs.present }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: lock
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          path = Path("docker/image-digests.json")
+          if not path.is_file():
+              with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+                  output.write("present=false\n")
+              raise SystemExit(0)
+          try:
+              data = json.loads(path.read_text(encoding="utf-8"))
+          except (OSError, json.JSONDecodeError) as exc:
+              raise SystemExit(f"invalid image digest lock: {exc}")
+          entry = data.get("firmware_tools") if isinstance(data, dict) else None
+          if not isinstance(entry, dict) or entry.get("image") != "ghcr.io/vibebb/firmware-tools":
+              raise SystemExit("invalid firmware_tools digest lock entry")
+          digest = entry.get("digest")
+          tag = entry.get("tag")
+          if digest is None and tag is None:
+              present = "false"
+          elif isinstance(digest, str) and re.fullmatch(r"sha256:[0-9a-f]{64}", digest):
+              present = "true"
+          elif isinstance(tag, str) and tag:
+              present = "true"
+          else:
+              raise SystemExit("invalid firmware_tools digest lock entry")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"present={present}\n")
+          PY
+  check:
+    needs: check-lock
+    if: needs.check-lock.outputs.present == 'true'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          python-version: "3.12"
+          cache-suffix: locked-image-check
+      - run: uv sync --locked
+      - run: uv run python scripts/pull_locked_image.py --entry firmware_tools
+      - id: image
+        run: echo "ref=$(uv run python scripts/print_locked_image.py --entry firmware_tools)" >> "$GITHUB_OUTPUT"
+      - name: Smoke locked image
+        env:
+          IMAGE_REF: ${{ steps.image.outputs.ref }}
+        run: |
+          set -euo pipefail
+          export FIRMWARE_TOOLS_IMAGE="$IMAGE_REF"
+          export FIRMWARE_SRC="$GITHUB_WORKSPACE/src"
+          export OPENHANDS_PROJECT_DIR="$GITHUB_WORKSPACE"
+          launcher=plugins/firmware/scripts/firmware_launcher.py
+          python3 "$launcher" doctor | tee doctor.json
+          for contract in examples/smart-kettle/smart-kettle.fw.json examples/desk-lamp-s3/desk-lamp.fw.json; do
+            python3 "$launcher" gates "$contract" > report.json
+            python3 - report.json <<'PY'
+          import json, sys
+          report = json.load(open(sys.argv[1], encoding="utf-8"))
+          for check in report["checks"]:
+              print(f"{check['id']:24} {check['status']:8} {check['detail'][:200]}")
+          sys.exit(0 if report["verdict"] == "pass" else 1)
+          PY
+          done
+          python3 "$launcher" debug examples/desk-lamp-s3/desk-lamp.fw.json \
+            --id lamp_selftest --break lamp_step > debug.json
+          python3 -c "import json,sys; d=json.load(open('debug.json')); print(d['verdict'], d.get('stops')); sys.exit(0 if d['verdict']=='pass' and d.get('stops') else 1)"
