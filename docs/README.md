@@ -7,6 +7,10 @@
 - [ADR-0003](adr/ADR-0003-qemu-simulation-and-advisory-gdb.md) — QEMU simulation gates and advisory GDB
 - [ADR-0004](adr/ADR-0004-firmware-tools-image-and-licenses.md) — firmware-tools image, pinning, tool licenses
 
+## Research
+
+- [SDK v1.50.0 feature evaluation](research/sdk-v1.50.0-feature-evaluation.md)
+
 ## Skills
 
 The workflow and field references live in the plugin skills:

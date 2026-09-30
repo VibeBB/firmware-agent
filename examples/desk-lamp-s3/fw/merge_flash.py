@@ -12,11 +12,11 @@ def merge_flash(source, target, env):
     esptool = Path(env.PioPlatform().get_package_dir("tool-esptoolpy")) / "esptool.py"
     parts: list[str] = []
     for offset, image in env.get("FLASH_EXTRA_IMAGES", []):
-        parts += [env.subst(offset), env.subst(image)]
-    parts += [env.subst("$ESP32_APP_OFFSET"), str(build / "firmware.bin")]
+        parts += [str(env.subst(offset)), str(env.subst(image))]
+    parts += [str(env.subst("$ESP32_APP_OFFSET")), str(build / "firmware.bin")]
     subprocess.run(
         [
-            env.subst("$PYTHONEXE"),
+            str(env.subst("$PYTHONEXE")),
             str(esptool),
             "--chip",
             "esp32s3",
