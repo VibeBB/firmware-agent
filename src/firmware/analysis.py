@@ -88,9 +88,16 @@ def run_cppcheck(analysis: Analysis, root: Path, timeout_s: int = 600) -> Analys
     missing = [s for s in analysis.sources if not (root / s).exists()]
     if missing:
         return AnalysisResult(False, f"analysis sources missing: {', '.join(missing)}")
-    version = subprocess.run(
-        ["cppcheck", "--version"], capture_output=True, text=True, check=False
-    ).stdout.strip()
+    try:
+        version = subprocess.run(
+            ["cppcheck", "--version"],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=20,
+        ).stdout.strip()
+    except subprocess.TimeoutExpired:
+        return AnalysisResult(False, "cppcheck --version timed out after 20s")
     proc = subprocess.run(
         cppcheck_argv(analysis, root),
         cwd=root,

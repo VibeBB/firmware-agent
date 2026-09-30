@@ -92,6 +92,7 @@ def main() -> int:
         return 0
     if not isinstance(payload, dict):
         return 0
+    payload = cast(dict[str, Any], payload)
     if payload.get("tool_name") not in OBSERVED_TOOLS:
         return 0
     response = payload.get("tool_response")

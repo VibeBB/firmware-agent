@@ -35,11 +35,14 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any, cast
 
 _MODULES = {"mcp_server": "firmware.mcp_server"}
 _CONTAINER_SRC = "/plugin-src"
 _ENV_PREFIXES = ("OPENHANDS_", "FIRMWARE_")
 _ENV_KEYS = ("TMPDIR",)
+_INSPECT_TIMEOUT_S = 30
+_PULL_TIMEOUT_S = 900
 _CONTAINER_ENV = {
     "HOME": "/tmp",
     "TMPDIR": "/tmp",
@@ -97,16 +100,25 @@ def resolve_source(plugin_root: Path) -> Path | None:
 
 def _lock_entry_ref(lock_path: Path, key: str | None) -> str | None:
     try:
-        data = json.loads(lock_path.read_text(encoding="utf-8"))
+        data: Any = json.loads(lock_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return None
-    entry = data.get(key) if key else data
-    if not isinstance(entry, dict) or not entry.get("image"):
+    if not isinstance(data, dict):
         return None
-    if entry.get("digest"):
-        return f"{entry['image']}@{entry['digest']}"
-    if entry.get("tag"):
-        return f"{entry['image']}:{entry['tag']}"
+    data = cast(dict[str, Any], data)
+    entry = data.get(key) if key else data
+    if not isinstance(entry, dict):
+        return None
+    entry = cast(dict[str, Any], entry)
+    image = entry.get("image")
+    if not isinstance(image, str) or not image:
+        return None
+    digest = entry.get("digest")
+    if isinstance(digest, str) and digest:
+        return f"{image}@{digest}"
+    tag = entry.get("tag")
+    if isinstance(tag, str) and tag:
+        return f"{image}:{tag}"
     return None
 
 
@@ -129,12 +141,16 @@ def _ensure_image(ref: str, *, pull: bool) -> None:
     docker = shutil.which("docker")
     if docker is None:
         raise RuntimeError(f"docker not found on PATH (tools image {ref} is pinned)")
-    inspect = subprocess.run(
-        [docker, "image", "inspect", ref],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        check=False,
-    )
+    try:
+        inspect = subprocess.run(
+            [docker, "image", "inspect", ref],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+            timeout=_INSPECT_TIMEOUT_S,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(f"docker image inspect timed out after {_INSPECT_TIMEOUT_S}s") from exc
     if inspect.returncode == 0:
         return
     if not pull:
@@ -143,7 +159,15 @@ def _ensure_image(ref: str, *, pull: bool) -> None:
             "run 'firmware_launcher.py prewarm' to fetch it"
         )
     print(f"firmware_launcher: pulling tools image {ref}", file=sys.stderr)
-    pulled = subprocess.run([docker, "pull", ref], check=False, stdout=subprocess.DEVNULL)
+    try:
+        pulled = subprocess.run(
+            [docker, "pull", ref],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            timeout=_PULL_TIMEOUT_S,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(f"docker pull timed out after {_PULL_TIMEOUT_S}s") from exc
     if pulled.returncode != 0:
         raise RuntimeError(f"firmware tools image {ref} not present locally and pull failed")
 
@@ -166,9 +190,12 @@ def docker_argv(image: str, source: Path | None, inner_argv: list[str]) -> list[
         "-w",
         str(cwd) if inside else workdir,
     ]
+    argv += ["-e", f"OPENHANDS_PROJECT_DIR={workdir}"]
     if source is not None:
         argv += ["-v", f"{source}:{_CONTAINER_SRC}:ro", "-e", f"PYTHONPATH={_CONTAINER_SRC}"]
     for key, value in os.environ.items():
+        if key == "OPENHANDS_PROJECT_DIR":
+            continue
         if key in _ENV_KEYS or any(key.startswith(p) for p in _ENV_PREFIXES):
             argv += ["-e", f"{key}={value}"]
     for key, value in _CONTAINER_ENV.items():

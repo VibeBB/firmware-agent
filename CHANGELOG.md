@@ -15,3 +15,5 @@
 - firmware-tools image and examples (smart-kettle RP2040, desk-lamp ESP32-S3).
 - Updated SDK verification pins, uv, and the ESP32-S3 toolchain; normalized
   flash-image post-build arguments for PlatformIO 7.1.3.
+- Added bounded cppcheck version probing and a development-only pytest-cov
+  coverage gate.

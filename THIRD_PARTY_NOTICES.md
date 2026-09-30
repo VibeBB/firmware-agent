@@ -22,6 +22,7 @@ into `firmware` (ADR-0004).
 | pydantic | `>=2` via `uv.lock` | MIT | Contract models |
 | mcp | `>=1.29,<2` via `uv.lock` | MIT | MCP server |
 | openhands-sdk / openhands-tools | `1.50.0` (sdk-check group) | MIT | Plugin-load verification |
+| pytest-cov | `7.1.0` (dev group) | MIT | Test coverage reporting |
 
 Sources: Espressif QEMU <https://github.com/espressif/qemu>; the image
 records source, release, checksum and license in
