@@ -25,11 +25,18 @@ EXPECTED_SKILLS = {
     "firmware-workflow",
 }
 EXPECTED_COMMANDS = {"debug", "design", "doctor", "gates", "pinmap", "simulate"}
-EXPECTED_SESSION_START_HOOKS = {"firmware-doctor"}
-EXPECTED_USER_PROMPT_SUBMIT_HOOKS: set[str] = set()
+EXPECTED_SESSION_START_HOOKS = {
+    "firmware-doctor",
+    "intake-attachments",
+    "ensure-llm-profiles",
+}
+EXPECTED_USER_PROMPT_SUBMIT_HOOKS = {"intake-attachments"}
 EXPECTED_PRE_TOOL_USE_HOOKS = {"protect-generated", "safety-rail"}
-EXPECTED_STOP_HOOKS = {"report-firmware-status"}
-EXPECTED_POST_TOOL_USE_HOOKS: set[str] = set()
+EXPECTED_STOP_HOOKS = {"report-firmware-status", "intake-attachments"}
+EXPECTED_POST_TOOL_USE_HOOKS = {
+    "record-image-observation",
+    "record-vision-tool-event",
+}
 
 
 def _registered_tools() -> set[str]:

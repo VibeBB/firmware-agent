@@ -55,7 +55,14 @@ def test_cli_validate_and_profile(kettle: Path, capsys: pytest.CaptureFixture[st
 
 @pytest.mark.parametrize(
     "path",
-    ["fw/include/fw_pins.h", "out/kettle.fw-pinmap.json", "fw-reports/k.fw-report.md"],
+    [
+        "fw/include/fw_pins.h",
+        "out/kettle.fw-pinmap.json",
+        "fw-reports/k.fw-report.md",
+        "observations/firmware/image-observations.jsonl",
+        "observations/firmware/vision-tool-events.jsonl",
+        "intake/attachments/manifest.jsonl",
+    ],
 )
 def test_protect_generated_blocks_edits(path: str) -> None:
     result = _hook(
@@ -63,6 +70,39 @@ def test_protect_generated_blocks_edits(path: str) -> None:
         {"tool_name": "file_editor", "tool_input": {"command": "create", "path": path}},
     )
     assert result.returncode == 2
+
+
+@pytest.mark.parametrize(
+    "header",
+    [
+        "*** Update File: ",
+        "*** Add File: ",
+        "*** Delete File: ",
+        "*** Move to: ",
+        "+++ b/",
+        "--- a/",
+    ],
+)
+def test_protect_generated_blocks_vision_patch_paths(header: str) -> None:
+    patch = _hook(
+        "protect_generated.py",
+        {
+            "tool_name": "apply_patch",
+            "tool_input": {"patch": f"{header}observations/firmware/image-observations.jsonl\n"},
+        },
+    )
+    assert patch.returncode == 2
+
+
+def test_protect_generated_blocks_vision_redirect() -> None:
+    redirect = _hook(
+        "protect_generated.py",
+        {
+            "tool_name": "terminal",
+            "tool_input": {"command": "echo x > intake/attachments/manifest.jsonl"},
+        },
+    )
+    assert redirect.returncode == 2
 
 
 def test_protect_generated_blocks_terminal_redirect() -> None:
@@ -78,6 +118,10 @@ def test_protect_generated_blocks_terminal_redirect() -> None:
     [
         {"tool_name": "terminal", "tool_input": {"command": "cat fw/include/fw_pins.h"}},
         {"tool_name": "file_editor", "tool_input": {"command": "create", "path": "fw/src/a.c"}},
+        {
+            "tool_name": "apply_patch",
+            "tool_input": {"patch": "*** Update File: briefs/x.fw.json\n"},
+        },
     ],
 )
 def test_protect_generated_allows(payload: object) -> None:

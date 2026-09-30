@@ -32,6 +32,17 @@ hooks:
         - type: command
           name: safety-rail
           command: 'p=$(for c in "${FIRMWARE_PLUGIN_ROOT:-}" "${OPENHANDS_PROJECT_DIR:-.}/plugins/firmware" "${HOME:-}/.agents/plugins/firmware" "${HOME:-}/.openhands/plugins/installed/firmware"; do [ -f "$c/hooks/scripts/safety_rail.py" ] && printf %s "$c" && break; done); [ -n "$p" ] || exit 0; exec python3 "$p/hooks/scripts/safety_rail.py"'
+  post_tool_use:
+    - matcher: inspect_image_with_vision
+      hooks:
+        - type: command
+          name: record-vision-tool-event
+          command: 'p=$(for c in "${FIRMWARE_PLUGIN_ROOT:-}" "${OPENHANDS_PROJECT_DIR:-.}/plugins/firmware" "${HOME:-}/.agents/plugins/firmware" "${HOME:-}/.openhands/plugins/installed/firmware"; do [ -f "$c/hooks/scripts/record_vision_tool_event.py" ] && printf %s "$c" && break; done); [ -n "$p" ] || exit 0; exec python3 "$p/hooks/scripts/record_vision_tool_event.py"'
+    - matcher: file_editor
+      hooks:
+        - type: command
+          name: record-image-observation
+          command: 'p=$(for c in "${FIRMWARE_PLUGIN_ROOT:-}" "${OPENHANDS_PROJECT_DIR:-.}/plugins/firmware" "${HOME:-}/.agents/plugins/firmware" "${HOME:-}/.openhands/plugins/installed/firmware"; do [ -f "$c/hooks/scripts/record_image_observation.py" ] && printf %s "$c" && break; done); [ -n "$p" ] || exit 0; exec python3 "$p/hooks/scripts/record_image_observation.py"'
 permission_mode: never_confirm
 ---
 
@@ -59,3 +70,11 @@ Loop:
    firmware side becomes a `firmware request --target circuit`; never
    edit circuit inputs yourself.
 6. Hand off implementation to `firmware-developer`.
+
+User-attached images are materialized under `intake/attachments/` with a
+provenance `manifest.jsonl`. A value read off an image (a pin label on a
+board photo, a timing figure from a datasheet, a scope or logic-analyzer
+reading) is an assumption whose source is that image path: ask the user
+to confirm it before it goes into the contract, and never let it replace
+the circuit netlist or `*.firmware.json` interchange as the source of pin
+assignments.

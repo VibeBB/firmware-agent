@@ -10,8 +10,9 @@ firmware sibling in the VibeBB OpenHands plugin family.
   `plugins/firmware/` are Markdown and delegate every step to
   `python -m firmware` through `plugins/firmware/scripts/firmware_launcher.py`.
 - The contract `<name>.fw.json` is the source of truth. `fw_pins.h`,
-  `*.fw-pinmap.json`, `*.pinmap.md`, `*.fw-report.*`, `sim-*.log` and
-  `debug-*.advisory.json` are generated; never edit them by hand.
+  `*.fw-pinmap.json`, `*.pinmap.md`, `*.fw-report.*`, `sim-*.log`,
+  `debug-*.advisory.json`, `observations/firmware/*.jsonl` and
+  `intake/attachments/manifest.jsonl` are generated; never edit them by hand.
 - Gates fail closed: missing tools, files or unparseable output are
   failures. GDB output is advisory and never changes a verdict.
 - Sibling cooperation is JSON artifacts in the workspace; never import a

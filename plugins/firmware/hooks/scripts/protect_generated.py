@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """Reject writes to generated firmware projections and reports.
 
-Generated files (the pin header ``fw_pins.h``, ``*.fw-pinmap.json``,
-``*.pinmap.md``, ``*.fw-report.json/.md``, ``sim-*.log`` transcripts and
-``debug-*.advisory.json`` records) are projections of the firmware
-contract or gate evidence. Editing them by hand breaks the
-contract-is-truth invariant; they must be regenerated with
-``firmware pins`` / ``firmware pinmap`` / ``firmware gates``.
+Generated files include the pin header ``fw_pins.h``,
+``*.fw-pinmap.json``, ``*.pinmap.md``, ``*.fw-report.json/.md``,
+``sim-*.log`` transcripts, ``debug-*.advisory.json`` records,
+``observations/firmware/*.jsonl``, and
+``intake/attachments/manifest.jsonl``. Editing projections by hand breaks
+the contract-is-truth invariant; generated evidence records are not edited
+directly either.
 
 Only path-bearing arguments decide the verdict: file bodies such as
 file_text/new_str may legitimately mention artifact names, so payload
@@ -37,6 +38,14 @@ WRITE_TOOLS = {"file_editor", "apply_patch"}
 VIEW_ACTIONS = {"view", "read", "undo_edit"}
 WRITE_ACTIONS = {"create", "str_replace", "insert", "edit", "write"}
 PATH_KEYS = ("path", "file_path", "paths", "target_file", "old_path", "new_path")
+PATCH_PATH_PREFIXES = (
+    "*** Update File:",
+    "*** Add File:",
+    "*** Delete File:",
+    "*** Move to:",
+    "+++ b/",
+    "--- a/",
+)
 COMMAND_SEPARATORS = {"|", "||", "&&", "&", ";", "(", ")"}
 WRAPPER_COMMANDS = {
     "sudo",
@@ -81,6 +90,22 @@ def _path_values(tool_input: dict[str, Any]) -> list[str]:
     return values
 
 
+def _patch_paths(tool_input: dict[str, Any]) -> list[str]:
+    patch = tool_input.get("patch")
+    if not isinstance(patch, str):
+        return []
+    paths: list[str] = []
+    for line in patch.splitlines():
+        line = line.strip()
+        for prefix in PATCH_PATH_PREFIXES:
+            if line.startswith(prefix):
+                path = line[len(prefix) :].split("\t", 1)[0].strip().strip("\"'")
+                if path and path != "/dev/null":
+                    paths.append(path)
+                break
+    return paths
+
+
 def _is_protected(value: str) -> bool:
     normalized = value.replace("\\", "/").lower()
     base = normalized.rsplit("/", 1)[-1]
@@ -88,7 +113,14 @@ def _is_protected(value: str) -> bool:
         return True
     if any(base.startswith(head) and base.endswith(tail) for head, tail in ARTIFACT_PREFIXED):
         return True
-    return base.endswith(ARTIFACT_SUFFIXES)
+    if base.endswith(ARTIFACT_SUFFIXES):
+        return True
+    parts = normalized.strip("/").split("/")
+    return (
+        len(parts) >= 3
+        and parts[-3:-1] == ["observations", "firmware"]
+        and parts[-1].endswith(".jsonl")
+    ) or parts[-3:] == ["intake", "attachments", "manifest.jsonl"]
 
 
 def _is_artifact_write(payload: dict[str, Any]) -> bool:
@@ -100,7 +132,8 @@ def _is_artifact_write(payload: dict[str, Any]) -> bool:
         return False
     tool_input = cast(dict[str, Any], tool_input)
     if tool_name == "apply_patch":
-        return any(_is_protected(value) for value in _strings(tool_input))
+        paths = _patch_paths(tool_input) + _path_values(tool_input)
+        return any(_is_protected(value) for value in paths)
     if not any(_is_protected(value) for value in _path_values(tool_input)):
         return False
     action = tool_input.get("command") or tool_input.get("action")
@@ -216,10 +249,11 @@ def main() -> int:
     if _is_artifact_write(payload):
         print(
             "generated firmware artifacts (fw_pins.h, *.fw-pinmap.json,"
-            " *.fw-report.*, sim-*.log, debug-*.advisory.json) are projections"
-            " of the contract or gate evidence; regenerate them with"
-            " `firmware pins`, `firmware pinmap` or `firmware gates`,"
-            " never edit them directly",
+            " *.fw-report.*, sim-*.log, debug-*.advisory.json,"
+            " observations/firmware/*.jsonl, intake/attachments/manifest.jsonl)"
+            " are generated records or projections and must not be edited directly;"
+            " regenerate deterministic projections with `firmware pins`,"
+            " `firmware pinmap` or `firmware gates`",
             file=sys.stderr,
         )
         return 2
