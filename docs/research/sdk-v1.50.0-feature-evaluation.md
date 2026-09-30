@@ -32,11 +32,6 @@ touch this plugin), **deferred** (useful, blocked; revisit trigger given).
 | #5286 OpenAPI exemption for tool metadata | n/a | |
 | #5040, #5313, #4298, #5331, #5374 docs / CI / release | n/a | |
 
-Firmware classifies #4322 as `inherent` rather than simulation-agent's `n/a`
-as directed for this port: the SDK fix arrives with the pin, but no firmware
-tool schema uses a `false` branch, so no firmware-specific schema change is
-needed.
-
 ## uv 0.12.19 -> 0.12.21
 
 | Release | Change | Decision |
@@ -63,7 +58,7 @@ needed.
 | --- | --- | --- |
 | 6.11.0 | ESP-IDF 5.4.1, Seeed Xiao ESP32C6, ESP32 ROM ELF package, exception-decoder backtrace improvements, and Freenove ESP32-Wrover OpenOCD config correction | No C6 or Freenove board is used; debugging remains advisory. Later ESP-IDF support supersedes 5.4.1. |
 | 6.12.0 | ESP32C6 boards, ESP-IDF 5.5, CMake 3.30, initial Secure Features support | The example uses ESP32-S3 and does not enable Secure Features; later IDF support supersedes 5.5. |
-| 6.13.0 | ESP-IDF 5.5.3, toolchain 14.2.0+20251107, esptool 4.11.0, minor fixes | Retained as the fallback; the 7.1.3 build and e2e gates pass after a scoped flash-image helper fix. |
+| 6.13.0 | ESP-IDF 5.5.3, toolchain 14.2.0+20251107, esptool 4.11.0, minor fixes | Not selected: 7.1.3 builds and passes the e2e gates after a scoped flash-image helper fix, so 6.13.0 was not needed as the fallback. |
 | 7.0.0 | ESP-IDF 6.0, toolchain 15.2.0+20251107, symlink-aware IDF component-directory matching, minor fixes | The newer toolchain is relevant; the symlink fix is not exercised by this project. |
 | 7.0.1 | ESP-IDF 6.0.1 | Superseded by ESP-IDF 6.1 in the selected release. |
 | 7.1.0 | ESP-IDF 6.1, C++ flag-leak fix, minor fixes | Adopt ESP-IDF 6.1; the scoped flag fix is relevant to the example's strict build flags. |
