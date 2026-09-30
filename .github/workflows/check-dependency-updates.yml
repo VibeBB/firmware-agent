@@ -1,0 +1,60 @@
+name: Dependency update check
+
+on:
+  schedule:
+    - cron: "0 2 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-dependency-updates
+  cancel-in-progress: false
+
+jobs:
+  report:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      # Creates, edits, and closes the "Dependency update check report" issue.
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          python-version: "3.12"
+          cache-suffix: dependency-updates
+      - name: Sync dependencies
+        run: uv sync --locked
+      - name: Collect update candidates
+        run: |
+          uv run python scripts/check_dependency_updates.py \
+            --markdown report.md --json report.json
+      - name: Post report to issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # gh issue create fails with "could not add label" when the label
+          # does not exist (observed before the first report issue landed).
+          gh label create dependency-updates --repo "$GITHUB_REPOSITORY" \
+            --color 0366d6 --description "Dependency update report" --force
+          outdated=$(python3 -c 'import json; print(json.load(open("report.json", encoding="utf-8"))["outdated_count"])')
+          number=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --label dependency-updates \
+            --search "in:title Dependency update check report" \
+            --json number --jq '.[0].number // empty')
+          if [ -n "$number" ]; then
+            gh issue edit "$number" --repo "$GITHUB_REPOSITORY" --body-file report.md
+          else
+            number=$(gh issue create --repo "$GITHUB_REPOSITORY" \
+              --title "Dependency update check report" \
+              --label dependency-updates --body-file report.md | sed 's#.*/##')
+          fi
+          if [ "$outdated" = "0" ] && [ -n "$number" ]; then
+            gh issue close "$number" --repo "$GITHUB_REPOSITORY" \
+              --comment "All checked dependencies are current."
+          fi

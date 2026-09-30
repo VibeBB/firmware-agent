@@ -8,6 +8,7 @@
 - [ADR-0004](adr/ADR-0004-firmware-tools-image-and-licenses.md) — firmware-tools image, pinning, tool licenses
 - [ADR-0005](adr/ADR-0005-vision-and-profile-hooks.md) — image evidence and vision-profile readiness hooks
 - [ADR-0006](adr/ADR-0006-pytest-coverage-gate.md) — development-only pytest coverage gate
+- [ADR-0007](adr/ADR-0007-publish-firmware-tools-image-by-digest.md) — publish firmware-tools and lock its digest
 
 ## Research
 
@@ -22,3 +23,7 @@ The workflow and field references live in the plugin skills:
 [power modes](../plugins/firmware/skills/firmware-power-modes/SKILL.md),
 [sibling cooperation](../plugins/firmware/skills/firmware-sibling-cooperation/SKILL.md),
 [QEMU and GDB](../plugins/firmware/skills/firmware-qemu/SKILL.md).
+
+## Maintenance
+
+See the [dependency update review guide](dependency-updates.md).

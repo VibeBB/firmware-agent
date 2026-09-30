@@ -1,0 +1,7 @@
+{
+  "firmware_tools": {
+    "image": "ghcr.io/vibebb/firmware-tools",
+    "digest": null,
+    "tag": null
+  }
+}

@@ -17,3 +17,4 @@
   flash-image post-build arguments for PlatformIO 7.1.3.
 - Added bounded cppcheck version probing and a development-only pytest-cov
   coverage gate.
+- Published firmware-tools to GHCR with digest-lock and plugin-local pin updates.
