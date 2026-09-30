@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -141,6 +142,18 @@ def test_report_status_lists_failures(tmp_path: Path) -> None:
 
 
 def test_launcher_host_mode_runs_cli(kettle: Path, tmp_path: Path) -> None:
+    plugin_root = tmp_path / "isolated" / "plugins" / "firmware"
+    shutil.copytree(PLUGIN, plugin_root)
+    (plugin_root / "tools-image.json").write_text(
+        json.dumps(
+            {
+                "image": "ghcr.io/vibebb/firmware-tools",
+                "digest": None,
+                "tag": None,
+            }
+        ),
+        encoding="utf-8",
+    )
     env = {
         "PATH": "/usr/bin:/bin",
         "HOME": str(tmp_path),
@@ -148,7 +161,12 @@ def test_launcher_host_mode_runs_cli(kettle: Path, tmp_path: Path) -> None:
         "PYTHONPATH": ":".join(sys.path),
     }
     result = subprocess.run(
-        [sys.executable, str(PLUGIN / "scripts" / "firmware_launcher.py"), "validate", str(kettle)],
+        [
+            sys.executable,
+            str(plugin_root / "scripts" / "firmware_launcher.py"),
+            "validate",
+            str(kettle),
+        ],
         capture_output=True,
         text=True,
         env=env,
