@@ -13,7 +13,8 @@ Results must be reproducible, and several tools are GPL-licensed.
 
 - `docker/firmware-tools.Dockerfile` builds one image from a
   digest-pinned `ubuntu:24.04` base, Ubuntu packages, PlatformIO
-  `6.2.0` with `espressif32@6.10.0`, and the Espressif QEMU release
+  `6.2.0` with `espressif32@7.1.3` (ESP-IDF 6.1 and toolchain
+  `15.2.0+20251204` resolved by the platform), and the Espressif QEMU release
   `esp-develop-9.2.2-20260417` verified by sha256. The PlatformIO
   packages are warmed by building the ESP32-S3 example, so gates run with
   `--network none`.
@@ -33,4 +34,5 @@ Results must be reproducible, and several tools are GPL-licensed.
 
 - The image is large (the ESP-IDF toolchain dominates); ARM-only users
   may run on the host with the Ubuntu packages instead.
-- Bumping any tool is a Dockerfile change reviewed with its changelog.
+- Bumping any tool is a Dockerfile change reviewed with its complete
+  changelog.

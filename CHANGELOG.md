@@ -13,3 +13,5 @@
   and sibling change requests (`fw_request`).
 - OpenHands plugin: 3 agents, 6 commands, 6 skills, 4 hooks, MCP server.
 - firmware-tools image and examples (smart-kettle RP2040, desk-lamp ESP32-S3).
+- Updated SDK verification pins, uv, and the ESP32-S3 toolchain; normalized
+  flash-image post-build arguments for PlatformIO 7.1.3.
