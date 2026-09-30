@@ -18,6 +18,7 @@ from mcp.server.models import InitializationOptions
 from mcp.server.stdio import stdio_server
 
 from . import __version__, service
+from .workspace import workspace_path
 
 server: Server = Server(f"firmware-mcp/{__version__}")
 
@@ -133,14 +134,23 @@ def _str(arguments: dict[str, object], key: str) -> str:
     return value
 
 
+def _path(arguments: dict[str, object], key: str) -> Path:
+    return workspace_path(_str(arguments, key))
+
+
 def _opt_path(arguments: dict[str, object], key: str) -> Path | None:
     value = arguments.get(key)
-    return Path(value) if isinstance(value, str) and value else None
+    return workspace_path(value) if isinstance(value, str) and value else None
 
 
-def _opt_str(arguments: dict[str, object], key: str) -> str | None:
+def _opt_path_str(arguments: dict[str, object], key: str, base: Path | None = None) -> str | None:
     value = arguments.get(key)
-    return value if isinstance(value, str) and value else None
+    if not isinstance(value, str) or not value:
+        return None
+    path = Path(value)
+    if base is not None and not path.is_absolute():
+        path = base / path
+    return str(workspace_path(path))
 
 
 def _strs(arguments: dict[str, object], key: str) -> list[str]:
@@ -160,34 +170,32 @@ def _strs(arguments: dict[str, object], key: str) -> list[str]:
 def dispatch(name: str, arguments: dict[str, object]) -> service.Json:
     handlers: dict[str, Callable[[], service.Json]] = {
         "firmware_doctor": service.doctor_payload,
-        "firmware_validate": lambda: service.validate_payload(
-            Path(_str(arguments, "contract_path"))
-        ),
+        "firmware_validate": lambda: service.validate_payload(_path(arguments, "contract_path")),
         "firmware_check": lambda: service.gates_payload(
-            Path(_str(arguments, "contract_path")), _opt_path(arguments, "out_dir"), full=False
+            _path(arguments, "contract_path"), _opt_path(arguments, "out_dir"), full=False
         ),
         "firmware_gates": lambda: service.gates_payload(
-            Path(_str(arguments, "contract_path")), _opt_path(arguments, "out_dir"), full=True
+            _path(arguments, "contract_path"), _opt_path(arguments, "out_dir"), full=True
         ),
-        "firmware_pins": lambda: service.pins_payload(Path(_str(arguments, "contract_path"))),
+        "firmware_pins": lambda: service.pins_payload(_path(arguments, "contract_path")),
         "firmware_pinmap_export": lambda: service.pinmap_payload(
-            Path(_str(arguments, "contract_path")), _opt_path(arguments, "out_dir")
+            _path(arguments, "contract_path"), _opt_path(arguments, "out_dir")
         ),
         "firmware_sim": lambda: service.sim_payload(
-            Path(_str(arguments, "contract_path")),
+            _path(arguments, "contract_path"),
             _str(arguments, "simulation"),
             _opt_path(arguments, "out_dir"),
         ),
         "firmware_debug": lambda: service.debug_payload(
-            Path(_str(arguments, "contract_path")),
+            _path(arguments, "contract_path"),
             _str(arguments, "simulation"),
-            _opt_str(arguments, "elf"),
+            _opt_path_str(arguments, "elf", _path(arguments, "contract_path").parent),
             _strs(arguments, "breaks"),
             _strs(arguments, "prints"),
             _opt_path(arguments, "out_dir"),
         ),
         "firmware_request": lambda: service.request_payload(
-            Path(_str(arguments, "contract_path")),
+            _path(arguments, "contract_path"),
             _opt_path(arguments, "out_dir"),
             target=_str(arguments, "target"),
             risk=_str(arguments, "risk"),
@@ -205,12 +213,20 @@ def dispatch(name: str, arguments: dict[str, object]) -> service.Json:
 
 
 @server.call_tool()
-async def call_tool(name: str, arguments: dict[str, object]) -> list[types.ContentBlock]:
+async def call_tool(name: str, arguments: dict[str, object]) -> types.CallToolResult:
+    is_error = False
     try:
         payload = await asyncio.to_thread(dispatch, name, arguments or {})
+        is_error = name not in TOOLS
     except Exception as exc:  # fail-closed transport
         payload = {"verdict": "fail", "detail": f"{name} error: {exc}"}
-    return [types.TextContent(type="text", text=json.dumps(payload, ensure_ascii=False, indent=2))]
+        is_error = True
+    return types.CallToolResult(
+        content=[
+            types.TextContent(type="text", text=json.dumps(payload, ensure_ascii=False, indent=2))
+        ],
+        isError=is_error,
+    )
 
 
 async def _run() -> None:

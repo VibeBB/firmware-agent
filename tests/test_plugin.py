@@ -40,7 +40,8 @@ def test_mcp_tools_registered() -> None:
     }
 
 
-def test_mcp_dispatch_validate(kettle: Path) -> None:
+def test_mcp_dispatch_validate(kettle: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("OPENHANDS_PROJECT_DIR", str(kettle.parent))
     payload = mcp_server.dispatch("firmware_validate", {"contract_path": str(kettle)})
     assert payload["verdict"] == "pass"
 

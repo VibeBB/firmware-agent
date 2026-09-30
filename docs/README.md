@@ -7,6 +7,7 @@
 - [ADR-0003](adr/ADR-0003-qemu-simulation-and-advisory-gdb.md) — QEMU simulation gates and advisory GDB
 - [ADR-0004](adr/ADR-0004-firmware-tools-image-and-licenses.md) — firmware-tools image, pinning, tool licenses
 - [ADR-0005](adr/ADR-0005-vision-and-profile-hooks.md) — image evidence and vision-profile readiness hooks
+- [ADR-0006](adr/ADR-0006-pytest-coverage-gate.md) — development-only pytest coverage gate
 
 ## Research
 

@@ -32,12 +32,14 @@ jobs:
           cache-suffix: verify-${{ matrix.python-version }}
       - name: Sync dependencies
         run: uv sync --locked
+      - name: Shared hooks
+        run: uv run python scripts/check_shared_hooks.py
       - name: Ruff
         run: uv run ruff check . && uv run ruff format --check .
       - name: Pyright
         run: uv run pyright
       - name: Pytest
-        run: uv run pytest
+        run: uv run pytest --cov --cov-report=term-missing:skip-covered
       - name: Plugin load (OpenHands SDK)
         env:
           OPENHANDS_SUPPRESS_BANNER: "1"

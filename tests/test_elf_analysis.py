@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import struct
+import subprocess
 from pathlib import Path
 
 import pytest
 
-from firmware.analysis import parse_findings
+from firmware import analysis as analysis_module
+from firmware.analysis import parse_findings, run_cppcheck
+from firmware.contract import load_contract
 from firmware.elf import ElfError, account, read_elf
 from firmware.profiles import load_profile
 
@@ -63,3 +66,23 @@ def test_cppcheck_xml_parse(tmp_path: Path) -> None:
 def test_cppcheck_xml_unparseable(tmp_path: Path) -> None:
     with pytest.raises(ValueError):
         parse_findings("<results", tmp_path)
+
+
+def test_cppcheck_version_timeout(kettle: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    contract = load_contract(kettle)
+    assert contract.analysis is not None
+
+    def cppcheck_on_path(_name: str) -> str:
+        return "cppcheck"
+
+    monkeypatch.setattr(analysis_module.shutil, "which", cppcheck_on_path)
+
+    def timeout_run(argv: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        assert argv == ["cppcheck", "--version"]
+        assert kwargs["timeout"] == 20
+        raise subprocess.TimeoutExpired(argv, 20)
+
+    monkeypatch.setattr(analysis_module.subprocess, "run", timeout_run)
+    result = run_cppcheck(contract.analysis, kettle.parent)
+    assert result.ok is False
+    assert result.detail == "cppcheck --version timed out after 20s"

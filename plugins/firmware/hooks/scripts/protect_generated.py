@@ -76,9 +76,9 @@ def _strings(value: Any) -> list[str]:
     if isinstance(value, str):
         return [value]
     if isinstance(value, dict):
-        return [item for child in value.values() for item in _strings(child)]
+        return [item for child in cast(dict[str, Any], value).values() for item in _strings(child)]
     if isinstance(value, list):
-        return [item for child in value for item in _strings(child)]
+        return [item for child in cast(list[Any], value) for item in _strings(child)]
     return []
 
 
@@ -230,7 +230,7 @@ def _is_terminal_write(payload: dict[str, Any]) -> str | None:
     tool_input = payload.get("tool_input")
     if not isinstance(tool_input, dict):
         return None
-    command = tool_input.get("command")
+    command = cast(dict[str, Any], tool_input).get("command")
     if not isinstance(command, str):
         return None
     return _terminal_write_target(command)
