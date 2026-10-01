@@ -1,10 +1,11 @@
+# Operations
+
 ## SBOM attestations
 
 `publish-firmware-images.yml` generates and attests an SPDX-2.3 SBOM for the
 published tools digest and uploads it for 30 days. The lock records the
 `sbom_attestation` URL, which `locked-image-check.yml` verifies when present;
 an absent URL warns and continues.
-# Operations
 
 ## Launcher-side verification
 
