@@ -48,6 +48,21 @@ def test_locked_image_workflows_run_firmware_launcher() -> None:
     assert "FIRMWARE_TOOLS_IMAGE" not in locked
 
 
+def test_e2e_prints_gate_report_before_enforcing_exit_status() -> None:
+    text = (REPO_ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+    step = text.split("      - name: Full gates in the image (no network)\n", 1)[1].split(
+        "      - name: Upload reports", 1
+    )[0]
+    capture = step.index('if python3 "$launcher" gates "$contract" > report.json; then')
+    status = step.index("gate_status=$?", capture)
+    print_table = step.index('for check in report["checks"]:', status)
+    enforce = step.index(
+        'sys.exit(0 if gate_status == 0 and report["verdict"] == "pass" else 1)',
+        print_table,
+    )
+    assert capture < status < print_table < enforce
+
+
 def test_publisher_retriggers_for_workflow_changes_and_attests_images() -> None:
     text = (REPO_ROOT / ".github" / "workflows" / "publish-firmware-images.yml").read_text(
         encoding="utf-8"

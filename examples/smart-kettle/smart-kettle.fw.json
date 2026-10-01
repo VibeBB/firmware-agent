@@ -177,6 +177,14 @@
       "error",
       "warning",
       "portability"
+    ],
+    "suppressions": [
+      {
+        "id": "syntaxError",
+        "file": "fw/sim/sim_main.c",
+        "line": 15,
+        "rationale": "Cppcheck 2.19 misparses this valid GCC register binding; ARM GCC and QEMU validate the simulator."
+      }
     ]
   },
   "simulations": [
