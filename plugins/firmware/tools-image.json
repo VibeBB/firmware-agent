@@ -1,20 +1,21 @@
 {
-  "attestation": "https://github.com/VibeBB/firmware-agent/attestations/51689707",
-  "digest": "sha256:2ba1a300cce06eb719fd991cf08a7f6578c01286d56ca1a5a295835e55591e7c",
+  "attestation": "https://github.com/VibeBB/firmware-agent/attestations/51835477",
+  "digest": "sha256:58205112a6697ec62ad13c3e98b51ac60d4021f99636e16793a683d664164aae",
   "dockerfile": "docker/firmware-tools.Dockerfile",
   "image": "ghcr.io/vibebb/firmware-tools",
-  "published_at": "2026-10-01T03:35:56Z",
-  "tag": "5a8db01afceac072beaf1c6fd26cb4acc908722e-tools",
+  "published_at": "2026-10-01T14:05:03Z",
+  "sbom_attestation": "https://github.com/VibeBB/firmware-agent/attestations/51835955",
+  "tag": "81d3d6d6a9019c1b30d693ffb06264da8cbfdd6b-tools",
   "tools": {
-    "cppcheck": "cppcheck --version: Cppcheck 2.13.0",
+    "cppcheck": "cppcheck --version: Cppcheck 2.19.0",
     "espressif32": "python -c 'import json; from pathlib import Path; print(\"espressif32=\" + json.loads(Path(\"/opt/platformio/platforms/espressif32/platform.json\").read_text())[\"version\"])': 7.1.3",
     "firmware": "python -c 'import firmware; print(firmware.__version__)': 0.1.0",
-    "gdb_multiarch": "gdb-multiarch --version: GNU gdb (Ubuntu 15.1-1ubuntu1~24.04.1) 15.1",
+    "gdb_multiarch": "gdb-multiarch --version: GNU gdb (Ubuntu 17.1-2ubuntu1) 17.1",
     "platformio": "pio --version: PlatformIO Core, version 6.2.0",
     "python": "python --version: Python 3.12.14",
-    "qemu_arm": "qemu-system-arm --version: QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)",
+    "qemu_arm": "qemu-system-arm --version: QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.2)",
     "qemu_xtensa": "qemu-system-xtensa --version: QEMU emulator version 9.2.2 (esp_develop_9.2.2_20260417)",
     "uv": "uv --version: 0.12.21 (x86_64-unknown-linux-musl)"
   },
-  "workflow_run": "https://github.com/VibeBB/firmware-agent/actions/runs/36810156756"
+  "workflow_run": "https://github.com/VibeBB/firmware-agent/actions/runs/36871365677"
 }
