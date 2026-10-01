@@ -1,5 +1,6 @@
 ARG UV_VERSION=0.12.21
-FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv
+ARG UV_DIGEST=sha256:a7aed3216253ee804de3e2d8afa5073baa1a177335345d43845cd4165e43b711
+FROM ghcr.io/astral-sh/uv:${UV_VERSION}@${UV_DIGEST} AS uv
 
 # ubuntu:26.04 (resolute)
 FROM ubuntu:26.04@sha256:da6fc2be547864451aa253836dd926da33623312df4a9a243e35dc877c378a78
