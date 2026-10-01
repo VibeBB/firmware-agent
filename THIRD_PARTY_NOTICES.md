@@ -21,7 +21,7 @@ into `firmware` (ADR-0004).
 | Espressif QEMU (`qemu-system-xtensa`) | release `esp-develop-9.2.2-20260417`, asset `qemu-xtensa-softmmu-esp_develop_9.2.2_20260417-x86_64-linux-gnu.tar.xz`, sha256 `0eecb2a34a5586c0e59110f77b9343b7b336e82fdb0e1a30e1dc1bab8a547e35` | GPL-2.0-or-later | ESP32/ESP32-S3 simulation |
 | pydantic | `>=2` via `uv.lock` | MIT | Contract models |
 | mcp | `>=1.29,<2` via `uv.lock` | MIT | MCP server |
-| openhands-sdk / openhands-tools | `1.50.0` (sdk-check group) | MIT | Plugin-load verification |
+| openhands-sdk / openhands-tools | `1.50.1` (sdk-check group) | MIT | Plugin-load verification |
 | pytest-cov | `7.1.0` (dev group) | MIT | Test coverage reporting |
 
 Sources: Espressif QEMU <https://github.com/espressif/qemu>; the image
