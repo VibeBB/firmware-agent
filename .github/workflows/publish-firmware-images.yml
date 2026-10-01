@@ -46,6 +46,9 @@ jobs:
       # Opens and auto-merges the digest-lock pull request.
       pull-requests: write
     steps:
+      - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: true
@@ -94,6 +97,39 @@ jobs:
           TOOLS_REF="ghcr.io/${IMAGE_OWNER}/firmware-tools@${BUILT_DIGEST}"
           TOOLS_TAG="${GITHUB_SHA}-tools"
           printf 'TOOLS_REF=%s\nTOOLS_DIGEST=%s\nTOOLS_TAG=%s\n' "$TOOLS_REF" "${TOOLS_REF##*@}" "$TOOLS_TAG" >> "$GITHUB_ENV"
+      - name: Generate tools SPDX SBOM
+        uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
+        with:
+          image: ${{ env.TOOLS_REF }}
+          format: spdx-json
+          output-file: ${{ runner.temp }}/firmware-tools.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+      - name: Validate tools SPDX SBOM
+        run: |
+          python3 - "${{ runner.temp }}/firmware-tools.spdx.json" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          sbom = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          if sbom.get("spdxVersion") != "SPDX-2.3":
+              raise SystemExit("tools SBOM must use SPDX-2.3")
+          PY
+      - name: Attest tools SBOM
+        id: attest_sbom
+        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4.1.0
+        with:
+          subject-name: ghcr.io/vibebb/firmware-tools
+          subject-digest: ${{ steps.tools.outputs.digest }}
+          sbom-path: ${{ runner.temp }}/firmware-tools.spdx.json
+          push-to-registry: true
+      - name: Upload tools SPDX SBOM
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: firmware-tools-spdx-sbom
+          path: ${{ runner.temp }}/firmware-tools.spdx.json
+          retention-days: 30
       - name: Measure published tools
         env:
           TOOLS_REF: ${{ env.TOOLS_REF }}
@@ -175,6 +211,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           ATTESTATION_URL: ${{ steps.attest.outputs.attestation-url }}
+          SBOM_ATTESTATION_URL: ${{ steps.attest_sbom.outputs.attestation-url }}
         run: |
           set -euo pipefail
           retry() {
@@ -241,6 +278,7 @@ jobs:
             --tag "$TOOLS_TAG" --digest "$TOOLS_DIGEST" --published-at "$published_at" \
             --workflow-run "$workflow_run" --dockerfile docker/firmware-tools.Dockerfile \
             --attestation "$ATTESTATION_URL" \
+            --sbom-attestation "$SBOM_ATTESTATION_URL" \
             --tools-json "$RUNNER_TEMP/firmware-tools.json"
           # Ship the same pin inside the plugin so an installed plugin can
           # resolve the tools image without the extension cache (the
@@ -298,6 +336,10 @@ jobs:
           approve_gated_runs
           if ! dispatch_workflow ci.yml "$branch"; then
             echo "lock PR checks failed; the lock PR was left open for manual review" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          if ! dispatch_workflow workflow-lint.yml "$branch"; then
+            echo "lock PR zizmor check failed; the lock PR was left open for manual review" >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
           # Wait for every pull_request run on the lock branch to reach a

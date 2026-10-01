@@ -47,3 +47,5 @@ uv run python scripts/verify_docs.py
 
 The `e2e` CI job builds `docker/firmware-tools.Dockerfile` and runs the
 full gates for both examples inside it with `--network none`.
+
+Shared workflows are canonical across the family; change all 11 copies together and update `EXPECTED` in `scripts/check_shared_workflows.py`.

@@ -34,12 +34,18 @@ def test_plugin_paths_referenced_exist() -> None:
 
 
 def test_locked_image_workflows_run_firmware_launcher() -> None:
-    for name in ("publish-firmware-images.yml", "locked-image-check.yml"):
-        text = (REPO_ROOT / ".github" / "workflows" / name).read_text(encoding="utf-8")
+    publish = (REPO_ROOT / ".github" / "workflows" / "publish-firmware-images.yml").read_text(
+        encoding="utf-8"
+    )
+    locked = (REPO_ROOT / ".github" / "workflows" / "locked-image-check.yml").read_text(
+        encoding="utf-8"
+    )
+    for text in (publish, locked):
         assert "plugins/firmware/scripts/firmware_launcher.py" in text
-        assert "FIRMWARE_TOOLS_IMAGE" in text
         assert "FIRMWARE_SRC" in text
         assert "lamp_selftest" in text
+    assert "FIRMWARE_TOOLS_IMAGE" in publish
+    assert "FIRMWARE_TOOLS_IMAGE" not in locked
 
 
 def test_publisher_retriggers_for_workflow_changes_and_attests_images() -> None:
