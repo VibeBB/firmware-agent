@@ -27,8 +27,12 @@ These Dockerfile surfaces require manual review before changing:
   Espressif QEMU release artifact and its checksum. Verify the asset and
   checksum against the upstream release before updating them.
 - The Ubuntu base-image digest is a security pin. Review the upstream image
-  digest and supported `24.04` tag together; do not update the digest from a
+  digest and supported `26.04` tag together; do not update the digest from a
   local build or an unverified mirror.
+
+The Docker-base checker handles Ubuntu release tags generically and selects
+the latest `xx.04` tag. Its tests cover the digest-pinned `26.04` base; no
+version-specific checker target is needed when the Ubuntu LTS tag changes.
 
 Deferrals and their review dates are tracked in
 `scripts/dependency_update_deferrals.json`. A deferred candidate still needs

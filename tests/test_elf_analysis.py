@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from firmware import analysis as analysis_module
-from firmware.analysis import parse_findings, run_cppcheck
+from firmware.analysis import Finding, parse_findings, run_cppcheck
 from firmware.contract import load_contract
 from firmware.elf import ElfError, account, read_elf
 from firmware.profiles import load_profile
@@ -61,6 +61,24 @@ def test_cppcheck_xml_parse(tmp_path: Path) -> None:
     findings = parse_findings(xml, tmp_path)
     assert [(f.id, f.severity, f.line) for f in findings] == [("nullPointer", "error", 7)]
     assert findings[0].file.endswith("src/a.c")
+
+
+def test_cppcheck_suppression_matches_exact_file_and_line(kettle: Path) -> None:
+    contract = load_contract(kettle)
+    assert contract.analysis is not None
+    matches = analysis_module._suppressed  # pyright: ignore[reportPrivateUsage]
+    assert matches(
+        Finding("syntaxError", "error", "syntax error", "fw/sim/sim_main.c", 15),
+        contract.analysis,
+    )
+    assert not matches(
+        Finding("syntaxError", "error", "syntax error", "fw/sim/sim_main.c", 16),
+        contract.analysis,
+    )
+    assert not matches(
+        Finding("syntaxError", "error", "syntax error", "fw/sim/other.c", 15),
+        contract.analysis,
+    )
 
 
 def test_cppcheck_xml_unparseable(tmp_path: Path) -> None:

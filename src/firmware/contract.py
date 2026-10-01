@@ -154,6 +154,7 @@ class Build(BuildStep):
 class Suppression(_Strict):
     id: str = Field(min_length=1)
     file: str | None = None
+    line: int | None = Field(default=None, ge=1)
     rationale: str = Field(min_length=12)
 
 

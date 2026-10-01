@@ -121,13 +121,18 @@ jobs:
           launcher=plugins/firmware/scripts/firmware_launcher.py
           python3 "$launcher" doctor | tee doctor.json
           for contract in examples/smart-kettle/smart-kettle.fw.json examples/desk-lamp-s3/desk-lamp.fw.json; do
-            python3 "$launcher" gates "$contract" > report.json
-            python3 - report.json <<'PY'
+            if python3 "$launcher" gates "$contract" > report.json; then
+              gate_status=0
+            else
+              gate_status=$?
+            fi
+            python3 - report.json "$gate_status" <<'PY'
           import json, sys
           report = json.load(open(sys.argv[1], encoding="utf-8"))
           for check in report["checks"]:
               print(f"{check['id']:24} {check['status']:8} {check['detail'][:200]}")
-          sys.exit(0 if report["verdict"] == "pass" else 1)
+          gate_status = int(sys.argv[2])
+          sys.exit(0 if gate_status == 0 and report["verdict"] == "pass" else 1)
           PY
           done
           python3 "$launcher" debug examples/desk-lamp-s3/desk-lamp.fw.json \

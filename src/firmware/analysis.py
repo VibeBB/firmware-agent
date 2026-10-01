@@ -77,7 +77,9 @@ def parse_findings(xml_text: str, root: Path) -> list[Finding]:
 
 def _suppressed(finding: Finding, analysis: Analysis) -> bool:
     return any(
-        s.id == finding.id and (s.file is None or fnmatch.fnmatch(finding.file, s.file))
+        s.id == finding.id
+        and (s.file is None or fnmatch.fnmatch(finding.file, s.file))
+        and (s.line is None or s.line == finding.line)
         for s in analysis.suppressions
     )
 

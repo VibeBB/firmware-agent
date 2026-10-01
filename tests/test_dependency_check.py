@@ -13,6 +13,8 @@ from scripts.check_dependency_updates import (
     DependencyStatus,
     _github_latest_tag,  # pyright: ignore[reportPrivateUsage]
     check_docker_args,
+    check_docker_base,
+    docker_base_image,
     main,
 )
 
@@ -60,6 +62,26 @@ def test_docker_platformio_pin_uses_pypi_latest() -> None:
     assert status.latest == "6.3.0"
     assert status.outdated is True
     assert status.fetch_failed is False
+
+
+def test_ubuntu_26_04_digest_pin_is_supported(tmp_path: Path) -> None:
+    docker_dir = tmp_path / "docker"
+    docker_dir.mkdir()
+    (docker_dir / "firmware-tools.Dockerfile").write_text(
+        "FROM ubuntu:26.04@sha256:" + "a" * 64 + "\n",
+        encoding="utf-8",
+    )
+    assert docker_base_image(tmp_path) == ("ubuntu", "26.04")
+
+    def tags(_url: str) -> dict[str, object]:
+        return {"results": [{"name": "24.04"}, {"name": "26.04"}], "next": None}
+
+    statuses = check_docker_base(tmp_path, fetch_json=tags)
+    assert len(statuses) == 1
+    assert statuses[0].current == "26.04"
+    assert statuses[0].latest == "26.04"
+    assert statuses[0].outdated is False
+    assert statuses[0].fetch_failed is False
 
 
 def test_subprocess_timeout_is_bounded():
