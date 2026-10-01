@@ -40,3 +40,22 @@ def test_locked_image_workflows_run_firmware_launcher() -> None:
         assert "FIRMWARE_TOOLS_IMAGE" in text
         assert "FIRMWARE_SRC" in text
         assert "lamp_selftest" in text
+
+
+def test_publisher_retriggers_for_workflow_changes_and_attests_images() -> None:
+    text = (REPO_ROOT / ".github" / "workflows" / "publish-firmware-images.yml").read_text(
+        encoding="utf-8"
+    )
+    assert '".github/workflows/publish-firmware-images.yml"' in text
+    assert '"scripts/update_image_digest_lock.py"' in text
+    assert "actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8" in text
+    assert '--attestation "$ATTESTATION_URL"' in text
+
+
+def test_locked_image_check_validates_provenance_and_uploads_smoke_artifacts() -> None:
+    text = (REPO_ROOT / ".github" / "workflows" / "locked-image-check.yml").read_text(
+        encoding="utf-8"
+    )
+    assert 're.fullmatch(r"sha256:[0-9a-f]{64}", digest)' in text
+    assert "gh attestation verify" in text
+    assert "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" in text

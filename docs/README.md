@@ -9,6 +9,7 @@
 - [ADR-0005](adr/ADR-0005-vision-and-profile-hooks.md) — image evidence and vision-profile readiness hooks
 - [ADR-0006](adr/ADR-0006-pytest-coverage-gate.md) — development-only pytest coverage gate
 - [ADR-0007](adr/ADR-0007-publish-firmware-tools-image-by-digest.md) — publish firmware-tools and lock its digest
+- [ADR-0008](adr/ADR-0008-attest-published-tools-images.md) — attest published tools images
 
 ## Research
 

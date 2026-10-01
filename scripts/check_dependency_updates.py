@@ -806,6 +806,7 @@ def main(argv: list[str] | None = None) -> int:
                 "statuses": [asdict(status) for status in statuses],
                 "outdated_count": sum(status.outdated for status in statuses),
                 "deferred_count": sum(status.deferred for status in statuses),
+                "unknown_count": sum(status.fetch_failed for status in statuses),
             }
             args.json_path.write_text(
                 json.dumps(payload, ensure_ascii=False, indent=2) + "\n",

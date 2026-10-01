@@ -15,6 +15,7 @@ on:
       - "scripts/print_locked_image.py"
       - "scripts/pull_locked_image.py"
       - "scripts/update_image_digest_lock.py"
+      - ".github/workflows/publish-firmware-images.yml"
       - "!docker/image-digests.json"
       # The plugin pin is written by this workflow itself; exclude it so a
       # merged pin PR does not trigger another publish.
@@ -40,6 +41,8 @@ jobs:
       contents: write
       # Pushes the firmware-tools image to ghcr.io.
       packages: write
+      id-token: write # OIDC for build-provenance attestation
+      attestations: write # stores the attestation
       # Opens and auto-merges the digest-lock pull request.
       pull-requests: write
     steps:
@@ -75,6 +78,13 @@ jobs:
           # imports already degrade to a miss rather than an error, so
           # ignore-error applies to cache-to only.
           cache-to: type=gha,mode=max,ignore-error=true
+      - name: Attest tools image provenance
+        id: attest
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: ghcr.io/vibebb/firmware-tools
+          subject-digest: ${{ steps.tools.outputs.digest }}
+          push-to-registry: true
       - name: Resolve tools digest
         env:
           BUILT_DIGEST: ${{ steps.tools.outputs.digest }}
@@ -100,18 +110,57 @@ jobs:
           launcher=plugins/firmware/scripts/firmware_launcher.py
           python3 "$launcher" doctor | tee doctor.json
           for contract in examples/smart-kettle/smart-kettle.fw.json examples/desk-lamp-s3/desk-lamp.fw.json; do
-            python3 "$launcher" gates "$contract" > report.json
-            python3 - report.json <<'PY'
+            design=$(basename "$contract" .fw.json)
+            out="$(dirname "$contract")/fw-reports"
+            mkdir -p "$out"
+            stdout="$out/$design.stdout.json"
+            report="$out/$design.fw-report.json"
+            set +e
+            python3 "$launcher" gates "$contract" > "$stdout"
+            status=$?
+            set -e
+            python3 - "$report" "$stdout" "$status" <<'PY'
           import json, sys
-          report = json.load(open(sys.argv[1], encoding="utf-8"))
-          for check in report["checks"]:
-              print(f"{check['id']:24} {check['status']:8} {check['detail'][:200]}")
-          sys.exit(0 if report["verdict"] == "pass" else 1)
+          from pathlib import Path
+
+          report_path, stdout_path = map(Path, sys.argv[1:3])
+          status = int(sys.argv[3])
+          if report_path.is_file():
+              report = json.loads(report_path.read_text(encoding="utf-8"))
+              for check in report["checks"]:
+                  print(f"{check['id']:24} {check['status']:8} {check['detail'][:200]}")
+          else:
+              stdout_text = stdout_path.read_text(encoding="utf-8")
+              print(stdout_text, end="")
+              report = json.loads(stdout_text)
+          sys.exit(1 if status != 0 or report.get("verdict") != "pass" else 0)
           PY
           done
+          debug_json=examples/desk-lamp-s3/fw-reports/desk-lamp.debug.json
           python3 "$launcher" debug examples/desk-lamp-s3/desk-lamp.fw.json \
-            --id lamp_selftest --break lamp_step > debug.json
-          python3 -c "import json,sys; d=json.load(open('debug.json')); print(d['verdict'], d.get('stops')); sys.exit(0 if d['verdict']=='pass' and d.get('stops') else 1)"
+            --id lamp_selftest --break lamp_step > "$debug_json"
+          python3 - "$debug_json" <<'PY'
+          import json, sys
+
+          data = json.load(open(sys.argv[1], encoding="utf-8"))
+          print(data["verdict"], data.get("stops"))
+          sys.exit(0 if data["verdict"] == "pass" and data.get("stops") else 1)
+          PY
+      - name: Upload published image smoke reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: firmware-publish-smoke
+          path: |
+            doctor.json
+            examples/*/fw-reports/*.fw-report.json
+            examples/*/fw-reports/*.stdout.json
+            examples/*/fw-reports/*.debug.json
+            examples/*/fw-reports/sim-*.log
+            examples/*/fw-reports/debug-*.advisory.json
+            examples/*/fw-reports/*.fw-pinmap.json
+            examples/*/fw-reports/*.pinmap.md
+          if-no-files-found: ignore
       - name: Record published image summary
         run: |
           {
@@ -125,6 +174,7 @@ jobs:
       - name: Update digest lock and merge PR
         env:
           GH_TOKEN: ${{ github.token }}
+          ATTESTATION_URL: ${{ steps.attest.outputs.attestation-url }}
         run: |
           set -euo pipefail
           retry() {
@@ -190,6 +240,7 @@ jobs:
             --entry firmware_tools --image "ghcr.io/${IMAGE_OWNER}/firmware-tools" \
             --tag "$TOOLS_TAG" --digest "$TOOLS_DIGEST" --published-at "$published_at" \
             --workflow-run "$workflow_run" --dockerfile docker/firmware-tools.Dockerfile \
+            --attestation "$ATTESTATION_URL" \
             --tools-json "$RUNNER_TEMP/firmware-tools.json"
           # Ship the same pin inside the plugin so an installed plugin can
           # resolve the tools image without the extension cache (the
