@@ -4,6 +4,19 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "deps"
+  - package-ecosystem: docker
+    directory: "/docker"
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
     commit-message:
       prefix: "deps"
   # The uv ecosystem is intentionally absent: Dependabot's bundled uv

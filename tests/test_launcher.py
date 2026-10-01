@@ -83,6 +83,7 @@ def test_plugin_image_digest_pin_precedes_repository_lock(
                 "image": "ghcr.io/vibebb/firmware-tools",
                 "digest": plugin_digest,
                 "tag": "plugin",
+                "attestation": "https://github.com/VibeBB/firmware-agent/attestations/plugin",
             }
         ),
         encoding="utf-8",
@@ -96,6 +97,7 @@ def test_plugin_image_digest_pin_precedes_repository_lock(
                     "image": "ghcr.io/vibebb/firmware-tools",
                     "digest": "sha256:" + "b" * 64,
                     "tag": "repository",
+                    "attestation": "https://github.com/VibeBB/firmware-agent/attestations/repository",
                 }
             }
         ),

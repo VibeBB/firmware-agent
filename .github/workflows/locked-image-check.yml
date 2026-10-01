@@ -20,6 +20,9 @@ jobs:
     timeout-minutes: 10
     outputs:
       present: ${{ steps.lock.outputs.present }}
+      image: ${{ steps.lock.outputs.image }}
+      digest: ${{ steps.lock.outputs.digest }}
+      attestation: ${{ steps.lock.outputs.attestation }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -36,32 +39,53 @@ jobs:
           if not path.is_file():
               with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
                   output.write("present=false\n")
+                  output.write("image=\n")
+                  output.write("digest=\n")
+                  output.write("attestation=\n")
               raise SystemExit(0)
           try:
               data = json.loads(path.read_text(encoding="utf-8"))
-          except (OSError, json.JSONDecodeError) as exc:
+          except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
               raise SystemExit(f"invalid image digest lock: {exc}")
+          if not isinstance(data, dict):
+              raise SystemExit("image digest lock must be a JSON object")
           entry = data.get("firmware_tools") if isinstance(data, dict) else None
           if not isinstance(entry, dict) or entry.get("image") != "ghcr.io/vibebb/firmware-tools":
               raise SystemExit("invalid firmware_tools digest lock entry")
+          if "digest" not in entry or "tag" not in entry:
+              raise SystemExit("firmware_tools lock must contain digest and tag fields")
           digest = entry.get("digest")
           tag = entry.get("tag")
           if digest is None and tag is None:
+              if entry.get("attestation") is not None:
+                  raise SystemExit("firmware_tools attestation cannot exist without a pinned image")
               present = "false"
-          elif isinstance(digest, str) and re.fullmatch(r"sha256:[0-9a-f]{64}", digest):
-              present = "true"
-          elif isinstance(tag, str) and tag:
-              present = "true"
+              attestation = ""
           else:
-              raise SystemExit("invalid firmware_tools digest lock entry")
+              if not isinstance(digest, str) or re.fullmatch(r"sha256:[0-9a-f]{64}", digest) is None:
+                  raise SystemExit("firmware_tools digest must be null or a sha256 digest")
+              if not isinstance(tag, str) or re.fullmatch(r"[0-9a-f]{40}-tools", tag) is None:
+                  raise SystemExit("firmware_tools tag must be null or a 40-character tools tag")
+              present = "true"
+              attestation = entry.get("attestation")
+              if attestation is None:
+                  attestation = ""
+              elif not isinstance(attestation, str) or not attestation.startswith("https://"):
+                  raise SystemExit("firmware_tools attestation must be an HTTPS URL")
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
               output.write(f"present={present}\n")
+              output.write(f"image={entry['image'] if present == 'true' else ''}\n")
+              output.write(f"digest={digest if present == 'true' else ''}\n")
+              output.write(f"attestation={attestation}\n")
           PY
   check:
     needs: check-lock
     if: needs.check-lock.outputs.present == 'true'
     runs-on: ubuntu-26.04
     timeout-minutes: 30
+    permissions:
+      attestations: read
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -71,6 +95,19 @@ jobs:
           python-version: "3.12"
           cache-suffix: locked-image-check
       - run: uv sync --locked
+      - name: Warn that tools image has no attestation metadata
+        if: needs.check-lock.outputs.attestation == ''
+        run: echo "::warning::firmware_tools image lock has no attestation metadata; skipping provenance verification."
+      - name: Verify tools image provenance
+        if: needs.check-lock.outputs.attestation != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IMAGE: ${{ needs.check-lock.outputs.image }}
+          DIGEST: ${{ needs.check-lock.outputs.digest }}
+        run: |
+          gh attestation verify "oci://${IMAGE}@${DIGEST}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/publish-firmware-images.yml"
       - run: uv run python scripts/pull_locked_image.py --entry firmware_tools
       - id: image
         run: echo "ref=$(uv run python scripts/print_locked_image.py --entry firmware_tools)" >> "$GITHUB_OUTPUT"
@@ -85,15 +122,54 @@ jobs:
           launcher=plugins/firmware/scripts/firmware_launcher.py
           python3 "$launcher" doctor | tee doctor.json
           for contract in examples/smart-kettle/smart-kettle.fw.json examples/desk-lamp-s3/desk-lamp.fw.json; do
-            python3 "$launcher" gates "$contract" > report.json
-            python3 - report.json <<'PY'
+            design=$(basename "$contract" .fw.json)
+            out="$(dirname "$contract")/fw-reports"
+            mkdir -p "$out"
+            stdout="$out/$design.stdout.json"
+            report="$out/$design.fw-report.json"
+            set +e
+            python3 "$launcher" gates "$contract" > "$stdout"
+            status=$?
+            set -e
+            python3 - "$report" "$stdout" "$status" <<'PY'
           import json, sys
-          report = json.load(open(sys.argv[1], encoding="utf-8"))
-          for check in report["checks"]:
-              print(f"{check['id']:24} {check['status']:8} {check['detail'][:200]}")
-          sys.exit(0 if report["verdict"] == "pass" else 1)
+          from pathlib import Path
+
+          report_path, stdout_path = map(Path, sys.argv[1:3])
+          status = int(sys.argv[3])
+          if report_path.is_file():
+              report = json.loads(report_path.read_text(encoding="utf-8"))
+              for check in report["checks"]:
+                  print(f"{check['id']:24} {check['status']:8} {check['detail'][:200]}")
+          else:
+              stdout_text = stdout_path.read_text(encoding="utf-8")
+              print(stdout_text, end="")
+              report = json.loads(stdout_text)
+          sys.exit(1 if status != 0 or report.get("verdict") != "pass" else 0)
           PY
           done
+          debug_json=examples/desk-lamp-s3/fw-reports/desk-lamp.debug.json
           python3 "$launcher" debug examples/desk-lamp-s3/desk-lamp.fw.json \
-            --id lamp_selftest --break lamp_step > debug.json
-          python3 -c "import json,sys; d=json.load(open('debug.json')); print(d['verdict'], d.get('stops')); sys.exit(0 if d['verdict']=='pass' and d.get('stops') else 1)"
+            --id lamp_selftest --break lamp_step > "$debug_json"
+          python3 - "$debug_json" <<'PY'
+          import json, sys
+
+          data = json.load(open(sys.argv[1], encoding="utf-8"))
+          print(data["verdict"], data.get("stops"))
+          sys.exit(0 if data["verdict"] == "pass" and data.get("stops") else 1)
+          PY
+      - name: Upload locked image smoke reports
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: firmware-locked-image-smoke
+          path: |
+            doctor.json
+            examples/*/fw-reports/*.fw-report.json
+            examples/*/fw-reports/*.stdout.json
+            examples/*/fw-reports/*.debug.json
+            examples/*/fw-reports/sim-*.log
+            examples/*/fw-reports/debug-*.advisory.json
+            examples/*/fw-reports/*.fw-pinmap.json
+            examples/*/fw-reports/*.pinmap.md
+          if-no-files-found: ignore

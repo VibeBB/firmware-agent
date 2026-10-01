@@ -59,7 +59,7 @@ def test_update_initial_null_entry(tmp_path: Path) -> None:
         lock,
         entry="firmware_tools",
         image="ghcr.io/vibebb/firmware-tools",
-        tag="abc123-tools",
+        tag="c" * 40 + "-tools",
         digest=digest,
         published_at="2026-09-30T00:00:00Z",
         workflow_run="https://github.com/VibeBB/firmware-agent/actions/runs/1",
@@ -70,8 +70,31 @@ def test_update_initial_null_entry(tmp_path: Path) -> None:
     data = json.loads(lock.read_text(encoding="utf-8"))
     assert data["firmware_tools"]["image"] == "ghcr.io/vibebb/firmware-tools"
     assert data["firmware_tools"]["digest"] == digest
-    assert data["firmware_tools"]["tag"] == "abc123-tools"
+    assert data["firmware_tools"]["tag"] == "c" * 40 + "-tools"
+    assert "attestation" not in data["firmware_tools"]
     assert data["firmware_tools"]["tools"] == {"python": "python --version: Python 3.12.14"}
+
+
+def test_update_records_optional_attestation_and_reader_accepts_it(tmp_path: Path) -> None:
+    lock = tmp_path / "image-digests.json"
+    digest = "sha256:" + "d" * 64
+    attestation = "https://github.com/VibeBB/firmware-agent/attestations/1"
+    update_lock(
+        lock,
+        entry="firmware_tools",
+        image="ghcr.io/vibebb/firmware-tools",
+        tag="e" * 40 + "-tools",
+        digest=digest,
+        published_at="2026-10-01T00:00:00Z",
+        workflow_run="https://github.com/VibeBB/firmware-agent/actions/runs/1",
+        dockerfile="docker/firmware-tools.Dockerfile",
+        tools={"python": "Python 3.12.14"},
+        attestation=attestation,
+    )
+
+    entry = json.loads(lock.read_text(encoding="utf-8"))["firmware_tools"]
+    assert entry["attestation"] == attestation
+    assert locked_image(lock, "firmware_tools") == f"ghcr.io/vibebb/firmware-tools@{digest}"
 
 
 def test_pull_locked_image_uses_digest_ref(
