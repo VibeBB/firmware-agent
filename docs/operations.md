@@ -2,10 +2,13 @@
 
 ## SBOM attestations
 
-`publish-firmware-images.yml` generates and attests an SPDX-2.3 SBOM for the
-published tools digest and uploads it for 30 days. The lock records the
-`sbom_attestation` URL, which `locked-image-check.yml` verifies when present;
+`publish-firmware-images.yml` generates and attests a package-level SPDX-2.3
+SBOM for the published tools digest and uploads the full Syft SBOM as a 90-day
+workflow-run artifact. The lock records the `sbom_attestation` URL, which
+`locked-image-check.yml` verifies when present;
 an absent URL warns and continues.
+The attested SBOM omits file entries and relationships involving files to
+stay below the 16 MiB limit.
 
 ## Launcher-side verification
 
@@ -21,3 +24,14 @@ locally present image, and `--warn` doctor paths never verify.
 ## CI runner network auditing
 
 CI and image-publishing jobs use `step-security/harden-runner` in audit-only mode. It observes network egress without blocking requests; per-run insights are available in the GitHub Actions job summary.
+
+## Digest-lock PR verification
+
+The publisher dispatches `ci.yml` and `workflow-lint.yml` on the lock branch, then polls the authoritative required-check set for up to 30 minutes. Non-required failures do not block publishing; a concluded required-check failure or a PR closed without merge fails the job. A PR merged externally triggers the existing post-merge main workflows without waiting for their results. If required checks remain pending at the deadline, the publisher arms squash auto-merge with branch deletion and exits successfully so branch protection can complete the merge.
+
+SPDX generation prefers the GHCR registry source, writes temporary data under
+the runner's temporary directory, and disables file metadata. The publisher
+removes file entries and relationships involving files to produce the
+package-level SPDX-2.3 SBOM. A guard reports disk space and the attested SBOM
+size after transformation and fails above 16 MiB; the full Syft SBOM is
+uploaded as a 90-day workflow-run artifact.
