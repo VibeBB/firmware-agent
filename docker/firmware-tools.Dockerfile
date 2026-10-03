@@ -13,6 +13,10 @@ ARG ESP_QEMU_RELEASE=esp-develop-9.2.2-20260417
 ARG ESP_QEMU_ASSET=qemu-xtensa-softmmu-esp_develop_9.2.2_20260417-x86_64-linux-gnu.tar.xz
 ARG ESP_QEMU_SHA256=0eecb2a34a5586c0e59110f77b9343b7b336e82fdb0e1a30e1dc1bab8a547e35
 
+# Fail the build when the left side of a verification pipe (curl|sha256sum)
+# breaks instead of silently passing the right side.
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 ENV DEBIAN_FRONTEND=noninteractive
 ENV UV_PYTHON_INSTALL_DIR=/opt/uv-python
 ENV PLATFORMIO_CORE_DIR=/opt/platformio
