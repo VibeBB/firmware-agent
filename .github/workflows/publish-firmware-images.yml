@@ -275,7 +275,7 @@ jobs:
         # A gate failure leaves the previous good :latest untouched.
         run: |
           docker buildx imagetools create \
-            "ghcr.io/${IMAGE_OWNER}/firmware-tools:latest" \
+            --tag "ghcr.io/${IMAGE_OWNER}/firmware-tools:latest" \
             "$TOOLS_REF"
       - name: Record published image summary
         run: |
