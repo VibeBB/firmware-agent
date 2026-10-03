@@ -48,6 +48,7 @@ jobs:
       artifact-metadata: write # creates the attestation storage record
       # Opens and auto-merges the digest-lock pull request.
       pull-requests: write
+      security-events: write # uploads the Trivy SARIF scan to code scanning
     steps:
       - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
@@ -84,6 +85,48 @@ jobs:
           # imports already degrade to a miss rather than an error, so
           # ignore-error applies to cache-to only.
           cache-to: type=gha,mode=max,ignore-error=true
+      - name: Scan tools image (Trivy SARIF)
+        id: trivy-scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: image
+          # Scan the exact pushed digest — the content the SBOM and
+          # provenance attestations bind to.
+          scan-ref: ghcr.io/${{ env.IMAGE_OWNER }}/firmware-tools@${{ steps.tools.outputs.digest }}
+          version: v0.75.0
+          scanners: vuln,secret,misconfig
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '1'
+          format: sarif
+          output: trivy-image.sarif
+          limit-severities-for-sarif: true
+      - name: Scan tools image (Trivy JSON)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: image
+          scan-ref: ghcr.io/${{ env.IMAGE_OWNER }}/firmware-tools@${{ steps.tools.outputs.digest }}
+          version: v0.75.0
+          scanners: vuln,secret,misconfig,license
+          ignore-unfixed: false
+          include-non-failures: true
+          exit-code: '0'
+          format: json
+          output: trivy-image.json
+          skip-setup-trivy: true
+      - name: Upload Trivy SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        with:
+          sarif_file: trivy-image.sarif
+          category: trivy-firmware-tools
+      - name: Upload Trivy JSON report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: firmware-tools-trivy
+          path: trivy-image.json
+          retention-days: 90
       - name: Attest tools image provenance
         id: attest
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
