@@ -65,10 +65,43 @@ rationale line here when added.
 The uv-managed CPython's bundled `pip` payload (vendored urllib3,
 msgpack, setuptools — never invoked; dependencies install via `uv` and
 the shipped venv is pip-less) is stripped in the `uv python install`
-layer, so the publish gate stays clean without `.trivyignore` waivers.
-PlatformIO's own `/opt/pio` venv is uv-created without pip and its
-`/opt/platformio` runtime environment is pre-warmed at build; the
+layer. PlatformIO's own `/opt/pio` venv is uv-created without pip and
+its `/opt/platformio` runtime environment is pre-warmed at build; the
 weekly audit reports any new payload there as a normal finding.
+
+Remaining publish-gate findings are vendored upstream payloads that
+runtime tooling requires, covered by `.trivyignore` waivers that expire
+2027-01-03 and a matching deferral in
+`scripts/dependency_update_deferrals.json` (re-scan and drop cleared
+waivers at the next `ESPRESSIF32_PLATFORM` / ESP-IDF bump):
+
+- `cryptography` 46.0.7 in `tool-esptoolpy/_contrib` and the ESP-IDF
+  helper venv (CVE-2026-69247, CVE-2026-69249, GHSA-537c-gmf6-5ccf) —
+  esptool invokes it for secure-boot/signing; the fix lands only when
+  upstream re-vendors.
+- `urllib3` 1.26.20 in the ESP-IDF helper venv (CVE-2025-66418,
+  CVE-2025-66471, CVE-2026-21441, CVE-2026-44431, CVE-2026-97687,
+  CVE-2026-97689) — idf_tools fetches with it; gates run with
+  `--network none`, so it carries no runtime network surface.
+- DS-0002/DS-0029 on example Dockerfiles inside
+  `framework-espidf/` (never built by this repo).
+- `private-key` on upstream mbedtls/openthread test keys inside
+  `framework-espidf/` — 354 findings, all published test fixtures.
+
+The weekly audit runs Lynis as container root (`--user 0`) with the
+committed `docker/lynis-container.prf` profile, which skips tests that
+are inapplicable inside a container (kernel/systemd/mounts/storage/
+network/PAM/accounting are governed by the runtime flags below, not the
+image fs). The profile raises the Hardening Index and reduces the
+suggestion list to image-actionable items; remaining suggestions are
+fixed in the Dockerfile (`UMASK 027` in `/etc/login.defs`, Lynis
+AUTH-9328) or silenced only with a documented reason.
+
+`firmware_launcher.py` applies the runtime-hardening flags the
+container profile defers to: `--network none`, `--user uid:gid`,
+`--cap-drop ALL`, `--security-opt no-new-privileges`. A `--read-only`
+root filesystem stays an optional hardening for callers that supply
+tmpfs for tools that need scratch space.
 
 ## CI runner network auditing
 
