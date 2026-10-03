@@ -17,7 +17,7 @@ dev = [
     "pytest-xdist>=3",
     "ruff>=0.16",
 ]
-sdk-check = ["openhands-sdk==1.50.1", "openhands-tools==1.50.1"]
+sdk-check = ["openhands-sdk==1.51.0", "openhands-tools==1.51.0"]
 
 [build-system]
 requires = ["hatchling"]
@@ -27,7 +27,7 @@ build-backend = "hatchling.build"
 packages = ["src/firmware"]
 
 [tool.uv]
-required-version = "==0.12.21"
+required-version = "==0.12.22"
 default-groups = ["dev", "sdk-check"]
 
 [tool.ruff]

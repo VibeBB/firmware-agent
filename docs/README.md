@@ -15,6 +15,7 @@
 
 - [SDK v1.50.0 feature evaluation](research/sdk-v1.50.0-feature-evaluation.md)
 - [SDK v1.50.1 feature evaluation](research/sdk-v1.50.1-feature-evaluation.md) — OpenHands SDK/tools adoption decisions
+- [SDK v1.51.0 feature evaluation](research/sdk-v1.51.0-feature-evaluation.md) — OpenHands SDK/tools and uv adoption decisions
 
 ## Skills
 
