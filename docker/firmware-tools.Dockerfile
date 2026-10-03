@@ -128,4 +128,8 @@ RUN rm -rf /opt/uv-python/bin/pip* \
            /opt/platformio/penv/.espidf-*/lib/python3.12/site-packages/pip-*.dist-info \
            /opt/platformio/penv/.espidf-*/lib/python3.12/ensurepip
 
+# Tighten the login.defs umask to 027 (Lynis AUTH-9328): the image has no
+# interactive users, so files created at runtime stay group-readable only.
+RUN printf 'UMASK 027\n' >> /etc/login.defs
+
 WORKDIR /work

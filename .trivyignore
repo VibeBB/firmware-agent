@@ -1,3 +1,55 @@
 # One finding ID per line (CVE, GHSA, AVD-DS-*, secret rule, license).
 # Optional expiry suffix: ' exp:YYYY-MM-DD'. Audited suppressions carry a
 # statement in docs/operations.md.
+#
+# Every entry was enumerated from a Trivy v0.75.0 scan of the published
+# firmware-tools digest on 2026-10-03 (vuln+secret+misconfig, CRITICAL/HIGH);
+# see docs/operations.md "Container hardening" for the full analysis.
+#
+# --- cryptography 46.0.7 vendored inside PlatformIO/ESP-IDF ---------------
+# Two vendored copies ship in the image:
+#   opt/platformio/packages/tool-esptoolpy/_contrib/  (esptool's bundled
+#     Python contrib — esptool needs it for secure-boot/signing at runtime)
+#   opt/platformio/penv/.espidf-6.1.0/                (ESP-IDF helper venv,
+#     created by idf_tools at build warm-up)
+# Both track the pinned espressif32 platform / ESP-IDF release, not this
+# repo's uv.lock; the fixed cryptography (48.0.1/49.0.0/50.0.0) only lands
+# when upstream re-vendors. The image runs gates with --network none, so
+# the packages are not reachable as a network surface. Re-evaluate at the
+# next ESPRESSIF32_PLATFORM / ESP-QEMU bump — deferral recorded in
+# scripts/dependency_update_deferrals.json.
+CVE-2026-69247 exp:2027-01-03
+CVE-2026-69249 exp:2027-01-03
+GHSA-537c-gmf6-5ccf exp:2027-01-03
+#
+# --- urllib3 1.26.20 vendored inside the ESP-IDF helper venv ---------------
+# opt/platformio/penv/.espidf-6.1.0 ships urllib3 1.26.20 for idf_tools.py
+# downloads; the version is fixed by the pinned ESP-IDF release. Gates run
+# with --network none so idf_tools never fetches at runtime; stripping it
+# would break the toolchain. Same deferral as the cryptography group.
+CVE-2025-66418 exp:2027-01-03
+CVE-2025-66471 exp:2027-01-03
+CVE-2026-21441 exp:2027-01-03
+CVE-2026-44431 exp:2027-01-03
+CVE-2026-97687 exp:2027-01-03
+CVE-2026-97689 exp:2027-01-03
+#
+# --- Example Dockerfiles inside vendored ESP-IDF ---------------------------
+# DS-0002 (root USER) and DS-0029 (missing --no-install-recommends) fire on
+# upstream example Dockerfiles shipped inside
+# opt/platformio/packages/framework-espidf/ (openthread environment,
+# harness-simulation posix, tools/docker). They are documentation-grade
+# upstream files, never built by this repo; the findings clear when the
+# pinned ESP-IDF release refreshes. Same deferral.
+AVD-DS-0002 exp:2027-01-03
+AVD-DS-0029 exp:2027-01-03
+#
+# --- Test private keys inside vendored ESP-IDF -----------------------------
+# 354 private-key findings, all under opt/platformio/packages/framework-
+# espidf/: mbedtls tf-psa-crypto/openthread test vectors (data_files/*.key,
+# *.pem) and tcat_ble_client sample commissioner/device certs. These are
+# upstream-published test fixtures, not credentials. Waiving the rule is
+# accepted with the same deferral; a real key committed outside the
+# vendored tree would need a new scanner signal, so the waiver expires
+# with the others rather than standing permanently.
+private-key exp:2027-01-03
