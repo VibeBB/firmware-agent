@@ -105,4 +105,27 @@ RUN arm-none-eabi-gcc --version | head -1 \
     && pio --version \
     && python -m firmware doctor
 
+# The uv-managed CPython and the ESP-IDF helper venvs bundle pip with
+# vendored copies of urllib3, msgpack, and setuptools that nothing in the
+# image invokes — dependencies install via uv and the shipped venv is
+# pip-less — so strip the payload instead of shipping unused vulnerable
+# vendored packages. This runs after the platform warm-up because
+# idf_tools bootstraps its venvs through the interpreter's ensurepip at
+# build time; runtime gates never install packages (--network none).
+RUN rm -rf /opt/uv-python/bin/pip* \
+           /opt/uv-python/cpython-*/bin/pip* \
+           /opt/uv-python/cpython-*/lib/python3.12/site-packages/pip \
+           /opt/uv-python/cpython-*/lib/python3.12/site-packages/pip-*.dist-info \
+           /opt/uv-python/cpython-*/lib/python3.12/ensurepip \
+           /opt/pio/bin/pip* \
+           /opt/pio/lib/python3.12/site-packages/pip \
+           /opt/pio/lib/python3.12/site-packages/pip-*.dist-info \
+           /opt/platformio/penv/bin/pip* \
+           /opt/platformio/penv/lib/python3.12/site-packages/pip \
+           /opt/platformio/penv/lib/python3.12/site-packages/pip-*.dist-info \
+           /opt/platformio/penv/.espidf-*/bin/pip* \
+           /opt/platformio/penv/.espidf-*/lib/python3.12/site-packages/pip \
+           /opt/platformio/penv/.espidf-*/lib/python3.12/site-packages/pip-*.dist-info \
+           /opt/platformio/penv/.espidf-*/lib/python3.12/ensurepip
+
 WORKDIR /work
