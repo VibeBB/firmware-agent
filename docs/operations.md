@@ -36,7 +36,10 @@ Three layers were adopted after a comparative evaluation of Lynis,
   CRITICAL/HIGH fixable vulnerabilities, secrets, and misconfiguration,
   gated (`exit-code 1`), with SARIF uploaded to code scanning
   (`category: trivy-firmware-tools`) and a full JSON report as an
-  artifact. The action is SHA-pinned and `version:` is explicit — the
+  artifact. Only the immutable `<sha>-tools` tag is pushed at build
+  time; `:latest` is promoted onto the verified digest with
+  `imagetools create` after every gate passes, so a gate failure never
+  moves `:latest`. The action is SHA-pinned and `version:` is explicit — the
   March 2026 Trivy supply-chain compromise made both non-negotiable.
 - **Weekly audit** (`container-audit.yml`, Mondays 03:52 UTC): pulls the
   pinned digest from `docker/image-digests.json`, re-scans with a fresh
@@ -87,6 +90,12 @@ waivers at the next `ESPRESSIF32_PLATFORM` / ESP-IDF bump):
   `framework-espidf/` (never built by this repo).
 - `private-key` on upstream mbedtls/openthread test keys inside
   `framework-espidf/` — 354 findings, all published test fixtures.
+- QEMU debs (`qemu-system-arm`, `-common`, `-data`,
+  `ubuntu-helper-virt-hwe`, `ubuntu-virt`; CVE-2026-3886) and the
+  vendored `ecdsa` package (CVE-2024-23342) — unfixable HIGHs with no
+  released fix upstream; recorded as expiring acceptances so the
+  unfixed count is deliberate, re-evaluated at each ubuntu:26.04
+  base-digest and `ESPRESSIF32_PLATFORM` / `ESP_QEMU` bump.
 
 The weekly audit runs Lynis as container root (`--user 0`) with the
 committed `docker/lynis-container.prf` profile, which skips tests that
@@ -109,7 +118,28 @@ CI and image-publishing jobs use `step-security/harden-runner` in audit-only mod
 
 ## Digest-lock PR verification
 
-The publisher dispatches `ci.yml` and `workflow-lint.yml` on the lock branch, then polls the authoritative required-check set for up to 30 minutes. Non-required failures do not block publishing; a concluded required-check failure or a PR closed without merge fails the job. A PR merged externally triggers the existing post-merge main workflows without waiting for their results. If required checks remain pending at the deadline, the publisher arms squash auto-merge with branch deletion and exits successfully so branch protection can complete the merge.
+The lock pull request's own `pull_request` runs are the single CI path:
+`workflow_dispatch` runs never satisfy required checks, and dispatching
+`ci.yml` on the lock branch duplicated a ~12-minute e2e build on the same
+head SHA. The publisher approves the action_required pull_request runs,
+then polls the authoritative required-check set for up to 15 minutes.
+Non-required failures do not block publishing; a concluded required-check
+failure or a PR closed without merge fails the job. A PR merged externally
+triggers the existing post-merge main workflows without waiting for their
+results. If required checks remain pending at the deadline, the publisher
+arms squash auto-merge with branch deletion and exits successfully so
+branch protection can complete the merge.
+
+Post-merge coverage for merges that land outside a live publisher (armed
+auto-merge completing late, or merges performed by the sweep) comes from
+`digest-lock-sweep.yml`: bot merges do not fire push events, so the sweep
+scans recently merged lock PRs every 6 hours and dispatches `ci.yml` and
+`locked-image-check.yml` on main for any merge with no dispatch since.
+
+`dependency-review.yml` additionally requires the repository's
+Dependency graph setting (Settings → Advanced Security); the action
+fails with "Dependency review is not supported on this repository" when
+it is disabled.
 
 SPDX generation prefers the GHCR registry source, writes temporary data under
 the runner's temporary directory, and disables file metadata. The publisher
