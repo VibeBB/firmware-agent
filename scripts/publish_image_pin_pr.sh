@@ -10,7 +10,9 @@ PR_URL=$1
 BRANCH=$2
 BASE_SHA=$3
 POST_MERGE_WORKFLOWS=$4
-REQUIRED_WAIT_ATTEMPTS=${PUBLISH_PIN_PR_REQUIRED_WAIT_ATTEMPTS:-120}
+# ~15 minutes covers the pull_request checks (e2e ~12min) once approved;
+# at the deadline the sweep + armed auto-merge take over.
+REQUIRED_WAIT_ATTEMPTS=${PUBLISH_PIN_PR_REQUIRED_WAIT_ATTEMPTS:-60}
 REQUIRED_WAIT_SECONDS=${PUBLISH_PIN_PR_REQUIRED_WAIT_SECONDS:-15}
 MERGE_WAIT_ATTEMPTS=${PUBLISH_PIN_PR_MERGE_WAIT_ATTEMPTS:-36}
 MERGE_WAIT_SECONDS=${PUBLISH_PIN_PR_MERGE_WAIT_SECONDS:-10}
@@ -115,19 +117,6 @@ approve_gated_runs() {
   done <<< "$run_ids"
 }
 
-dispatch_pin_workflow() {
-  local workflow=$1
-  local -a command=(gh workflow run "$workflow" --repo "$GITHUB_REPOSITORY" --ref "$BRANCH")
-  if [ "$workflow" = ci.yml ] && [ -n "$BASE_SHA" ]; then
-    command+=(-f "base_sha=$BASE_SHA")
-  fi
-  check_pin_pr_state
-  if ! retry "${command[@]}"; then
-    check_pin_pr_state
-    write_summary "Dispatch of ${workflow} for pin PR ${PR_URL} failed; required PR checks remain authoritative."
-  fi
-}
-
 required_check_counts() {
   local checks_json=$1
   local failures pending count
@@ -185,9 +174,10 @@ arm_auto_merge() {
 }
 
 check_pin_pr_state
-for workflow in ci.yml workflow-lint.yml; do
-  dispatch_pin_workflow "$workflow"
-done
+# The lock PR's own pull_request runs are the single CI path:
+# workflow_dispatch runs never satisfy required checks, and a second
+# ci.yml run on the same head SHA duplicated a ~12min e2e build per
+# publish. The publisher only approves the action_required PR runs below.
 
 checks_complete=false
 for ((attempt = 1; attempt <= REQUIRED_WAIT_ATTEMPTS; attempt++)); do
