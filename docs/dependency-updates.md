@@ -47,3 +47,16 @@ Deferrals and their review dates are tracked in
 `scripts/dependency_update_deferrals.json`. A deferred candidate still needs
 an owner to revisit it by the listed date; deferrals do not change source
 pins.
+
+## 2026-10-03 scheduled update
+
+Bumped `openhands-sdk`/`openhands-tools` 1.50.1 -> 1.51.0 and uv
+0.12.21 -> 0.12.22 (`required-version`, Dockerfile `UV_VERSION`/`UV_DIGEST`,
+THIRD_PARTY_NOTICES). ruff was already locked at 0.16.10 and
+`anchore/sbom-action` already at v0.24.3, so no pin moved for either.
+Adoption decisions are recorded per upstream change in
+[SDK v1.51.0 feature evaluation](research/sdk-v1.51.0-feature-evaluation.md):
+everything repo-facing was inherent or lock-only; the new agent-profiles
+API was not adopted (plugins use `LLMProfileStore`), and `UV_PYTHON_ARCH`
+was not adopted (x86_64-only builds). The mcp deferral was refreshed to
+`latest: 2.3.0` citing SDK 1.51.0 — `fastmcp>=3.2.0,<4` still caps `mcp<2`.

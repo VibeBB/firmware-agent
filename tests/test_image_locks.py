@@ -141,7 +141,7 @@ def test_measure_records_required_probe_commands(
 ) -> None:
     stdout = (
         "Python 3.12.14\n"
-        "uv 0.12.21\n"
+        "uv 0.12.22\n"
         "PlatformIO Core, version 6.2.0\n"
         "espressif32=7.1.3\n"
         "Cppcheck 2.13.0\n"
