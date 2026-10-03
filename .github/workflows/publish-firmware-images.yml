@@ -77,9 +77,10 @@ jobs:
           build-args: |
             IMAGE_REVISION=${{ github.sha }}
           push: true
+          # Immutable tag only: a failing image must never serve :latest;
+          # the tag is promoted after every gate passes.
           tags: |
             ghcr.io/${{ env.IMAGE_OWNER }}/firmware-tools:${{ github.sha }}-tools
-            ghcr.io/${{ env.IMAGE_OWNER }}/firmware-tools:latest
           cache-from: type=gha
           # A failed cache export must not fail the publish; gha cache
           # imports already degrade to a miss rather than an error, so
@@ -102,6 +103,9 @@ jobs:
           output: trivy-image.sarif
           limit-severities-for-sarif: true
       - name: Scan tools image (Trivy JSON)
+        # Runs even when the SARIF gate above found fixable CVEs, so the
+        # full report is still emitted on a gate failure.
+        if: always() && steps.tools.outcome == 'success'
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: image
@@ -114,13 +118,13 @@ jobs:
           output: trivy-image.json
           skip-setup-trivy: true
       - name: Upload Trivy SARIF
-        if: always()
+        if: always() && hashFiles('trivy-image.sarif') != ''
         uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
         with:
           sarif_file: trivy-image.sarif
           category: trivy-firmware-tools
       - name: Upload Trivy JSON report
-        if: always()
+        if: always() && hashFiles('trivy-image.json') != ''
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: firmware-tools-trivy
@@ -265,6 +269,14 @@ jobs:
             examples/*/fw-reports/*.fw-pinmap.json
             examples/*/fw-reports/*.pinmap.md
           if-no-files-found: ignore
+      - name: Promote :latest
+        # Every gate above passed: copy the verified manifest to :latest
+        # server-side (attestations and the SBOM keep binding the digest).
+        # A gate failure leaves the previous good :latest untouched.
+        run: |
+          docker buildx imagetools create \
+            "ghcr.io/${IMAGE_OWNER}/firmware-tools:latest" \
+            "$TOOLS_REF"
       - name: Record published image summary
         run: |
           {

@@ -13,6 +13,11 @@ on:
         description: "Explicit X.Y.Z override; leave empty to bump"
         required: false
         type: string
+      dry_run:
+        description: "Exercise the pipeline without writing main or creating a release"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -39,6 +44,9 @@ jobs:
       tag: ${{ steps.bump.outputs.tag }}
       sha: ${{ steps.bump.outputs.sha }}
     steps:
+      - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
       - name: Require main
         env:
           REF: ${{ github.ref }}
@@ -54,6 +62,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           BUMP: ${{ inputs.bump }}
           SET_VERSION: ${{ inputs.version }}
+          DRY_RUN: ${{ inputs.dry_run }}
         run: |
           set -euo pipefail
           retry() {
@@ -70,7 +79,13 @@ jobs:
           SET_VERSION="${SET_VERSION#v}"
           CURRENT=$(python3 -c 'import tomllib,sys;print(tomllib.load(open("pyproject.toml","rb"))["project"]["version"])')
           SKIP_COMMIT=false
-          if [ -n "$SET_VERSION" ]; then
+          # A dry run must not write main: take the no-commit path at the
+          # current version so verify/install-smoke/zip all still exercise.
+          if [ "$DRY_RUN" = "true" ]; then
+            VERSION="$CURRENT"
+            python3 scripts/bump_version.py --dry-run --bump "$BUMP" >/dev/null
+            SKIP_COMMIT=true
+          elif [ -n "$SET_VERSION" ]; then
             if [ "$SET_VERSION" = "$CURRENT" ]; then
               VERSION="$CURRENT"
               python3 scripts/bump_version.py --dry-run --bump patch >/dev/null
@@ -81,7 +96,9 @@ jobs:
           else
             VERSION=$(python3 scripts/bump_version.py --bump "$BUMP")
           fi
-          if git ls-remote --exit-code --tags origin "refs/tags/v${VERSION}"; then
+          # A dry run replays the current version, whose tag already
+          # exists; only real releases fail on a duplicate tag.
+          if [ "$DRY_RUN" != "true" ] && git ls-remote --exit-code --tags origin "refs/tags/v${VERSION}"; then
             echo "::error::tag v${VERSION} already exists" >&2
             exit 1
           fi
@@ -216,6 +233,9 @@ jobs:
     runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
+      - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.bump-version.outputs.sha }}
@@ -244,6 +264,9 @@ jobs:
       VERSION: ${{ needs.bump-version.outputs.version }}
       SHA: ${{ needs.bump-version.outputs.sha }}
     steps:
+      - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.bump-version.outputs.sha }}
@@ -260,6 +283,7 @@ jobs:
           (cd plugins && zip -r "../dist/firmware-plugin-v${VERSION}.zip" firmware)
           zip -r "dist/firmware-examples-v${VERSION}.zip" examples
       - name: Create release and tag
+        if: ${{ !inputs.dry_run }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -274,3 +298,7 @@ jobs:
           }
           retry gh release create "v${VERSION}" --target "$SHA" \
             --title "firmware-agent v${VERSION}" --generate-notes dist/*.zip
+      - name: Dry-run note
+        if: ${{ inputs.dry_run }}
+        run: |
+          echo "dry_run: skipped 'gh release create v${VERSION}' — pipeline rehearsal complete"

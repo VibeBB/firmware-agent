@@ -53,3 +53,14 @@ AVD-DS-0029 exp:2027-01-03
 # vendored tree would need a new scanner signal, so the waiver expires
 # with the others rather than standing permanently.
 private-key exp:2027-01-03
+#
+# --- Unfixable HIGHs in the QEMU/Ubuntu and Python payload -----------------
+# qemu-system-arm/-common/-data plus the ubuntu-helper-virt-hwe and
+# ubuntu-virt metapackages carry CVE-2026-3886 (HIGH) with no released
+# fix, and the Python `ecdsa` package vendored in the toolchain's helper
+# venvs carries CVE-2024-23342 (HIGH) — the publish gate's ignore-unfixed
+# already passes them, so they are recorded here as deliberate, expiring
+# acceptances rather than ambient findings. Re-evaluate at each
+# ubuntu:26.04 base-digest and ESPRESSIF32_PLATFORM / ESP-QEMU bump.
+CVE-2026-3886 exp:2027-01-03
+CVE-2024-23342 exp:2027-01-03

@@ -41,6 +41,9 @@ jobs:
           set -euo pipefail
           ref=$(python3 -c 'import json; d=json.load(open("docker/image-digests.json", encoding="utf-8")); k=sorted(d)[0]; print(d[k]["image"]+"@"+d[k]["digest"])')
           echo "PINNED_IMAGE=$ref" >> "$GITHUB_ENV"
+          # All Trivy invocations in this job share one DB cache so the
+          # SARIF, JSON, and CIS scans do not re-download it.
+          echo "TRIVY_CACHE_DIR=$RUNNER_TEMP/trivy-cache" >> "$GITHUB_ENV"
           docker pull "$ref"
       - name: Scan pinned image (Trivy SARIF)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
@@ -92,6 +95,13 @@ jobs:
           set -uo pipefail
           git clone --depth 1 --branch 3.1.7 \
             https://github.com/CISOfy/lynis "$RUNNER_TEMP/lynis"
+          # The 3.1.7 tag is mutable; verify the checked-out commit is the
+          # pinned SHA so a re-tagged release cannot inject different code.
+          head=$(git -C "$RUNNER_TEMP/lynis" rev-parse HEAD)
+          if [ "$head" != "2e99f92265760b73fd6b139868eb8d4116624030" ]; then
+            echo "::error::lynis 3.1.7 tag moved (HEAD=$head); refusing to run it" >&2
+            exit 1
+          fi
           mkdir -p "$LYNIS_OUT"
           docker run --rm --user 0 \
             -v "$RUNNER_TEMP/lynis:/lynis:ro" \
@@ -119,7 +129,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import json, os
+          import json, os, sys
           from collections import Counter
           trivy = json.load(open(os.environ["TRIVY_JSON"], encoding="utf-8"))
           vulns, secrets, licenses = Counter(), Counter(), 0
@@ -146,12 +156,21 @@ jobs:
           cis = {"passed": 0, "failed": 0}
           try:
               cis_data = json.load(open(os.environ["TRIVY_CIS"], encoding="utf-8"))
-              for result in cis_data.get("Results", []):
-                  summary = result.get("MisconfSummary") or {}
-                  cis["passed"] += int(summary.get("Successes", 0))
-                  cis["failed"] += int(summary.get("Failures", 0))
           except (OSError, ValueError):
-              pass
+              cis_data = {}
+          # trivy --compliance nests check summaries deeper than top-level
+          # Results; walk the tree so the CIS leg cannot silently no-op.
+          def _summaries(node):
+              yield node
+              for child in node.get("Results") or []:
+                  yield from _summaries(child)
+          for result in _summaries(cis_data):
+              summary = result.get("MisconfSummary") or {}
+              cis["passed"] += int(summary.get("Successes", 0))
+              cis["failed"] += int(summary.get("Failures", 0))
+          if cis["passed"] + cis["failed"] == 0:
+              # dead telemetry must fail, not masquerade as coverage
+              sys.exit("Docker CIS scan produced no results")
           lynis = {"hardening_index": "unknown", "warnings": 0}
           try:
               for line in open(os.environ["LYNIS_OUT"] + "/lynis-report.dat",
