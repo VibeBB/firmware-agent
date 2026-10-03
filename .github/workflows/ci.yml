@@ -146,12 +146,25 @@ jobs:
             else
               gate_status=$?
             fi
+            if [ "$gate_status" -ne 0 ]; then
+              # The gate's crash detail lives in its redirected stdout —
+              # echo it so the log explains which contract broke.
+              echo "gates exited $gate_status for $contract; captured output:"
+              cat report.json || true
+            fi
             python3 - report.json "$gate_status" <<'PY'
           import json, sys
-          report = json.load(open(sys.argv[1], encoding="utf-8"))
+          from pathlib import Path
+          report_path = Path(sys.argv[1])
+          gate_status = int(sys.argv[2])
+          try:
+              report = json.loads(report_path.read_text(encoding="utf-8"))
+          except (OSError, ValueError) as exc:
+              if report_path.is_file():
+                  print(report_path.read_text(encoding="utf-8", errors="replace"), end="")
+              sys.exit(f"gates produced no parseable report (exit {gate_status}): {exc}")
           for check in report["checks"]:
               print(f"{check['id']:24} {check['status']:8} {check['detail'][:200]}")
-          gate_status = int(sys.argv[2])
           sys.exit(0 if gate_status == 0 and report["verdict"] == "pass" else 1)
           PY
           done
