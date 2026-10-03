@@ -11,7 +11,8 @@ uv run python scripts/check_dependency_updates.py \
 
 The report checks direct PyPI dependencies and locked transitive drift, the uv
 pin, GitHub Actions SHA pins, pinned `uvx` tools, Docker ARG pins, the Ubuntu
-base tag, and Python-version support. The Docker `PLATFORMIO_VERSION` ARG is
+base tag, `git clone --branch` pins inside workflows, and Python-version
+support. The Docker `PLATFORMIO_VERSION` ARG is
 compared with PyPI. Review any candidate against the upstream release notes,
 update the source pin, regenerate `uv.lock` with uv rather than editing it by
 hand, and run the CI-equivalent checks and firmware-tools image smoke.
@@ -33,6 +34,14 @@ These Dockerfile surfaces require manual review before changing:
 The Docker-base checker handles Ubuntu release tags generically and selects
 the latest `xx.04` tag. Its tests cover the digest-pinned `26.04` base; no
 version-specific checker target is needed when the Ubuntu LTS tag changes.
+
+## Workflow git clone pins
+
+`container-audit.yml` clones `CISOfy/lynis` at `git clone --depth 1 --branch
+3.1.7` for the informational Lynis audit. The checker treats
+`git clone --branch <ref>` pins inside workflows as a `git-clone` surface and
+compares each ref against the upstream repo's highest semver tag, so a new
+Lynis release surfaces in the weekly report.
 
 Deferrals and their review dates are tracked in
 `scripts/dependency_update_deferrals.json`. A deferred candidate still needs
