@@ -639,9 +639,7 @@ def check_docker_args(
             )
         )
     else:
-        latest_tag = _github_latest_tag(
-            "platformio/platform-espressif32", list_remote_tags
-        )
+        latest_tag = _github_latest_tag("platformio/platform-espressif32", list_remote_tags)
         latest = latest_tag.lstrip("v")
         statuses.append(
             DependencyStatus(
