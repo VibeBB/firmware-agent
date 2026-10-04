@@ -257,7 +257,7 @@ def _run(env: dict[str, str]) -> subprocess.CompletedProcess[str]:
 def _outputs(path: Path) -> dict[str, str]:
     if not path.is_file():
         return {}
-    pairs = {}
+    pairs: dict[str, str] = {}
     for line in path.read_text(encoding="utf-8").splitlines():
         key, _, value = line.partition("=")
         pairs[key] = value
