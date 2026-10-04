@@ -114,19 +114,19 @@ RUN arm-none-eabi-gcc --version | head -1 \
 # build time; runtime gates never install packages (--network none).
 RUN rm -rf /opt/uv-python/bin/pip* \
            /opt/uv-python/cpython-*/bin/pip* \
-           /opt/uv-python/cpython-*/lib/python3.14/site-packages/pip \
-           /opt/uv-python/cpython-*/lib/python3.14/site-packages/pip-*.dist-info \
-           /opt/uv-python/cpython-*/lib/python3.14/ensurepip \
+           /opt/uv-python/cpython-*/lib/python3.*/site-packages/pip \
+           /opt/uv-python/cpython-*/lib/python3.*/site-packages/pip-*.dist-info \
+           /opt/uv-python/cpython-*/lib/python3.*/ensurepip \
            /opt/pio/bin/pip* \
-           /opt/pio/lib/python3.14/site-packages/pip \
-           /opt/pio/lib/python3.14/site-packages/pip-*.dist-info \
+           /opt/pio/lib/python3.*/site-packages/pip \
+           /opt/pio/lib/python3.*/site-packages/pip-*.dist-info \
            /opt/platformio/penv/bin/pip* \
-           /opt/platformio/penv/lib/python3.14/site-packages/pip \
-           /opt/platformio/penv/lib/python3.14/site-packages/pip-*.dist-info \
+           /opt/platformio/penv/lib/python3.*/site-packages/pip \
+           /opt/platformio/penv/lib/python3.*/site-packages/pip-*.dist-info \
            /opt/platformio/penv/.espidf-*/bin/pip* \
-           /opt/platformio/penv/.espidf-*/lib/python3.14/site-packages/pip \
-           /opt/platformio/penv/.espidf-*/lib/python3.14/site-packages/pip-*.dist-info \
-           /opt/platformio/penv/.espidf-*/lib/python3.14/ensurepip
+           /opt/platformio/penv/.espidf-*/lib/python3.*/site-packages/pip \
+           /opt/platformio/penv/.espidf-*/lib/python3.*/site-packages/pip-*.dist-info \
+           /opt/platformio/penv/.espidf-*/lib/python3.*/ensurepip
 
 # Tighten the login.defs umask to 027 (Lynis AUTH-9328): the image has no
 # interactive users, so files created at runtime stay group-readable only.
