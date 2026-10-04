@@ -64,12 +64,9 @@ jobs:
           BUMP: ${{ inputs.bump }}
           SET_VERSION: ${{ inputs.version }}
           DRY_RUN: ${{ inputs.dry_run }}
-          # Gate workflows dispatched on the version-bump branch when the
-          # direct push is rejected and the bump routes through a PR.
-          RELEASE_BUMP_GATE_WORKFLOWS: ci.yml workflow-lint.yml
-        # The bump state machine lives in scripts/release_version_bump.sh
-        # so the same logic is exercised by tests/test_release_version_bump.py.
-        run: bash scripts/release_version_bump.sh
+        # The bump state machine lives in scripts/release_bump.sh
+        # so the same logic is exercised by tests/test_release_bump.py.
+        run: bash scripts/release_bump.sh
 
   verify:
     needs: bump-version
