@@ -175,8 +175,8 @@ here so audits do not re-flag them:
 - `release.yml` is dispatch-only; run it once with `dry_run=true` before
   the first real release to rehearse bump, verify, and install-smoke
   without creating a GitHub release. The bump state machine lives in
-  `scripts/release_version_bump.sh` (the workflow step is a thin wrapper)
-  and is covered by `tests/test_release_version_bump.py`, which rehearses
+  `scripts/release_bump.sh` (the workflow step is a thin wrapper)
+  and is covered by `tests/test_release_bump.py`, which rehearses
   it with stubbed `gh`/`git` executables.
 - `publish-firmware-images.yml` accepts a `dry_run` dispatch input that
   loads the built image into the local daemon and runs the full gate
