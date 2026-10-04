@@ -9,8 +9,8 @@ into `firmware` (ADR-0004).
 | Component | Version pin | License | Use |
 |---|---|---|---|
 | Ubuntu 26.04 | `ubuntu:26.04@sha256:da6fc2be…` | various | Base image |
-| uv | `ghcr.io/astral-sh/uv:0.12.22` | Apache-2.0 / MIT | Python and package manager |
-| CPython | 3.12.x via uv | PSF-2.0 | Runtime |
+| uv | `ghcr.io/astral-sh/uv:0.12.23` | Apache-2.0 / MIT | Python and package manager |
+| CPython | 3.14.x via uv | PSF-2.0 | Runtime |
 | GNU Arm Embedded GCC, binutils, newlib | Ubuntu GCC 14.2.1 (`15:14.2.rel1-1`), binutils `2.45.50.20251209-1ubuntu1+23build1`, newlib `4.6.0.20260123-1` | GPL-3.0 with GCC Runtime Library Exception; newlib: BSD-style | ARM builds |
 | GNU Make, CMake, Ninja | Ubuntu Make 4.4.1, CMake 4.2.3, Ninja 1.13.2 | GPL-3.0 / BSD-3-Clause / Apache-2.0 | Build backends |
 | GDB (`gdb-multiarch`) | Ubuntu 17.1 | GPL-3.0 | ARM debugging |

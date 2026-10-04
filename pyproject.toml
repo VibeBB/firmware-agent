@@ -27,7 +27,7 @@ build-backend = "hatchling.build"
 packages = ["src/firmware"]
 
 [tool.uv]
-required-version = "==0.12.22"
+required-version = "==0.12.23"
 default-groups = ["dev", "sdk-check"]
 
 [tool.ruff]
