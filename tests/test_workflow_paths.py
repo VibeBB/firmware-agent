@@ -76,6 +76,36 @@ def test_publisher_retriggers_for_workflow_changes_and_attests_images() -> None:
     assert '--attestation "$ATTESTATION_URL"' in text
 
 
+def test_publish_dry_run_skips_only_irreversible_steps() -> None:
+    text = (REPO_ROOT / ".github" / "workflows" / "publish-firmware-images.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "      dry_run:\n        description:" in text
+    for name in (
+        "Promote :latest",
+        "Attest tools image provenance",
+        "Attest tools SBOM",
+        "Update digest lock and merge PR",
+    ):
+        step = text.split(f"      - name: {name}\n", 1)[1].split("      - name:", 1)[0]
+        assert "if: inputs.dry_run != true" in step, name
+    assert "push: ${{ inputs.dry_run != true }}" in text
+    assert "load: ${{ inputs.dry_run }}" in text
+    sarif = text.split("      - name: Upload Trivy SARIF\n", 1)[1].split("      - name:", 1)[0]
+    assert "inputs.dry_run != true" in sarif
+    # The gate chain still runs: Trivy scans, SBOM generation, measurement,
+    # and the launcher smoke carry no dry_run skip.
+    for name in (
+        "Scan tools image (Trivy SARIF)",
+        "Scan tools image (Trivy JSON)",
+        "Generate tools SPDX SBOM",
+        "Measure published tools",
+        "Verify published tools smoke",
+    ):
+        step = text.split(f"      - name: {name}\n", 1)[1].split("      - name:", 1)[0]
+        assert "inputs.dry_run != true" not in step, name
+
+
 def test_locked_image_check_validates_provenance_and_uploads_smoke_artifacts() -> None:
     text = (REPO_ROOT / ".github" / "workflows" / "locked-image-check.yml").read_text(
         encoding="utf-8"
