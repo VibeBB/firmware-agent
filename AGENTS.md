@@ -68,3 +68,10 @@ and disables file metadata. The attested SBOM is package-level SPDX 2.3;
 file entries and relationships involving files are omitted to stay below
 16 MiB. The full Syft SBOM is attached to the workflow run as a 90-day
 artifact.
+
+The release bump state machine is script-backed
+(`scripts/release_version_bump.sh`, covered by
+`tests/test_release_version_bump.py` with stubbed `gh`/`git`), and the
+publish workflow accepts a `dry_run` dispatch input that rehearses the
+gate chain against a locally loaded image without pushing, attesting, or
+locking.
