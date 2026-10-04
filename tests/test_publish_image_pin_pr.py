@@ -158,6 +158,8 @@ def test_pin_pr_state_and_required_checks(
     if case == "merged":
         assert f"workflow run ci.yml --repo {REPOSITORY} --ref main" in call_log
         assert f"--ref {BRANCH}" not in call_log
+        # ci.yml's dispatch accepts no base_sha input; the flag 422s.
+        assert "-f base_sha" not in call_log
     if case == "closed":
         assert "workflow run" not in call_log
     if case in ("action-required", "pending-timeout"):
