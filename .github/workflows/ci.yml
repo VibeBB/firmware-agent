@@ -129,18 +129,17 @@ jobs:
           persist-credentials: false
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: Build firmware-tools image
-        env:
-          # PR-scoped gha cache entries are invisible to main and other
-          # branches, so a mode=max export on a pull_request run (~3.5min
-          # of a ~9min build) is pure cost; only default-branch and
-          # dispatched runs keep the shared cache warm.
-          CACHE_TO: ${{ github.event_name == 'pull_request' && '' || '--cache-to type=gha,mode=max,scope=firmware-tools' }}
+        # PR-scoped gha cache entries are invisible to main and other
+        # branches, so a mode=max export on a pull_request run (~3.5min
+        # of a ~9min build) is pure cost; only default-branch and
+        # dispatched runs keep the shared cache warm.
         run: >-
           docker buildx build --load
           -f docker/firmware-tools.Dockerfile -t firmware-tools:ci
           --build-arg IMAGE_REVISION=${{ github.sha }}
           --cache-from type=gha,scope=firmware-tools
-          $CACHE_TO .
+          ${{ github.event_name == 'pull_request' && '' || '--cache-to type=gha,mode=max,scope=firmware-tools' }}
+          .
       - name: Full gates in the image (no network)
         env:
           FIRMWARE_TOOLS_IMAGE: firmware-tools:ci
