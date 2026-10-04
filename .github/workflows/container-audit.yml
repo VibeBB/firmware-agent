@@ -40,12 +40,50 @@ jobs:
       - name: Resolve and pull pinned image
         run: |
           set -euo pipefail
-          ref=$(python3 -c 'import json; d=json.load(open("docker/image-digests.json", encoding="utf-8")); k=sorted(d)[0]; print(d[k]["image"]+"@"+d[k]["digest"])')
+          # Resolve the firmware_tools entry explicitly: the alphabetical
+          # first lock key would silently re-target the audit the day a
+          # second image lands in the lock file.
+          ref=$(python3 - <<'PY'
+          import json, re, sys
+          data = json.load(open("docker/image-digests.json", encoding="utf-8"))
+          entry = data.get("firmware_tools") if isinstance(data, dict) else None
+          if not isinstance(entry, dict):
+              sys.exit("image digest lock has no firmware_tools entry")
+          image, digest = entry.get("image"), entry.get("digest")
+          if not isinstance(image, str) or not image.startswith("ghcr.io/"):
+              sys.exit("firmware_tools lock entry has no ghcr.io image")
+          if not isinstance(digest, str) or re.fullmatch(r"sha256:[0-9a-f]{64}", digest) is None:
+              sys.exit("firmware_tools digest must be a sha256:<64-hex> digest")
+          print(f"{image}@{digest}")
+          PY
+          )
           echo "PINNED_IMAGE=$ref" >> "$GITHUB_ENV"
           # All Trivy invocations in this job share one DB cache so the
-          # SARIF, JSON, and CIS scans do not re-download it.
-          echo "TRIVY_CACHE_DIR=$RUNNER_TEMP/trivy-cache" >> "$GITHUB_ENV"
-          docker pull "$ref"
+          # SARIF, JSON, and CIS scans do not re-download it; the
+          # actions/cache step below persists it across weekly runs.
+          echo "TRIVY_CACHE_DIR=$HOME/.cache/trivy" >> "$GITHUB_ENV"
+          for attempt in 1 2 3 4 5; do
+            if docker pull "$ref"; then break; fi
+            if [ "$attempt" -eq 5 ]; then
+              echo "::error::docker pull $ref failed after 5 attempts" >&2
+              exit 1
+            fi
+            echo "docker pull attempt $attempt failed; retrying" >&2
+            sleep $((attempt * 10))
+          done
+      - name: Resolve Trivy DB cache key
+        id: trivy_week
+        run: echo "week=$(date +%G-W%V)" >> "$GITHUB_OUTPUT"
+      - name: Restore Trivy vulnerability DB
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/trivy
+          # ISO-week key: the vulnerability DB refreshes daily upstream;
+          # a weekly key bounds staleness while sharing the ~120MB
+          # download across all three scans and across weekly runs.
+          key: trivy-db-${{ runner.os }}-${{ steps.trivy_week.outputs.week }}
+          restore-keys: |
+            trivy-db-${{ runner.os }}-
       - name: Scan pinned image (Trivy SARIF)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
@@ -84,9 +122,23 @@ jobs:
       - name: Run Docker CIS compliance report
         run: |
           set -euo pipefail
-          trivy image --compliance docker-cis-1.6.0 --report all \
-            --format json --output "$RUNNER_TEMP/trivy-cis.json" \
-            "${PINNED_IMAGE}"
+          # trivy exits 0 even when a mirror flake yields an empty Results
+          # payload, so the retry keys on content, not the exit code.
+          for attempt in 1 2; do
+            trivy image --compliance docker-cis-1.6.0 --report all \
+              --format json --output "$RUNNER_TEMP/trivy-cis.json" \
+              "${PINNED_IMAGE}"
+            if jq -e '[.. | objects | .MisconfSummary? // empty | (.Successes // 0) + (.Failures // 0)] | add > 0' \
+              "$RUNNER_TEMP/trivy-cis.json" >/dev/null; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 2 ]; then
+              echo "::error::Docker CIS scan produced an empty results payload after retry" >&2
+              exit 1
+            fi
+            echo "CIS scan returned an empty results payload; retrying once" >&2
+            sleep 15
+          done
       - name: Run informational Lynis audit inside the image
         id: lynis
         continue-on-error: true
@@ -155,6 +207,7 @@ jobs:
               for lic in result.get("Licenses") or []:
                   licenses += 1
           cis = {"passed": 0, "failed": 0}
+          failed_checks: list[str] = []
           try:
               cis_data = json.load(open(os.environ["TRIVY_CIS"], encoding="utf-8"))
           except (OSError, ValueError):
@@ -169,6 +222,10 @@ jobs:
               summary = result.get("MisconfSummary") or {}
               cis["passed"] += int(summary.get("Successes", 0))
               cis["failed"] += int(summary.get("Failures", 0))
+              for m in result.get("Misconfigurations") or []:
+                  if m.get("Status") == "FAIL":
+                      failed_checks.append(m.get("ID") or m.get("Title") or "?")
+          cis["failed_checks"] = sorted(set(failed_checks))
           if cis["passed"] + cis["failed"] == 0:
               # dead telemetry must fail, not masquerade as coverage
               sys.exit("Docker CIS scan produced no results")
@@ -216,6 +273,10 @@ jobs:
             trivy-image.json
           retention-days: 90
       - name: Post report to issue
+        # Runs even when a later artifact step failed so a mid-job outage
+        # still posts the computed report; skipped only when the report
+        # itself was never produced.
+        if: always() && hashFiles('container-hardening.json') != ''
         env:
           GH_TOKEN: ${{ github.token }}
           REPORT_JSON: container-hardening.json
@@ -235,6 +296,8 @@ jobs:
           print(f"| Misconfig pass | {t['misconfig_pass']}/{t['misconfig_total']} |")
           print(f"| Secrets found | {t['secrets']} |")
           print(f"| CIS Docker pass/fail | {r['cis_docker']['passed']}/{r['cis_docker']['failed']} |")
+          if r['cis_docker'].get('failed_checks'):
+              print(f"| CIS failed controls | {', '.join(r['cis_docker']['failed_checks'])} |")
           print(f"| Lynis hardening index (trend only) | {r['lynis']['hardening_index']} |")
           print(f"| Lynis warnings | {r['lynis']['warnings']} |")
           print(f"\nRun: {os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}")
@@ -252,8 +315,10 @@ jobs:
               --title "Container hardening report" \
               --label container-hardening --body-file "$REPORT_MD" | sed 's#.*/##')
           fi
-          gate=$(python3 -c 'import json, os; print(json.load(open(os.environ["REPORT_JSON"], encoding="utf-8"))["gate"]["fixable_high_or_critical"])')
-          if [ "$gate" = "0" ] && [ -n "$number" ]; then
+          # The issue only closes when nothing is left to act on: fixable
+          # HIGH/CRITICAL CVEs or any failed CIS control keep it open.
+          read -r gate cis_failed <<< "$(python3 -c 'import json, os; r=json.load(open(os.environ["REPORT_JSON"], encoding="utf-8")); print(r["gate"]["fixable_high_or_critical"], r["cis_docker"]["failed"])')"
+          if [ "$gate" = "0" ] && [ "$cis_failed" = "0" ] && [ -n "$number" ]; then
             gh issue close "$number" --repo "$GITHUB_REPOSITORY" \
               --comment "No fixable HIGH/CRITICAL findings remain."
           fi

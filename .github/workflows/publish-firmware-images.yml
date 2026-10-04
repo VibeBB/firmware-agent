@@ -82,11 +82,33 @@ jobs:
           # the tag is promoted after every gate passes.
           tags: |
             ghcr.io/${{ env.IMAGE_OWNER }}/firmware-tools:${{ github.sha }}-tools
-          cache-from: type=gha
+          # Share the e2e job's cache scope: a publish minutes after a
+          # main e2e build otherwise rebuilds ~10min from near-cold.
+          cache-from: type=gha,scope=firmware-tools
           # A failed cache export must not fail the publish; gha cache
           # imports already degrade to a miss rather than an error, so
           # ignore-error applies to cache-to only.
-          cache-to: type=gha,mode=max,ignore-error=true
+          cache-to: type=gha,mode=max,scope=firmware-tools,ignore-error=true
+      - name: Resolve Trivy DB cache key
+        id: trivy_week
+        run: |
+          echo "week=$(date +%G-W%V)" >> "$GITHUB_OUTPUT"
+          # Shared by all Trivy invocations in this job; the actions/cache
+          # step below restores the DB saved by container-audit.
+          echo "TRIVY_CACHE_DIR=$HOME/.cache/trivy" >> "$GITHUB_ENV"
+      - name: Restore Trivy vulnerability DB
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/trivy
+          # ISO-week key: the vulnerability DB refreshes daily upstream;
+          # a weekly key bounds staleness while sharing the ~120MB
+          # download across scans and publish runs. lookup-only: this job
+          # publishes artifacts, so it must never write the cache —
+          # container-audit keeps it warm.
+          key: trivy-db-${{ runner.os }}-${{ steps.trivy_week.outputs.week }}
+          restore-keys: |
+            trivy-db-${{ runner.os }}-
+          lookup-only: true
       - name: Scan tools image (Trivy SARIF)
         id: trivy-scan
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
@@ -118,6 +140,26 @@ jobs:
           format: json
           output: trivy-image.json
           skip-setup-trivy: true
+      - name: Report gating CVEs
+        # A SARIF gate failure otherwise surfaces only as an exit code;
+        # list the fixable HIGH/CRITICAL findings that blocked the publish.
+        if: always() && steps.trivy-scan.outcome == 'failure' && hashFiles('trivy-image.json') != ''
+        run: |
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          data = json.load(open("trivy-image.json", encoding="utf-8"))
+          rows = [
+              (v["VulnerabilityID"], v.get("PkgName", "?"), v["Severity"], v["FixedVersion"])
+              for result in data.get("Results", [])
+              for v in result.get("Vulnerabilities") or []
+              if v.get("Severity") in ("CRITICAL", "HIGH") and v.get("FixedVersion")
+          ]
+          print("## Trivy SARIF gate failures\n")
+          print("| Vulnerability | Package | Severity | Fixed in |")
+          print("|---|---|---|---|")
+          for row in rows:
+              print("| " + " | ".join(row) + " |")
+          PY
       - name: Upload Trivy SARIF
         if: always() && hashFiles('trivy-image.sarif') != ''
         uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
@@ -135,7 +177,7 @@ jobs:
         id: attest
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          subject-name: ghcr.io/vibebb/firmware-tools
+          subject-name: ghcr.io/${{ env.IMAGE_OWNER }}/firmware-tools
           subject-digest: ${{ steps.tools.outputs.digest }}
           push-to-registry: true
       - name: Resolve tools digest
@@ -192,7 +234,7 @@ jobs:
         id: attest_sbom
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
-          subject-name: ghcr.io/vibebb/firmware-tools
+          subject-name: ghcr.io/${{ env.IMAGE_OWNER }}/firmware-tools
           subject-digest: ${{ steps.tools.outputs.digest }}
           sbom-path: ${{ runner.temp }}/firmware-tools.spdx.json
           push-to-registry: true
@@ -212,7 +254,15 @@ jobs:
           TOOLS_REF: ${{ env.TOOLS_REF }}
         run: |
           set -euo pipefail
-          docker pull "$TOOLS_REF"
+          for attempt in 1 2 3 4 5; do
+            if docker pull "$TOOLS_REF"; then break; fi
+            if [ "$attempt" -eq 5 ]; then
+              echo "::error::docker pull $TOOLS_REF failed after 5 attempts" >&2
+              exit 1
+            fi
+            echo "docker pull attempt $attempt failed; retrying" >&2
+            sleep $((attempt * 10))
+          done
           export FIRMWARE_TOOLS_IMAGE="$TOOLS_REF"
           export FIRMWARE_SRC="$GITHUB_WORKSPACE/src"
           export OPENHANDS_PROJECT_DIR="$GITHUB_WORKSPACE"

@@ -23,6 +23,10 @@ NULL_LOCK = {
 }
 
 
+def _no_sleep(_seconds: float) -> None:
+    return None
+
+
 def test_firmware_lock_entry_has_valid_shape() -> None:
     entries = json.loads(LOCK.read_text(encoding="utf-8"))
     assert "firmware_tools" in entries
@@ -134,6 +138,78 @@ def test_pull_locked_image_uses_digest_ref(
     assert calls == [["docker", "pull", f"ghcr.io/vibebb/firmware-tools@{digest}"]]
     assert output["status"] == "pulled"
     assert json.loads(record.read_text(encoding="utf-8")) == output
+
+
+def test_pull_locked_image_retries_transient_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    lock = tmp_path / "lock.json"
+    digest = "sha256:" + "c" * 64
+    lock.write_text(
+        json.dumps(
+            {
+                "firmware_tools": {
+                    "image": "ghcr.io/vibebb/firmware-tools",
+                    "digest": digest,
+                    "tag": "abc123-tools",
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    calls: list[list[str]] = []
+
+    class Result:
+        stdout = ""
+        stderr = "manifest unknown"
+
+        def __init__(self, returncode: int) -> None:
+            self.returncode = returncode
+
+    def run(command: list[str], **_kwargs: object) -> Result:
+        calls.append(command)
+        return Result(0 if len(calls) == 2 else 1)
+
+    monkeypatch.setattr("scripts.pull_locked_image.subprocess.run", run)
+    monkeypatch.setattr("scripts.pull_locked_image.time.sleep", _no_sleep)
+    assert pull_main(["--lock", str(lock), "--entry", "firmware_tools"]) == 0
+    capsys.readouterr()
+    assert calls == [["docker", "pull", f"ghcr.io/vibebb/firmware-tools@{digest}"]] * 2
+
+
+def test_pull_locked_image_fails_after_last_attempt(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    lock = tmp_path / "lock.json"
+    digest = "sha256:" + "c" * 64
+    lock.write_text(
+        json.dumps(
+            {
+                "firmware_tools": {
+                    "image": "ghcr.io/vibebb/firmware-tools",
+                    "digest": digest,
+                    "tag": "abc123-tools",
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    calls: list[list[str]] = []
+
+    class Result:
+        returncode = 1
+        stdout = ""
+        stderr = "manifest unknown"
+
+    def run(command: list[str], **_kwargs: object) -> Result:
+        calls.append(command)
+        return Result()
+
+    monkeypatch.setattr("scripts.pull_locked_image.subprocess.run", run)
+    monkeypatch.setattr("scripts.pull_locked_image.time.sleep", _no_sleep)
+    assert pull_main(["--lock", str(lock), "--entry", "firmware_tools"]) == 1
+    assert "manifest unknown" in capsys.readouterr().out
+    assert len(calls) == 5
 
 
 def test_measure_records_required_probe_commands(

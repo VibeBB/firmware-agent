@@ -21,7 +21,10 @@ def test_plugin_paths_referenced_exist() -> None:
     missing: list[str] = []
     for workflow in WORKFLOWS:
         text = workflow.read_text(encoding="utf-8")
-        for literal in PLUGIN_PATH.findall(text):
+        # `\.` regex escapes inside workflow grep patterns are not separate
+        # paths; unescape so e.g. tools-image\.json still resolves to the
+        # generated tools-image.json.
+        for literal in PLUGIN_PATH.findall(text.replace("\\.", ".")):
             path = literal.rstrip(".,'\"")
             if path in GENERATED:
                 continue

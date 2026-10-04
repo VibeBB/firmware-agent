@@ -47,7 +47,11 @@ jobs:
             exit 0
           fi
           git diff --name-only "$(git merge-base "$BASE_SHA" "$HEAD_SHA")" "$HEAD_SHA" > "$RUNNER_TEMP/changed-files"
-          if grep -Ev '^(docs/|[^/]+\.md$|LICENSE$|\.github/ISSUE_TEMPLATE/|\.github/PULL_REQUEST_TEMPLATE\.md$)' "$RUNNER_TEMP/changed-files" >/dev/null; then
+          # The publish-owned digest locks change on every image publish;
+          # rebuilding the e2e image for a metadata-only pin is pure cost
+          # (the publish smoke already gated that image), so they count as
+          # non-code like docs.
+          if grep -Ev '^(docs/|[^/]+\.md$|LICENSE$|\.github/ISSUE_TEMPLATE/|\.github/PULL_REQUEST_TEMPLATE\.md$|docker/image-digests\.json$|plugins/firmware/tools-image\.json$)' "$RUNNER_TEMP/changed-files" >/dev/null; then
             echo "code=true" >> "$GITHUB_OUTPUT"
           else
             echo "code=false" >> "$GITHUB_OUTPUT"
@@ -129,12 +133,17 @@ jobs:
           persist-credentials: false
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: Build firmware-tools image
+        # PR-scoped gha cache entries are invisible to main and other
+        # branches, so a mode=max export on a pull_request run (~3.5min
+        # of a ~9min build) is pure cost; only default-branch and
+        # dispatched runs keep the shared cache warm.
         run: >-
           docker buildx build --load
           -f docker/firmware-tools.Dockerfile -t firmware-tools:ci
           --build-arg IMAGE_REVISION=${{ github.sha }}
           --cache-from type=gha,scope=firmware-tools
-          --cache-to type=gha,mode=max,scope=firmware-tools .
+          ${{ github.event_name != 'pull_request' && '--cache-to type=gha,mode=max,scope=firmware-tools' || '' }}
+          .
       - name: Full gates in the image (no network)
         env:
           FIRMWARE_TOOLS_IMAGE: firmware-tools:ci

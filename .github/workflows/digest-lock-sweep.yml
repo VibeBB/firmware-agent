@@ -37,9 +37,16 @@ jobs:
           # reports "blocked" indefinitely. Re-try the merge every 6 hours;
           # the branch ruleset still gates it, so an unsatisfied PR cannot merge.
           dispatch_post_merge=false
-          prs=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 50 \
+          # Without -e a gh API outage would otherwise produce an empty
+          # list and report "no open digest-lock PRs"; fail loudly so the
+          # sweep cannot masquerade as idle.
+          if ! prs=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 50 \
             --json number,headRefName \
-            --jq '.[] | select(.headRefName | startswith("bot/update-image-digests-")) | .number')
+            --jq '.[] | select(.headRefName | startswith("bot/update-image-digests-")) | .number'); then
+            echo "::error::gh pr list failed; the sweep saw nothing" >&2
+            echo "sweep aborted: gh pr list failed" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
           if [ -z "$prs" ]; then
             echo "no open digest-lock PRs" | tee -a "$GITHUB_STEP_SUMMARY"
           else
@@ -68,6 +75,15 @@ jobs:
           # triggers the post-merge workflows. Cover any recent lock merge
           # that has no ci.yml dispatch since its merge; one run verifies main.
           if [ "$dispatch_post_merge" != true ]; then
+            # Same loud-failure rule for the merged-PR backfill scan: an
+            # API error must not silently skip post-merge verification.
+            if ! merged_prs=$(gh pr list --repo "$GITHUB_REPOSITORY" --state merged --limit 10 \
+              --json headRefName,mergedAt \
+              --jq '.[] | select(.headRefName | startswith("bot/update-image-digests-")) | .mergedAt'); then
+              echo "::error::merged lock-PR scan failed; backfill check skipped" >&2
+              echo "merged lock-PR scan failed; post-merge backfill check skipped" >> "$GITHUB_STEP_SUMMARY"
+              merged_prs=""
+            fi
             cutoff=$(date -u -d '7 hours ago' +%Y-%m-%dT%H:%M:%SZ)
             while IFS= read -r merged_at; do
               [ -n "$merged_at" ] || continue
@@ -79,9 +95,7 @@ jobs:
                 dispatch_post_merge=true
                 break
               fi
-            done < <(gh pr list --repo "$GITHUB_REPOSITORY" --state merged --limit 10 \
-              --json headRefName,mergedAt \
-              --jq '.[] | select(.headRefName | startswith("bot/update-image-digests-")) | .mergedAt')
+            done <<< "${merged_prs:-}"
           fi
           if [ "$dispatch_post_merge" = true ]; then
             gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref main || true

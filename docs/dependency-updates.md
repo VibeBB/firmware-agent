@@ -10,9 +10,12 @@ uv run python scripts/check_dependency_updates.py \
 ```
 
 The report checks direct PyPI dependencies and locked transitive drift, the uv
-pin, GitHub Actions SHA pins, pinned `uvx` tools, Docker ARG pins, the Ubuntu
-base tag, `git clone --branch` pins inside workflows, and Python-version
-support. The Docker `PLATFORMIO_VERSION` ARG is
+pin, GitHub Actions SHA pins (including subpath actions such as
+`github/codeql-action/upload-sarif`), pinned `uvx` tools, Docker ARG pins,
+the Ubuntu base tag, `git clone --branch` pins inside workflows,
+direct-download pins inside workflows (release-asset URLs, PyPI wheel
+filenames, and trivy `version:` inputs on aquasecurity actions), and
+Python-version support. The Docker `PLATFORMIO_VERSION` ARG is
 compared with PyPI. Review any candidate against the upstream release notes,
 update the source pin, regenerate `uv.lock` with uv rather than editing it by
 hand, and run the CI-equivalent checks and firmware-tools image smoke.
