@@ -90,7 +90,7 @@ jobs:
           # dry_run loads the image into the local daemon (single-platform
           # build) instead of pushing so the gate chain can rehearse it.
           push: ${{ inputs.dry_run != true }}
-          load: ${{ inputs.dry_run }}
+          load: ${{ inputs.dry_run == true }}
           # Immutable tag only: a failing image must never serve :latest;
           # the tag is promoted after every gate passes.
           tags: |
