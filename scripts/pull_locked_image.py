@@ -7,6 +7,7 @@ import argparse
 import json
 import re
 import subprocess
+import time
 from pathlib import Path
 
 try:
@@ -15,6 +16,24 @@ except ImportError:
     from print_locked_image import locked_image
 
 _DIGEST = re.compile(r"sha256:[0-9a-f]{64}\Z")
+_PULL_ATTEMPTS = 5
+_PULL_BACKOFF_SECONDS = 10
+
+
+def _pull(image_ref: str) -> subprocess.CompletedProcess[str]:
+    """Retry transient registry flakes before failing a long check job."""
+    for attempt in range(1, _PULL_ATTEMPTS + 1):
+        result = subprocess.run(
+            ["docker", "pull", image_ref],
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        )
+        if result.returncode == 0 or attempt == _PULL_ATTEMPTS:
+            return result
+        time.sleep(attempt * _PULL_BACKOFF_SECONDS)
+    raise AssertionError("unreachable")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -28,13 +47,7 @@ def main(argv: list[str] | None = None) -> int:
         digest = image_ref.rsplit("@", 1)[1]
         if _DIGEST.fullmatch(digest) is None:
             raise ValueError("locked image is not digest-pinned")
-        result = subprocess.run(
-            ["docker", "pull", image_ref],
-            check=False,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-        )
+        result = _pull(image_ref)
         if result.returncode:
             raise RuntimeError(result.stderr.strip() or "docker pull failed")
         record = {"entry": args.entry, "image": image_ref, "status": "pulled"}

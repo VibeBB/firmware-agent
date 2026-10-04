@@ -33,6 +33,8 @@ jobs:
         with:
           persist-credentials: false
       - id: lock
+        env:
+          EXPECTED_IMAGE: ghcr.io/${{ github.repository_owner }}/firmware-tools
         run: |
           python3 - <<'PY'
           import json
@@ -40,6 +42,7 @@ jobs:
           import re
           from pathlib import Path
 
+          expected_image = os.environ["EXPECTED_IMAGE"].lower()
           path = Path("docker/image-digests.json")
           if not path.is_file():
               with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
@@ -55,7 +58,7 @@ jobs:
           if not isinstance(data, dict):
               raise SystemExit("image digest lock must be a JSON object")
           entry = data.get("firmware_tools") if isinstance(data, dict) else None
-          if not isinstance(entry, dict) or entry.get("image") != "ghcr.io/vibebb/firmware-tools":
+          if not isinstance(entry, dict) or entry.get("image") != expected_image:
               raise SystemExit("invalid firmware_tools digest lock entry")
           if "digest" not in entry or "tag" not in entry:
               raise SystemExit("firmware_tools lock must contain digest and tag fields")
@@ -67,10 +70,12 @@ jobs:
               present = "false"
               attestation = ""
           else:
+              # Only the all-null pair is a valid unpublished entry; a
+              # single null field is malformed, so both fields must parse.
               if not isinstance(digest, str) or re.fullmatch(r"sha256:[0-9a-f]{64}", digest) is None:
-                  raise SystemExit("firmware_tools digest must be null or a sha256 digest")
+                  raise SystemExit("firmware_tools digest must be a sha256:<64-hex> digest (both digest and tag may only be null together)")
               if not isinstance(tag, str) or re.fullmatch(r"[0-9a-f]{40}-tools", tag) is None:
-                  raise SystemExit("firmware_tools tag must be null or a 40-character tools tag")
+                  raise SystemExit("firmware_tools tag must be a 40-character tools tag (both digest and tag may only be null together)")
               present = "true"
               attestation = entry.get("attestation")
               if attestation is None:

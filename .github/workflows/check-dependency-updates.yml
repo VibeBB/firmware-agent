@@ -4,6 +4,21 @@ on:
   schedule:
     - cron: "0 2 * * 1"
   workflow_dispatch:
+    inputs:
+      report_only:
+        description: "Write the report to the step summary and an artifact only; skip the tracking-issue update"
+        required: false
+        default: false
+        type: boolean
+  # Not a required check, so a paths filter is safe here: it keeps the
+  # collector exercised on changes to its own machinery without adding
+  # noise to unrelated pull requests.
+  pull_request:
+    paths:
+      - ".github/workflows/check-dependency-updates.yml"
+      - "scripts/check_dependency_updates.py"
+      - "scripts/dependency_update_deferrals.json"
+      - "tests/test_dependency_check.py"
 
 permissions:
   contents: read
@@ -47,8 +62,14 @@ jobs:
           outdated=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["outdated_count"])' "$REPORT_JSON")
           unknown=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["unknown_count"])' "$REPORT_JSON")
           printf 'outdated=%s\nunknown=%s\n' "$outdated" "$unknown" >> "$GITHUB_OUTPUT"
+      - name: Upload report artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dependency-update-report
+          path: ${{ runner.temp }}/dependency-update-report.*
+          retention-days: 14
       - name: Post report to issue
-        if: always()
+        if: always() && github.event_name != 'pull_request' && !inputs.report_only
         env:
           GH_TOKEN: ${{ github.token }}
           REPORT_MD: ${{ runner.temp }}/dependency-update-report.md

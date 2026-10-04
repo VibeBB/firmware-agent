@@ -251,7 +251,7 @@ jobs:
           REF: ${{ needs.bump-version.outputs.sha }}
         run: >
           uv run --group sdk-check python scripts/smoke_install_plugin.py
-          --repo VibeBB/firmware-agent --ref "$REF" --repo-path plugins/firmware
+          --repo "$GITHUB_REPOSITORY" --ref "$REF" --repo-path plugins/firmware
 
   release:
     needs: [bump-version, verify, install-smoke]
@@ -260,6 +260,8 @@ jobs:
     permissions:
       # Creates the GitHub release and its tag.
       contents: write
+      id-token: write # OIDC for the release-zip attestation
+      attestations: write # stores the attestation
     env:
       VERSION: ${{ needs.bump-version.outputs.version }}
       SHA: ${{ needs.bump-version.outputs.sha }}
@@ -282,6 +284,13 @@ jobs:
           mkdir -p dist
           (cd plugins && zip -r "../dist/firmware-plugin-v${VERSION}.zip" firmware)
           zip -r "dist/firmware-examples-v${VERSION}.zip" examples
+      - name: Attest release zips
+        # Attest before the release ships so an attestation failure cannot
+        # leave unsigned artifacts published (scorecard Signed-Releases).
+        if: ${{ !inputs.dry_run }}
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: dist/*.zip
       - name: Create release and tag
         if: ${{ !inputs.dry_run }}
         env:
