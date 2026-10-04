@@ -138,7 +138,7 @@ jobs:
           -f docker/firmware-tools.Dockerfile -t firmware-tools:ci
           --build-arg IMAGE_REVISION=${{ github.sha }}
           --cache-from type=gha,scope=firmware-tools
-          ${{ github.event_name == 'pull_request' && '' || '--cache-to type=gha,mode=max,scope=firmware-tools' }}
+          ${{ github.event_name != 'pull_request' && '--cache-to type=gha,mode=max,scope=firmware-tools' || '' }}
           .
       - name: Full gates in the image (no network)
         env:

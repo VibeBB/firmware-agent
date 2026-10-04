@@ -93,7 +93,7 @@ jobs:
         run: |
           echo "week=$(date +%G-W%V)" >> "$GITHUB_OUTPUT"
           # Shared by all Trivy invocations in this job; the actions/cache
-          # step below persists it across publish runs.
+          # step below restores the DB saved by container-audit.
           echo "TRIVY_CACHE_DIR=$HOME/.cache/trivy" >> "$GITHUB_ENV"
       - name: Restore Trivy vulnerability DB
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -101,10 +101,13 @@ jobs:
           path: ~/.cache/trivy
           # ISO-week key: the vulnerability DB refreshes daily upstream;
           # a weekly key bounds staleness while sharing the ~120MB
-          # download across scans and publish runs.
+          # download across scans and publish runs. lookup-only: this job
+          # publishes artifacts, so it must never write the cache —
+          # container-audit keeps it warm.
           key: trivy-db-${{ runner.os }}-${{ steps.trivy_week.outputs.week }}
           restore-keys: |
             trivy-db-${{ runner.os }}-
+          lookup-only: true
       - name: Scan tools image (Trivy SARIF)
         id: trivy-scan
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
