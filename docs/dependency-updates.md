@@ -15,21 +15,20 @@ pin, GitHub Actions SHA pins (including subpath actions such as
 the Ubuntu base tag, `git clone --branch` pins inside workflows,
 direct-download pins inside workflows (release-asset URLs, PyPI wheel
 filenames, and trivy `version:` inputs on aquasecurity actions), and
-Python-version support. The Docker `PLATFORMIO_VERSION` ARG is
-compared with PyPI. Review any candidate against the upstream release notes,
+Python-version support. Review any candidate against the upstream release notes,
 update the source pin, regenerate `uv.lock` with uv rather than editing it by
 hand, and run the CI-equivalent checks and firmware-tools image smoke.
 
-These Dockerfile surfaces require manual review before changing:
+`ESP_QEMU_RELEASE` is compared against the latest `esp-develop-X.Y.Z-YYYYMMDD`
+tag of `espressif/qemu` and `ESPRESSIF32_PLATFORM` against the latest
+`platformio/platform-espressif32` release, so new upstream releases surface in
+the weekly report. The remaining Dockerfile surfaces require manual review
+before changing:
 
-- `ESPRESSIF32_PLATFORM` is a PlatformIO registry platform pin. The previously
-  probed registry API URL
-  `https://api.registry.platformio.org/v3/platforms/platformio/espressif32`
-  returned 404, so no automated latest-version check is configured. Verify
-  the current release and compatibility in the official PlatformIO registry.
-- `ESP_QEMU_RELEASE`, `ESP_QEMU_ASSET`, and `ESP_QEMU_SHA256` identify the
-  Espressif QEMU release artifact and its checksum. Verify the asset and
-  checksum against the upstream release before updating them.
+- `ESP_QEMU_ASSET` and `ESP_QEMU_SHA256` must be re-verified against the
+  upstream release whenever `ESP_QEMU_RELEASE` moves (asset URL and checksum
+  travel with the tag).
+- The Docker `PLATFORMIO_VERSION` ARG is compared with PyPI.
 - The Ubuntu base-image digest is a security pin. Review the upstream image
   digest and supported `26.04` tag together; do not update the digest from a
   local build or an unverified mirror.
@@ -63,3 +62,19 @@ everything repo-facing was inherent or lock-only; the new agent-profiles
 API was not adopted (plugins use `LLMProfileStore`), and `UV_PYTHON_ARCH`
 was not adopted (x86_64-only builds). The mcp deferral was refreshed to
 `latest: 2.3.0` citing SDK 1.51.0 — `fastmcp>=3.2.0,<4` still caps `mcp<2`.
+
+## Decisions - 2026-10-04 round
+
+Adopted now:
+
+| Component | From | To | Evaluation |
+|-----------|------|----|------------|
+| uv | 0.12.22 | 0.12.23 | Point release; dependency resolution and managed-Python fixes. No workflow changes required. |
+| Python pins | 3.12 | 3.14 | `uv python install` / `uv venv --python` / `python3.x` / `.python-version` now resolve 3.14; ci.yml matrix gains a 3.14 leg. |
+| Python 3.15 | - | canary leg | Experimental matrix leg runs each step with `continue-on-error`; a `::warning::` annotation records forward-compat failures without failing the check. |
+
+Deferred:
+
+| Candidate | Reason | Re-check |
+|-----------|--------|----------|
+| Python 3.15 as default | `openhands-sdk` -> `fastuuid==0.14.0` -> PyO3 0.26 caps supported interpreters at 3.14; `uv sync` fails on 3.15 today. The canary leg detects when upstream wheels land. | After 3.15 GA (2026-10-09) and a PyO3 0.27-wheel fastuuid release. |

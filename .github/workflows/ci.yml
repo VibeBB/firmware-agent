@@ -63,7 +63,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12", "3.13"]
+        python-version: ["3.12", "3.13", "3.14"]
+        include:
+          # Forward-compatibility canary ahead of the 2026-10-09 stable
+          # release: step-level continue-on-error keeps the leg green while
+          # the last step reports the failure as an annotation.
+          - python-version: "3.15"
+            experimental: true
     steps:
       - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
@@ -74,28 +80,50 @@ jobs:
           ref: ${{ inputs.ref || github.sha }}
           persist-credentials: false
       - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        id: setup-uv
+        continue-on-error: ${{ matrix.experimental || false }}
         with:
           python-version: ${{ matrix.python-version }}
           cache-suffix: verify-${{ matrix.python-version }}
       - name: Sync dependencies
+        id: sync-dependencies
+        continue-on-error: ${{ matrix.experimental || false }}
         run: uv sync --locked
       - name: Shared hooks
+        id: shared-hooks
+        continue-on-error: ${{ matrix.experimental || false }}
         run: uv run python scripts/check_shared_hooks.py
       - name: Check shared workflows
+        id: check-shared-workflows
+        continue-on-error: ${{ matrix.experimental || false }}
         run: uv run python scripts/check_shared_workflows.py
       - name: Ruff
+        id: ruff
+        continue-on-error: ${{ matrix.experimental || false }}
         run: uv run ruff check . && uv run ruff format --check .
       - name: Pyright
+        id: pyright
+        continue-on-error: ${{ matrix.experimental || false }}
         run: uv run pyright
       - name: Pytest
+        id: pytest
+        continue-on-error: ${{ matrix.experimental || false }}
         run: uv run pytest --cov --cov-report=term-missing:skip-covered
       - name: Plugin load (OpenHands SDK)
+        id: plugin-load-openhands-sdk
+        continue-on-error: ${{ matrix.experimental || false }}
         env:
           OPENHANDS_SUPPRESS_BANNER: "1"
         run: uv run --group sdk-check python scripts/check_plugin_load.py
       - name: Docs
+        id: docs
+        continue-on-error: ${{ matrix.experimental || false }}
         run: uv run python scripts/verify_docs.py
 
+      - name: Report 3.15 canary outcome
+        if: matrix.experimental && (steps.setup-uv.outcome == 'failure' || steps.sync-dependencies.outcome == 'failure' || steps.shared-hooks.outcome == 'failure' || steps.check-shared-workflows.outcome == 'failure' || steps.ruff.outcome == 'failure' || steps.pyright.outcome == 'failure' || steps.pytest.outcome == 'failure' || steps.plugin-load-openhands-sdk.outcome == 'failure' || steps.docs.outcome == 'failure')
+        run: |
+          echo "::warning::Python 3.15 canary leg failed — forward-compat signal, not a gate failure"
   dockerfile-lint:
     runs-on: ubuntu-26.04
     timeout-minutes: 10

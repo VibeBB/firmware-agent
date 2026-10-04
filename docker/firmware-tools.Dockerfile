@@ -1,5 +1,5 @@
-ARG UV_VERSION=0.12.22
-ARG UV_DIGEST=sha256:f513a91fc62fe7c17567eee97230dd198e43edb8a9fbecca843714a4358fe1bc
+ARG UV_VERSION=0.12.23
+ARG UV_DIGEST=sha256:61d393e44e249f2e4b526b6c7ddcecce245946826e608e11c93ad4f5bba55b21
 FROM ghcr.io/astral-sh/uv:${UV_VERSION}@${UV_DIGEST} AS uv
 
 # ubuntu:26.04 (resolute)
@@ -81,7 +81,7 @@ RUN curl --fail --location --silent --show-error \
 WORKDIR /opt/firmware
 COPY pyproject.toml uv.lock .python-version README.md LICENSE ./
 COPY src ./src
-RUN uv python install 3.12 \
+RUN uv python install 3.14 \
     && uv venv /opt/pio --python 3.12 \
     && uv pip install --python /opt/pio "platformio==${PLATFORMIO_VERSION}" \
     && uv sync --locked --no-dev --no-group sdk-check \
@@ -114,19 +114,19 @@ RUN arm-none-eabi-gcc --version | head -1 \
 # build time; runtime gates never install packages (--network none).
 RUN rm -rf /opt/uv-python/bin/pip* \
            /opt/uv-python/cpython-*/bin/pip* \
-           /opt/uv-python/cpython-*/lib/python3.12/site-packages/pip \
-           /opt/uv-python/cpython-*/lib/python3.12/site-packages/pip-*.dist-info \
-           /opt/uv-python/cpython-*/lib/python3.12/ensurepip \
+           /opt/uv-python/cpython-*/lib/python3.14/site-packages/pip \
+           /opt/uv-python/cpython-*/lib/python3.14/site-packages/pip-*.dist-info \
+           /opt/uv-python/cpython-*/lib/python3.14/ensurepip \
            /opt/pio/bin/pip* \
-           /opt/pio/lib/python3.12/site-packages/pip \
-           /opt/pio/lib/python3.12/site-packages/pip-*.dist-info \
+           /opt/pio/lib/python3.14/site-packages/pip \
+           /opt/pio/lib/python3.14/site-packages/pip-*.dist-info \
            /opt/platformio/penv/bin/pip* \
-           /opt/platformio/penv/lib/python3.12/site-packages/pip \
-           /opt/platformio/penv/lib/python3.12/site-packages/pip-*.dist-info \
+           /opt/platformio/penv/lib/python3.14/site-packages/pip \
+           /opt/platformio/penv/lib/python3.14/site-packages/pip-*.dist-info \
            /opt/platformio/penv/.espidf-*/bin/pip* \
-           /opt/platformio/penv/.espidf-*/lib/python3.12/site-packages/pip \
-           /opt/platformio/penv/.espidf-*/lib/python3.12/site-packages/pip-*.dist-info \
-           /opt/platformio/penv/.espidf-*/lib/python3.12/ensurepip
+           /opt/platformio/penv/.espidf-*/lib/python3.14/site-packages/pip \
+           /opt/platformio/penv/.espidf-*/lib/python3.14/site-packages/pip-*.dist-info \
+           /opt/platformio/penv/.espidf-*/lib/python3.14/ensurepip
 
 # Tighten the login.defs umask to 027 (Lynis AUTH-9328): the image has no
 # interactive users, so files created at runtime stay group-readable only.

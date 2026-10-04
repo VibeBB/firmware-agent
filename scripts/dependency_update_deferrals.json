@@ -8,18 +8,11 @@
       "reason": "openhands-sdk 1.51.0 requires fastmcp>=3.2.0,<4, which requires mcp<2.0. Defer MCP 2.x until a supported SDK/fastmcp release removes that constraint."
     },
     {
-      "surface": "python-version",
-      "name": "*",
-      "latest": "3.14",
-      "review_by": "2027-04-01",
-      "reason": "Repo targets Python 3.12/3.13 (requires-python >=3.12, CI matrix 3.12/3.13). 3.14 is pending upstream verification: openhands-sdk support for 3.14 is unconfirmed. Re-evaluate when the SDK's supported range covers 3.14."
-    },
-    {
       "surface": "docker-arg",
       "name": "ESPRESSIF32_PLATFORM",
       "latest": "any",
       "review_by": "2027-01-03",
-      "reason": "The firmware-tools image carries ~15 Trivy findings (cryptography 46.0.7 in tool-esptoolpy/_contrib and penv/.espidf-6.1.0, urllib3 1.26.20 in penv/.espidf-6.1.0, DS-0002/DS-0029 on vendored example Dockerfiles, private-key on vendored mbedtls/openthread test keys) currently covered by expiring .trivyignore waivers. Versions track the pinned espressif32@7.1.3 platform and ESP-IDF 6.1.0, which gates invoke at runtime — do not strip. Re-scan and drop cleared waivers at the next ESPRESSIF32_PLATFORM / ESP-IDF bump."
+      "reason": "The firmware-tools image carries ~15 Trivy findings (cryptography 46.0.7 in tool-esptoolpy/_contrib and penv/.espidf-6.1.0, urllib3 1.26.20 in penv/.espidf-6.1.0, DS-0002/DS-0029 on vendored example Dockerfiles, private-key on vendored mbedtls/openthread test keys) currently covered by expiring .trivyignore waivers. Versions track the pinned espressif32@7.1.3 platform and ESP-IDF 6.1.0, which gates invoke at runtime \u2014 do not strip. Re-scan and drop cleared waivers at the next ESPRESSIF32_PLATFORM / ESP-IDF bump."
     }
   ]
 }
