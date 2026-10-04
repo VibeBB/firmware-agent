@@ -126,8 +126,8 @@ jobs:
           # payload, so the retry keys on content, not the exit code.
           for attempt in 1 2; do
             trivy image --compliance docker-cis-1.6.0 --report all \
-              --format json --output "$RUNNER_TEMP/trivy-cis.json" \
-              "${PINNED_IMAGE}"
+              --ignorefile /dev/null --format json \
+              --output "$RUNNER_TEMP/trivy-cis.json" "${PINNED_IMAGE}"
             if jq -e '[.. | objects | .MisconfSummary? // empty | (.Successes // 0) + (.Failures // 0)] | add > 0' \
               "$RUNNER_TEMP/trivy-cis.json" >/dev/null; then
               exit 0
