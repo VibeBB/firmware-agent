@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "plugin": "firmware",
+  "records_dir": "observations/firmware",
+  "artifact_globs": [
+    "**/*.fw.json",
+    "**/fw_pins.h",
+    "**/*.fw-pinmap.json",
+    "**/*.pinmap.md",
+    "**/*.pinmap.png",
+    "**/*.fw-report.json",
+    "**/*.fw-report.md",
+    "**/*.fw-report.png",
+    "**/*.fw-request.json",
+    "**/sim-*.log",
+    "**/sim-*.png",
+    "**/debug-*.advisory.json"
+  ],
+  "ignore_globs": ["examples/**", "tests/**", ".devin/**", "**/.pio/**"],
+  "max_stop_denials": 2,
+  "record_hint": "Use the MCP tools firmware_record_decision, firmware_record_impression and firmware_record_vision_review (or `python -m firmware record decision|impression|vision-review --json <file>`). Impressions need at least 400 characters and 3 sentences: what you noticed, what works, what worries you, how a maker or user would read it, and what to do next."
+}

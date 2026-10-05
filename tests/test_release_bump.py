@@ -34,7 +34,7 @@ VERSION_FILES = [
     "plugins/firmware/skills/firmware-mcu-pinmap/SKILL.md",
     "plugins/firmware/skills/firmware-power-modes/SKILL.md",
     "plugins/firmware/skills/firmware-qemu/SKILL.md",
-    "plugins/firmware/skills/firmware-sibling-cooperation/SKILL.md",
+    "plugins/firmware/skills/firmware-sister-cooperation/SKILL.md",
     "plugins/firmware/skills/firmware-workflow/SKILL.md",
     "uv.lock",
 ]
@@ -60,7 +60,7 @@ def _make_repo(tmp_path: Path, version: str = "0.1.0") -> Path:
         "firmware-mcu-pinmap",
         "firmware-power-modes",
         "firmware-qemu",
-        "firmware-sibling-cooperation",
+        "firmware-sister-cooperation",
         "firmware-workflow",
     ):
         (root / f"plugins/firmware/skills/{skill}").mkdir(parents=True)

@@ -98,7 +98,7 @@ else
     # direct push (observed: the bump run failed here and only the
     # SKIP_COMMIT re-run released). Route the bump commit through a pull
     # request instead — same self-approve + dispatched checks + auto-merge
-    # flow as sibling release workflows.
+    # flow as sister release workflows.
     echo "::warning::direct push to main rejected; routing the version bump through a pull request"
     branch="bot/release-bump-v${VERSION}-${GITHUB_RUN_ID}"
     retry git push origin "HEAD:refs/heads/${branch}"
@@ -115,7 +115,7 @@ else
       --body "$body")
     write_summary "version-bump PR: $pr_url"
     # Pull_request runs on the bot branch queue as approval-gated
-    # action_required runs; poll and approve as in sibling release
+    # action_required runs; poll and approve as in sister release
     # workflows. Approving them is what satisfies the PR's required checks —
     # the workflow_dispatch runs below only verify the branch and never
     # count toward them. A rejected approval is non-fatal: the merge wait

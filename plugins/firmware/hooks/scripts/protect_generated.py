@@ -28,12 +28,21 @@ from typing import Any, cast
 ARTIFACT_SUFFIXES = (
     ".fw-pinmap.json",
     ".pinmap.md",
+    ".pinmap.png",
     ".fw-report.json",
     ".fw-report.md",
+    ".fw-report.png",
     ".advisory.json",
+    ".ux-response.json",
 )
-ARTIFACT_NAMES = ("fw_pins.h",)
-ARTIFACT_PREFIXED = (("sim-", ".log"),)
+ARTIFACT_NAMES = (
+    "fw_pins.h",
+    "decisions.jsonl",
+    "impressions.jsonl",
+    "vision-reviews.jsonl",
+    "records-status.json",
+)
+ARTIFACT_PREFIXED = (("sim-", ".log"), ("sim-", ".png"))
 WRITE_TOOLS = {"file_editor", "apply_patch"}
 VIEW_ACTIONS = {"view", "read", "undo_edit"}
 WRITE_ACTIONS = {"create", "str_replace", "insert", "edit", "write"}
@@ -117,10 +126,18 @@ def _is_protected(value: str) -> bool:
         return True
     parts = normalized.strip("/").split("/")
     return (
-        len(parts) >= 3
-        and parts[-3:-1] == ["observations", "firmware"]
-        and parts[-1].endswith(".jsonl")
-    ) or parts[-3:] == ["intake", "attachments", "manifest.jsonl"]
+        (
+            len(parts) >= 3
+            and parts[-3:-1] == ["observations", "firmware"]
+            and parts[-1].endswith(".jsonl")
+        )
+        or (
+            len(parts) >= 4
+            and parts[-4:-1] == ["observations", "firmware", ".sessions"]
+            and parts[-1].endswith(".json")
+        )
+        or parts[-3:] == ["intake", "attachments", "manifest.jsonl"]
+    )
 
 
 def _is_artifact_write(payload: dict[str, Any]) -> bool:
@@ -249,8 +266,9 @@ def main() -> int:
     if _is_artifact_write(payload):
         print(
             "generated firmware artifacts (fw_pins.h, *.fw-pinmap.json,"
-            " *.fw-report.*, sim-*.log, debug-*.advisory.json,"
-            " observations/firmware/*.jsonl, intake/attachments/manifest.jsonl)"
+            " *.pinmap.png, *.fw-report.*, sim-*.log, sim-*.png,"
+            " debug-*.advisory.json, *.ux-response.json, observations/firmware/*,"
+            " intake/attachments/manifest.jsonl)"
             " are generated records or projections and must not be edited directly;"
             " regenerate deterministic projections with `firmware pins`,"
             " `firmware pinmap` or `firmware gates`",

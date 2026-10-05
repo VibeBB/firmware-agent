@@ -207,7 +207,7 @@ def test_request_artifact(kettle: Path, tmp_path: Path) -> None:
         kettle,
         tmp_path,
         target="circuit",
-        risk="high",
+        risk="low",
         change="Move LED_RING to a PWM-capable pad",
         rationale="PWM slice conflicts with the buzzer",
         nets=["LED_RING"],

@@ -4,21 +4,43 @@ payload with a fail-closed ``verdict``."""
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from pathlib import Path
+from typing import cast
 
 from pydantic import ValidationError
 
-from . import doctor
+from . import doctor, liaison
 from .contract import Simulation, load_contract, resolve
 from .debug import run_debug
 from .gates import FAIL, PASS, run_gates, write_outputs
 from .interchange import sha256_file
 from .profiles import load_profile
-from .projections import pinmap_export, pinmap_markdown, pins_header, write_text
+from .projections import pinmap_export, pinmap_markdown, pins_header, write_bytes, write_text
+from .records import RECORDERS, records_summary
+from .render import render_pinmap, render_sim_timeline
 from .requests import write_request
-from .sim import run_simulation
+from .sim import SimResult, run_simulation
 
 type Json = dict[str, object]
+
+VISION_HINT = (
+    "Inspect each PNG with inspect_image_with_vision (or view the inline image) and "
+    "record firmware_record_vision_review with a >=400-char, >=3-sentence impression "
+    "judging accuracy against the contract, ambiguity, design intent and usefulness "
+    "to the maker; vision is advisory and never overrides gates."
+)
+
+
+def _attach_image_meta(payload: Json) -> Json:
+    """Advertise which written PNGs still need a vision review."""
+    written = payload.get("written")
+    entries = cast(list[object], written) if isinstance(written, list) else []
+    pngs = [str(p) for p in entries if str(p).endswith(".png")]
+    if pngs:
+        payload["vision_review_required"] = cast(object, pngs)
+        payload["vision_hint"] = VISION_HINT
+    return payload
 
 
 def _default_out(contract_path: Path) -> Path:
@@ -54,10 +76,13 @@ def validate_payload(contract_path: Path) -> Json:
 def gates_payload(contract_path: Path, out_dir: Path | None, *, full: bool) -> Json:
     out = out_dir or _default_out(contract_path)
     report = run_gates(contract_path, out, full=full)
-    written = write_outputs(contract_path, report, out)
+    render_errors: list[str] = []
+    written = write_outputs(contract_path, report, out, render_errors)
     payload: Json = json.loads(report.model_dump_json())
     payload["written"] = [str(p) for p in written]
-    return payload
+    if render_errors:
+        payload["render_errors"] = render_errors
+    return _attach_image_meta(payload)
 
 
 def pins_payload(contract_path: Path) -> Json:
@@ -85,7 +110,23 @@ def pinmap_payload(contract_path: Path, out_dir: Path | None) -> Json:
         json.dumps(pinmap.model_dump(mode="json"), indent=2, ensure_ascii=False) + "\n",
     )
     md_path = write_text(out / f"{contract.name}.pinmap.md", pinmap_markdown(pinmap))
-    return {"verdict": PASS, "stage": "pinmap", "written": [str(json_path), str(md_path)]}
+    written = [str(json_path), str(md_path)]
+    render_errors: list[str] = []
+    try:
+        written.append(
+            str(
+                write_bytes(
+                    out / f"{contract.name}.pinmap.png",
+                    render_pinmap(contract, profile, sha256_file(contract_path)),
+                )
+            )
+        )
+    except Exception as exc:
+        render_errors.append(f"pinmap.png: {exc}")
+    payload: Json = {"verdict": PASS, "stage": "pinmap", "written": written}
+    if render_errors:
+        payload["render_errors"] = render_errors
+    return _attach_image_meta(payload)
 
 
 def sim_payload(contract_path: Path, sim_id: str, out_dir: Path | None) -> Json:
@@ -98,8 +139,26 @@ def sim_payload(contract_path: Path, sim_id: str, out_dir: Path | None) -> Json:
         return {"verdict": FAIL, "stage": "sim", "detail": f"unknown simulation {sim_id}"}
     out = out_dir or _default_out(contract_path)
     root = contract_path.resolve().parent
-    result = run_simulation(sim, root / sim.image, out / f"sim-{sim.id}.log")
-    return {
+    transcript = out / f"sim-{sim.id}.log"
+    result = run_simulation(sim, root / sim.image, transcript)
+    written: list[str] = []
+    render_errors: list[str] = []
+    if result.transcript is not None and result.transcript.is_file():
+        written.append(str(result.transcript))
+        try:
+            written.append(
+                str(
+                    write_bytes(
+                        out / f"sim-{sim.id}.png",
+                        render_sim_timeline(
+                            sim, result.transcript.read_text(encoding="utf-8").splitlines(), result
+                        ),
+                    )
+                )
+            )
+        except Exception as exc:
+            render_errors.append(f"sim-{sim.id}.png: {exc}")
+    payload: Json = {
         "verdict": PASS if result.ok else FAIL,
         "stage": "sim",
         "simulation": sim.id,
@@ -110,7 +169,11 @@ def sim_payload(contract_path: Path, sim_id: str, out_dir: Path | None) -> Json:
         "missing": result.missing,
         "forbidden": result.forbidden,
         "transcript": str(result.transcript) if result.transcript else None,
+        "written": written,
     }
+    if render_errors:
+        payload["render_errors"] = render_errors
+    return _attach_image_meta(payload)
 
 
 def _symbol_file(firmware_elf: str, sim: Simulation) -> str:
@@ -164,6 +227,7 @@ def request_payload(
     rationale: str,
     nets: list[str],
     failing_checks: list[str],
+    decision_refs: list[str] | None = None,
 ) -> Json:
     try:
         contract = load_contract(contract_path)
@@ -177,10 +241,118 @@ def request_payload(
             rationale=rationale,
             nets=nets,
             failing_checks=failing_checks,
+            decision_refs=decision_refs,
+            connectivity=contract.circuit.connectivity,
         )
     except (OSError, ValueError, ValidationError) as exc:
         return {"verdict": FAIL, "stage": "request", "detail": str(exc)}
     return {"verdict": PASS, "stage": "request", "id": request.id, "written": [str(path)]}
+
+
+def ux_inbox_payload(workspace: Path | None) -> Json:
+    try:
+        return liaison.inbox(workspace)
+    except OSError as exc:
+        return {"verdict": FAIL, "stage": "ux_inbox", "detail": str(exc)}
+
+
+def ux_respond_payload(workspace: Path | None, fields: Mapping[str, object]) -> Json:
+    try:
+        payload = dict(fields)
+        payload.pop("workspace", None)
+        return cast(
+            Json,
+            liaison.respond(
+                workspace,
+                str(payload.pop("request")),
+                **payload,  # type: ignore[arg-type]
+            ),
+        )
+    except (TypeError, OSError) as exc:
+        return {"verdict": FAIL, "stage": "ux_respond", "detail": str(exc)}
+
+
+RENDER_VIEWS = ("pinmap", "report", "sim")
+
+
+def render_payload(contract_path: Path, out_dir: Path | None, views: list[str] | None) -> Json:
+    """Render pin map / gate report / sim timeline PNGs; never runs QEMU."""
+    selected = views if views else list(RENDER_VIEWS)
+    unknown = [view for view in selected if view not in RENDER_VIEWS]
+    if unknown:
+        return {"verdict": FAIL, "stage": "render", "detail": f"unknown view {unknown[0]}"}
+    try:
+        contract = load_contract(contract_path)
+        profile = load_profile(contract.mcu.profile, [contract_path.parent])
+    except (OSError, ValueError, ValidationError) as exc:
+        return {"verdict": FAIL, "stage": "render", "detail": str(exc)}
+    out = out_dir or _default_out(contract_path)
+    out.mkdir(parents=True, exist_ok=True)
+    contract_sha = sha256_file(contract_path)
+    written: list[Path] = []
+    render_errors: list[str] = []
+    if "pinmap" in selected:
+        try:
+            written.append(
+                write_bytes(
+                    out / f"{contract.name}.pinmap.png",
+                    render_pinmap(contract, profile, contract_sha),
+                )
+            )
+        except Exception as exc:
+            render_errors.append(f"pinmap.png: {exc}")
+    if "report" in selected:
+        report = run_gates(contract_path, out, full=False)
+        written += write_outputs(contract_path, report, out, render_errors)
+    if "sim" in selected:
+        for sim in contract.simulations:
+            log = out / f"sim-{sim.id}.log"
+            if not log.is_file():
+                render_errors.append(f"sim-{sim.id}.png: no transcript {log}")
+                continue
+            lines = log.read_text(encoding="utf-8", errors="replace").splitlines()
+            try:
+                result = SimResult(
+                    ok=False,
+                    detail="re-evaluated from transcript (QEMU not re-run)",
+                    argv=[],
+                    transcript=log,
+                )
+                png = render_sim_timeline(sim, lines, result)
+                written.append(write_bytes(out / f"sim-{sim.id}.png", png))
+            except Exception as exc:
+                render_errors.append(f"sim-{sim.id}.png: {exc}")
+    payload: Json = {
+        "verdict": PASS,
+        "stage": "render",
+        "views": selected,
+        "written": [str(p) for p in written],
+    }
+    if render_errors:
+        payload["render_errors"] = render_errors
+    return _attach_image_meta(payload)
+
+
+def record_write_payload(kind: str, payload: Mapping[str, object]) -> Json:
+    """Append one VibeBB Record Protocol record; fail-closed on invalid input."""
+    try:
+        return cast(Json, RECORDERS[kind](dict(payload)))
+    except (KeyError, ValueError) as exc:
+        return {"verdict": FAIL, "stage": "record", "detail": str(exc)}
+
+
+def record_file_payload(kind: str, json_path: Path) -> Json:
+    try:
+        raw = json.loads(json_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return {"verdict": FAIL, "stage": "record", "detail": str(exc)}
+    if not isinstance(raw, dict):
+        return {"verdict": FAIL, "stage": "record", "detail": "record JSON must be an object"}
+    return record_write_payload(kind, cast(Mapping[str, object], raw))
+
+
+def records_status_payload() -> Json:
+    return cast(Json, records_summary())
 
 
 def profile_payload(profile_id: str) -> Json:

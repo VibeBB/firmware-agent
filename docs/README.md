@@ -1,5 +1,24 @@
 # firmware-agent documentation
 
+## Guides
+
+- [Architecture](architecture.md) — module map, data flow, launcher, MCP server
+- [Workflow](workflow.md) — session stages and the records each leaves
+- [Agents](agents.md) — the three agents and their duties
+- [Skills](skills.md) — plugin skill reference index
+- [Commands](commands.md) — every CLI subcommand and `/firmware:*` command
+- [MCP tools](mcp.md) — every `firmware_*` tool: inputs, outputs, side effects
+- [Hooks](hooks.md) — every hook in `hooks.json` and shared-hook policy
+- [Contracts](contracts.md) — every JSON schema and generated artifact
+- [Records and vision](records-and-vision.md) — VRP duties and vision review points
+- [Records protocol](records-protocol.md) — the generic VibeBB Record Protocol
+- [Sister cooperation](sister-cooperation.md) — SLP v2, circuit interchange, fw_request v2
+- [Performance and limits](performance-and-limits.md) — timeouts, sizes, coverage gaps
+- [Operations](operations.md) — image pinning, attestation, publish, release
+- [Development](development.md) — setup, verify commands, how to extend
+- [Improvement notes](improvement-notes.md) — adopted ideas and open gaps
+- [Dependency updates](dependency-updates.md) — dependency review guide
+
 ## Architecture decision records
 
 - [ADR-0001](adr/ADR-0001-python-core-json-contracts.md) — Python core, JSON contracts, deterministic gates
@@ -10,24 +29,12 @@
 - [ADR-0006](adr/ADR-0006-pytest-coverage-gate.md) — development-only pytest coverage gate
 - [ADR-0007](adr/ADR-0007-publish-firmware-tools-image-by-digest.md) — publish firmware-tools and lock its digest
 - [ADR-0008](adr/ADR-0008-attest-published-tools-images.md) — attest published tools images
+- [ADR-0009](adr/ADR-0009-records-liaison-vision-refactor.md) — VRP v1, SLP v2, renders, Docker-only launcher, sister rename, docs rebuild
 
 ## Research
 
+- [cppcheck 2.19 adoption](research/cppcheck-2.19-adoption.md)
 - [SDK v1.50.0 feature evaluation](research/sdk-v1.50.0-feature-evaluation.md)
-- [SDK v1.50.1 feature evaluation](research/sdk-v1.50.1-feature-evaluation.md) — OpenHands SDK/tools adoption decisions
-- [SDK v1.51.0 feature evaluation](research/sdk-v1.51.0-feature-evaluation.md) — OpenHands SDK/tools and uv adoption decisions
-- [SDK v1.52.0 feature evaluation](research/sdk-v1.52.0-feature-evaluation.md) — OpenHands SDK/tools adoption decisions
-
-## Skills
-
-The workflow and field references live in the plugin skills:
-[workflow](../plugins/firmware/skills/firmware-workflow/SKILL.md),
-[contract](../plugins/firmware/skills/firmware-contract/SKILL.md),
-[MCU and pin map](../plugins/firmware/skills/firmware-mcu-pinmap/SKILL.md),
-[power modes](../plugins/firmware/skills/firmware-power-modes/SKILL.md),
-[sibling cooperation](../plugins/firmware/skills/firmware-sibling-cooperation/SKILL.md),
-[QEMU and GDB](../plugins/firmware/skills/firmware-qemu/SKILL.md).
-
-## Maintenance
-
-See the [dependency update review guide](dependency-updates.md).
+- [SDK v1.50.1 feature evaluation](research/sdk-v1.50.1-feature-evaluation.md)
+- [SDK v1.51.0 feature evaluation](research/sdk-v1.51.0-feature-evaluation.md)
+- [SDK v1.52.0 feature evaluation](research/sdk-v1.52.0-feature-evaluation.md)

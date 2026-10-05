@@ -14,7 +14,7 @@ SKILLS = [
     "firmware-mcu-pinmap",
     "firmware-power-modes",
     "firmware-qemu",
-    "firmware-sibling-cooperation",
+    "firmware-sister-cooperation",
     "firmware-workflow",
 ]
 

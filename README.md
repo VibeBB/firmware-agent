@@ -2,164 +2,132 @@
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/VibeBB/firmware-agent)
 
-VibeBB firmware plugin for OpenHands (AgentCanvas). It designs and verifies
-microcontroller firmware together with the sibling plugins
-(`electrical-circuit-agent`, `mechanical-agent`, `wire-agent`,
-`UX-creator-agent`, `bard-agent`, `document-agent`).
+Design a real hardware product with AI — this is the firmware sister of
+the VibeBB plugin family for AgentCanvas / OpenHands
+(https://vibebb.org/).
 
-A firmware contract `<name>.fw.json` declares the MCU, pin map, peripherals
-and power modes. Deterministic gates decide whether the design and the
-code are acceptable:
+## What firmware-agent does for you
 
-| gate | checks |
-| --- | --- |
-| `fw.contract` | contract schema, MCU profile, circuit export readable |
-| `fw.pin_functions` | pad exists, not reserved, routes the function and peripheral instance; strapping/JTAG pads acknowledged |
-| `fw.netlist_match` | every pad is on the declared circuit net of the declared MCU; no active pad unassigned; voltage and supply net |
-| `fw.power_modes` | duty cycle, wake sources, powered peripherals, average-current budget |
-| `fw.pins_header` | generated pin header matches the contract |
-| `fw.build` | make / CMake / PlatformIO build succeeds and produces the ELF |
-| `fw.memory_budget` | flash and RAM from ELF segments within budget |
-| `fw.static_analysis` | cppcheck with no blocking finding |
-| `fw.sim.<id>` | QEMU run prints the expected UART lines (ARM core fidelity or Espressif ESP32/ESP32-S3) |
+It decides which pin on the chip does what (LEDs, sensors, buzzers, USB),
+checks that your firmware builds, fits in the chip's memory, and behaves
+correctly inside a simulator — and that the chosen pins actually match
+the circuit board the circuit plugin designed.
 
-`firmware debug` attaches GDB to a QEMU run and records breakpoints,
-backtraces, registers and expressions as advisory evidence.
+## What you give it, what you get back
 
-## Layout
+You give it a product idea (or a request from the UX-creator plugin),
+the circuit plugin's `*.firmware.json`, and optionally photos or
+datasheets of your board. You get back:
 
-- `src/firmware/` — contract models, MCU profiles, gates, CLI, MCP server.
-- `plugins/firmware/` — the OpenHands plugin: agents
-  (`firmware-architect`, `firmware-developer`, `firmware-review`),
-  commands (`doctor`, `design`, `gates`, `pinmap`, `simulate`, `debug`),
-  skills, hooks, launcher, `.mcp.json`.
-- `examples/smart-kettle/` — RP2040 bare-metal C, Make build, ARM QEMU
-  (`mps2-an385`) logic simulation.
-- `examples/desk-lamp-s3/` — ESP32-S3 ESP-IDF via PlatformIO, Espressif
-  QEMU full-image simulation, circuit export from a KiCad netlist.
-- `docker/firmware-tools.Dockerfile` — pinned toolchain image.
-- `docs/` — ADRs.
+- `*.fw.json` — the firmware contract: MCU, pin map, peripherals, power modes
+- a generated pin header (`fw_pins.h`) your code includes
+- a pin map PNG of the chip and a gate report (JSON/Markdown/PNG)
+- a QEMU simulation transcript and timeline PNG
+- a record of every decision, stage impression and image review
+- answers to UX-creator requests (`liaison/*.ux-response.json`)
 
-## Quick start
+## How it works with sister plugins
 
-```bash
-uv sync --locked
-uv run python -m firmware doctor
-uv run python -m firmware check examples/smart-kettle/smart-kettle.fw.json
-docker build -f docker/firmware-tools.Dockerfile -t firmware-tools:dev .
-FIRMWARE_TOOLS_IMAGE=firmware-tools:dev \
-  python3 plugins/firmware/scripts/firmware_launcher.py gates examples/desk-lamp-s3/desk-lamp.fw.json
-```
+The VibeBB sisters (github.com/VibeBB/…) exchange JSON files, never
+code. UX-creator directs firmware through liaison requests; the
+electrical-circuit plugin provides `*.firmware.json` and checks the pin
+map firmware exports back; firmware files change requests to circuit,
+mechanical, wire, UX, bard, doc, prodeng, sim, fpga or dashboard sisters
+when something outside its scope must move — it never edits a sister's
+files. See https://vibebb.org/.
 
-CLI: `firmware {doctor,validate,check,gates,pins,pinmap,sim,debug,request,profile}`.
-MCP tools: `firmware_doctor`, `firmware_validate`, `firmware_check`,
-`firmware_gates`, `firmware_pins`, `firmware_pinmap_export`,
-`firmware_sim`, `firmware_debug`, `firmware_request`, `firmware_profile`.
+## Getting started
 
-## Circuit cooperation
+Requires Docker (all tools run inside a pinned `firmware-tools` image).
+Install the plugin from this repo's `plugins/firmware` directory into
+AgentCanvas / OpenHands, then ask, for example:
 
-```bash
-# circuit side
-python -m circuit firmware-export --brief board.brief.json --netlist board.net --out circuit/
-# firmware side
-python -m firmware gates board.fw.json
-# circuit side confirms the firmware pin map
-python -m circuit firmware-check --brief board.brief.json --netlist board.net \
-  --pinmap fw-reports/board.fw-pinmap.json
-```
+> "Design the firmware pin map for my smart kettle on an RP2040 — heater
+> on a PWM pin, temperature sensor on I2C, one button."
 
-## Development
+Useful prompts: `/firmware:doctor` checks the toolchain,
+`/firmware:design` starts a contract, `/firmware:gates` runs every check.
 
-```bash
-uv run ruff check . && uv run ruff format --check .
-uv run pyright
-uv run pytest
-uv run python scripts/check_plugin_load.py
-uv run python scripts/verify_docs.py
-```
+## Safety and limits
 
-## License
+- Docker-only: no pinned tools image, no run — never falls back to your
+  host.
+- The tool container has no network access.
+- Gates are deterministic and fail closed; vision reviews are advisory.
+- The simulator is not real hardware — it checks printed behaviour, not
+  electricity, RF or timing.
+- Nothing is flashed to a device; a human signs off on real hardware.
 
-BSD-3-Clause. Third-party tools are listed in `THIRD_PARTY_NOTICES.md`.
+## For engineers
+
+Module map, gate semantics, JSON contracts, MCP tools, hooks and the
+record protocol live in [docs/README.md](docs/README.md).
+
+License: BSD-3-Clause, © VibeBB (see `LICENSE`; third-party tools in
+`THIRD_PARTY_NOTICES.md`).
 
 ## 日本語
 
-OpenHands（AgentCanvas）向けの VibeBB ファームウェアプラグイン。姉妹プラグイン
-（`electrical-circuit-agent`、`mechanical-agent`、`wire-agent`、
-`UX-creator-agent`、`bard-agent`、`document-agent`）と連携して、
-マイコンのファームウェアを設計・検証します。
+AI で実際のハードウェア製品を設計する — AgentCanvas / OpenHands 向け
+VibeBB プラグインファミリーの firmware 姉妹プラグインです
+（https://vibebb.org/）。
 
-ファームウェアコントラクト `<name>.fw.json` で MCU、ピンマップ、
-ペリフェラル、パワーモードを宣言します。決定論的なゲートが設計と
-コードの合否を判定します:
+### firmware-agent ができること
 
-| ゲート | 検査内容 |
-| --- | --- |
-| `fw.contract` | コントラクトのスキーマ、MCU プロファイル、回路エクスポートの読み取り可否 |
-| `fw.pin_functions` | パッドの存在・非予約、機能とペリフェラルインスタンスへの割当、ストラッピング/JTAG パッドの確認 |
-| `fw.netlist_match` | 全パッドが宣言 MCU の宣言回路ネット上にあること、アクティブパッドの未割当なし、電圧と電源ネット |
-| `fw.power_modes` | デューティサイクル、起床源、給電ペリフェラル、平均電流予算 |
-| `fw.pins_header` | 生成されたピンヘッダがコントラクトと一致 |
-| `fw.build` | make / CMake / PlatformIO ビルドが成功し ELF を生成 |
-| `fw.memory_budget` | ELF セグメント由来のフラッシュ/RAM が予算内 |
-| `fw.static_analysis` | cppcheck でブロッキング指摘がないこと |
-| `fw.sim.<id>` | QEMU 実行が期待された UART 行を出力（ARM コア忠実度または Espressif ESP32/ESP32-S3） |
+チップのどのピンが何を担うか（LED、センサー、ブザー、USB など）を決め、
+ファームウェアがビルドできるか、チップのメモリに収まるか、
+シミュレータ内で正しく動くか、そして選んだピンが回路プラグインの
+設計した基板と一致するかを検証します。
 
-`firmware debug` は QEMU 実行に GDB をアタッチし、ブレークポイント、
-バックトレース、レジスタ、式を助言的証拠として記録します。
+### 入力と出力
 
-### 構成
+製品のアイデア（または UX-creator プラグインからの依頼）、回路
+プラグインの `*.firmware.json`、必要なら基板の写真やデータシートを
+渡します。返ってくるもの:
 
-- `src/firmware/` — コントラクトモデル、MCU プロファイル、ゲート、CLI、MCP サーバー。
-- `plugins/firmware/` — OpenHands プラグイン: エージェント
-  （`firmware-architect`、`firmware-developer`、`firmware-review`）、
-  コマンド（`doctor`、`design`、`gates`、`pinmap`、`simulate`、`debug`）、
-  スキル、フック、ランチャー、`.mcp.json`。
-- `examples/smart-kettle/` — RP2040 ベアメタル C、Make ビルド、ARM QEMU
-  （`mps2-an385`）ロジックシミュレーション。
-- `examples/desk-lamp-s3/` — PlatformIO 経由の ESP32-S3 ESP-IDF、Espressif
-  QEMU フルイメージシミュレーション、KiCad ネットリスト由来の回路エクスポート。
-- `docker/firmware-tools.Dockerfile` — ピン固定済みツールチェーンイメージ。
-- `docs/` — ADR。
+- `*.fw.json` — MCU、ピンマップ、ペリフェラル、電源モードを定義した
+  ファームウェア契約
+- コードがインクルードする生成済みピンヘッダ `fw_pins.h`
+- チップのピンマップ PNG とゲートレポート（JSON/Markdown/PNG）
+- QEMU シミュレーションのログとタイムライン PNG
+- すべての決定・ステージ感想・画像レビューの記録
+- UX-creator 依頼への回答（`liaison/*.ux-response.json`）
 
-### クイックスタート
+### 姉妹プラグインとの連携
 
-```bash
-uv sync --locked
-uv run python -m firmware doctor
-uv run python -m firmware check examples/smart-kettle/smart-kettle.fw.json
-docker build -f docker/firmware-tools.Dockerfile -t firmware-tools:dev .
-FIRMWARE_TOOLS_IMAGE=firmware-tools:dev \
-  python3 plugins/firmware/scripts/firmware_launcher.py gates examples/desk-lamp-s3/desk-lamp.fw.json
-```
+VibeBB 姉妹（github.com/VibeBB/…）はコードではなく JSON ファイルで
+連携します。UX-creator は liaison 依頼で firmware を指揮し、
+electrical-circuit プラグインは `*.firmware.json` を渡して
+firmware のピンマップを検査します。firmware は自分の範囲外の変更を
+circuit・mechanical・wire・UX・bard・doc・prodeng・sim・fpga・
+dashboard の各姉妹へ変更依頼として出し、姉妹のファイルは絶対に
+編集しません。https://vibebb.org/ を参照。
 
-CLI: `firmware {doctor,validate,check,gates,pins,pinmap,sim,debug,request,profile}`。
-MCP ツール: `firmware_doctor`、`firmware_validate`、`firmware_check`、
-`firmware_gates`、`firmware_pins`、`firmware_pinmap_export`、
-`firmware_sim`、`firmware_debug`、`firmware_request`、`firmware_profile`。
+### はじめ方
 
-### 回路側との連携
+Docker が必須です（すべてのツールはピン留めされた
+`firmware-tools` イメージ内で実行されます）。このリポジトリの
+`plugins/firmware` ディレクトリから AgentCanvas / OpenHands に
+プラグインをインストールし、例えば:
 
-```bash
-# 回路側
-python -m circuit firmware-export --brief board.brief.json --netlist board.net --out circuit/
-# ファームウェア側
-python -m firmware gates board.fw.json
-# 回路側がファームウェアのピンマップを確認
-python -m circuit firmware-check --brief board.brief.json --netlist board.net \
-  --pinmap fw-reports/board.fw-pinmap.json
-```
+> 「RP2040 のスマートケトル用ファームウェアのピンマップを設計して
+> — ヒーターは PWM ピン、温度センサーは I2C、ボタンは1つ。」
 
-### 開発
+便利なコマンド: `/firmware:doctor` はツールチェーン診断、
+`/firmware:design` は契約の作成開始、`/firmware:gates` は全検査。
 
-```bash
-uv run ruff check . && uv run ruff format --check .
-uv run pyright
-uv run pytest
-uv run python scripts/check_plugin_load.py
-uv run python scripts/verify_docs.py
-```
+### 安全性と限界
 
-### ライセンス
+- Docker 専用: ツールイメージが無ければ実行せず、ホストには逃げません。
+- ツールコンテナはネットワークなしで動きます。
+- ゲートは決定論的でフェイルクローズ。画像レビューは助言のみ。
+- シミュレータは実機ではありません — 電気特性・RF・タイミングは見ません。
+- 実機への書き込みは行いません。最終判断は人間が行います。
 
-BSD-3-Clause。第三者ツールは `THIRD_PARTY_NOTICES.md` に一覧があります。
+### エンジニア向け
+
+モジュール構成、ゲート仕様、JSON 契約、MCP ツール、フック、
+レコードプロトコルは [docs/README.md](docs/README.md) にあります。
+
+ライセンス: BSD-3-Clause、© VibeBB（`LICENSE` 参照。サードパーティ
+ツールは `THIRD_PARTY_NOTICES.md`）。

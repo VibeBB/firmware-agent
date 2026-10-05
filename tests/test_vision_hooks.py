@@ -185,7 +185,7 @@ def test_record_image_observation_skips_non_views_and_errors(tmp_path: Path) -> 
         },
         {
             "working_dir": str(tmp_path),
-            "tool_name": "firmware_check",
+            "tool_name": "firmware_doctor",
             "tool_input": {},
             "tool_response": {"output": str(image)},
         },
@@ -315,9 +315,10 @@ def test_plugin_and_agent_vision_hooks_are_declared() -> None:
             "firmware-doctor",
             "intake-attachments",
             "ensure-llm-profiles",
+            "require-records",
         },
         "user_prompt_submit": {"intake-attachments"},
-        "stop": {"report-firmware-status", "intake-attachments"},
+        "stop": {"require-records", "report-firmware-status", "intake-attachments"},
         "post_tool_use": {"record-image-observation", "record-vision-tool-event"},
     }
     for event, names in expected.items():
