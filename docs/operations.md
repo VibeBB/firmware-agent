@@ -1,5 +1,15 @@
 # Operations
 
+## Docker-only launcher
+
+`firmware_launcher.py` is Docker-only: every command and the MCP server run
+inside the digest-pinned `firmware-tools` image. When no image resolves
+(neither `FIRMWARE_TOOLS_IMAGE` nor the plugin/repo digests lock), the
+launcher prints `{"verdict":"fail","error":"...no firmware-tools image
+pinned..."}` and exits non-zero (`doctor --warn` still exits 0); there is
+no host-interpreter fallback.
+
+
 ## SBOM attestations
 
 `publish-firmware-images.yml` generates and attests a package-level SPDX-2.3
