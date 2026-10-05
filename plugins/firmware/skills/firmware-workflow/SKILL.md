@@ -27,10 +27,15 @@ projections of it and are write-protected by the `protect-generated` hook.
 5. **Implementation** — sources include the header; hardware access stays
    behind a HAL so logic builds for QEMU too.
 6. **Full gates** — `firmware gates <contract>` (MCP `firmware_gates`)
-   writes `fw-reports/<name>.fw-report.{json,md}` plus the pin map export.
-7. **Circuit confirmation** — hand `<name>.fw-pinmap.json` to
+   writes `fw-reports/<name>.fw-report.{json,md,png}` plus the pin map
+   export and `<name>.pinmap.png`.
+7. **Render and look** — every written PNG (pin map, fw-report, sim
+   timeline) is returned inline by the MCP tool and listed under
+   `vision_review_required`: view it (inline or
+   `inspect_image_with_vision`) and record a `firmware_record_vision_review`.
+8. **Circuit confirmation** — hand `<name>.fw-pinmap.json` to
    `circuit firmware-check`. Both sides must pass.
-8. **Debug** — `firmware debug` (advisory) when a simulation fails.
+9. **Debug** — `firmware debug` (advisory) when a simulation fails.
 
 ## Gates (all fail closed)
 

@@ -33,7 +33,8 @@ from .interchange import (
     sha256_file,
 )
 from .profiles import McuProfile, load_profile
-from .projections import pinmap_export, pinmap_markdown, pins_header, write_text
+from .projections import pinmap_export, pinmap_markdown, pins_header, write_bytes, write_text
+from .render import render_pinmap, render_report
 from .sim import run_simulation
 
 Status = Literal["pass", "fail", "not_applicable"]
@@ -65,6 +66,7 @@ class GateReport(BaseModel):
     profile: str | None
     verdict: Verdict
     checks: list[Check]
+    metrics: dict[str, float] = Field(default_factory=dict[str, float])
 
 
 def _check(
@@ -274,11 +276,13 @@ def check_pins_header(
     return _check("fw.pins_header", contract.build.pins_header, [])
 
 
-def check_memory(contract: FirmwareContract, profile: McuProfile, elf_path: Path) -> Check:
+def _memory_check(
+    contract: FirmwareContract, profile: McuProfile, elf_path: Path
+) -> tuple[Check, dict[str, float]]:
     try:
         image = read_elf(elf_path)
     except (ElfError, OSError) as exc:
-        return _check("fw.memory_budget", contract.build.elf, [str(exc)])
+        return _check("fw.memory_budget", contract.build.elf, [str(exc)]), {}
     problems: list[str] = []
     expected = next((m for k, m in CORE_MACHINE.items() if profile.core.startswith(k)), None)
     if expected is not None and image.machine != expected:
@@ -307,7 +311,20 @@ def check_memory(contract: FirmwareContract, profile: McuProfile, elf_path: Path
         f"ram={usage.ram}B ({100 * usage.ram / (ram_kb * 1024):.2f}% of {ram_kb}KiB)",
         *(f"{name}={size}B" for name, size in sorted(usage.per_region.items())),
     ]
-    return _check("fw.memory_budget", contract.build.elf, problems, evidence)
+    metrics = {
+        "flash_bytes": float(usage.flash),
+        "flash_capacity_bytes": float(flash_kb * 1024),
+        "flash_budget_bytes": float(flash_limit),
+        "ram_bytes": float(usage.ram),
+        "ram_capacity_bytes": float(ram_kb * 1024),
+        "ram_budget_bytes": float(ram_limit),
+    }
+    return _check("fw.memory_budget", contract.build.elf, problems, evidence), metrics
+
+
+def check_memory(contract: FirmwareContract, profile: McuProfile, elf_path: Path) -> Check:
+    check, _metrics = _memory_check(contract, profile, elf_path)
+    return check
 
 
 def _load_inputs(
@@ -362,6 +379,11 @@ def run_gates(
         checks.append(check_netlist_match(contract, profile, circuit))
     checks.append(check_power_modes(contract, profile))
     checks.append(check_pins_header(contract, profile, contract_path))
+    metrics: dict[str, float] = {
+        "average_ua": sum(mode.current_ua * mode.duty for mode in contract.power.modes),
+    }
+    if contract.power.average_budget_ua is not None:
+        metrics["average_budget_ua"] = contract.power.average_budget_ua
     if full:
         build = run_build(contract.build, root, out_dir / "build.log")
         checks.append(
@@ -373,7 +395,9 @@ def run_gates(
             )
         )
         if build.ok:
-            checks.append(check_memory(contract, profile, build.elf))
+            memory, memory_metrics = _memory_check(contract, profile, build.elf)
+            checks.append(memory)
+            metrics.update(memory_metrics)
         else:
             checks.append(_check("fw.memory_budget", contract.build.elf, ["build failed"]))
         analysis = run_cppcheck(contract.analysis, root)
@@ -403,6 +427,7 @@ def run_gates(
         profile=profile.id,
         verdict=verdict,
         checks=checks,
+        metrics=metrics,
     )
 
 
@@ -473,8 +498,17 @@ def report_markdown(report: GateReport) -> str:
     return "\n".join(lines) + "\n"
 
 
-def write_outputs(contract_path: Path, report: GateReport, out_dir: Path) -> list[Path]:
-    """Write the report plus the pin map export and its Markdown view."""
+def write_outputs(
+    contract_path: Path,
+    report: GateReport,
+    out_dir: Path,
+    render_errors: list[str] | None = None,
+) -> list[Path]:
+    """Write the report plus the pin map export, Markdown view and PNG renders.
+
+    Render failures are advisory: they append to ``render_errors`` and never
+    change the report verdict.
+    """
     out_dir.mkdir(parents=True, exist_ok=True)
     written = [
         write_text(
@@ -495,4 +529,24 @@ def write_outputs(contract_path: Path, report: GateReport, out_dir: Path) -> lis
         )
     )
     written.append(write_text(out_dir / f"{contract.name}.pinmap.md", pinmap_markdown(pinmap)))
+    try:
+        written.append(
+            write_bytes(
+                out_dir / f"{contract.name}.pinmap.png",
+                render_pinmap(contract, profile, report.contract_sha256),
+            )
+        )
+    except Exception as exc:
+        if render_errors is not None:
+            render_errors.append(f"pinmap.png: {exc}")
+    try:
+        written.append(
+            write_bytes(
+                out_dir / f"{report.design}.fw-report.png",
+                render_report(report, contract),
+            )
+        )
+    except Exception as exc:
+        if render_errors is not None:
+            render_errors.append(f"fw-report.png: {exc}")
     return written

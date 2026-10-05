@@ -64,6 +64,9 @@ Rules:
   is advisory evidence for your diagnosis; only the gates decide.
 - If the fix needs a circuit or sister change, write a
   `firmware request` instead of working around the hardware.
+- After gates/sim, review the rendered PNGs (`*.pinmap.png`,
+  `*.fw-report.png`, `sim-*.png`) — they come back inline or via
+  `firmware render` — and record a vision review for each one you open.
 
 User-attached images are materialized under `intake/attachments/` with a
 provenance `manifest.jsonl`. A value read off an image (a pin label on a

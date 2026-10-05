@@ -13,6 +13,7 @@ Subcommands:
   profile   print a bundled MCU profile
   record    append a VibeBB Record Protocol record (decision, impression,
             vision-review) or print the records status
+  render    render pin map / gate report / sim timeline PNGs
 
 Every command prints a JSON payload; exit 0 only when verdict is pass.
 """
@@ -69,6 +70,16 @@ def _parser() -> argparse.ArgumentParser:
     record = sub.add_parser("record", help="append a VibeBB Record Protocol record")
     record.add_argument("kind", choices=["decision", "impression", "vision-review", "status"])
     record.add_argument("--json", type=Path, default=None, help="record fields as a JSON file")
+    render = sub.add_parser("render", help="render PNG views of the contract")
+    render.add_argument("contract", type=Path)
+    render.add_argument("--out", type=Path)
+    render.add_argument(
+        "--view",
+        dest="views",
+        action="append",
+        choices=list(service.RENDER_VIEWS),
+        default=None,
+    )
     return parser
 
 
@@ -115,6 +126,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.json is None:
             parser.error("record decision|impression|vision-review requires --json")
         return _emit(service.record_file_payload(args.kind, args.json))
+    if command == "render":
+        return _emit(service.render_payload(args.contract, args.out, args.views))
     return _emit(service.profile_payload(args.id))
 
 

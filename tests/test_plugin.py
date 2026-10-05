@@ -38,6 +38,7 @@ def test_mcp_tools_registered() -> None:
         "firmware_debug",
         "firmware_request",
         "firmware_profile",
+        "firmware_render",
         "firmware_record_decision",
         "firmware_record_impression",
         "firmware_record_vision_review",

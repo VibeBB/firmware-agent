@@ -1,15 +1,18 @@
 """Expose the firmware entry points over a stdio MCP transport.
 
 Every tool returns the same JSON payload as the CLI; the transport never
-judges the design itself.
+judges the design itself. Tools that write PNGs also return them inline
+as ImageContent so a vision-capable model sees the render directly.
 """
 
 from __future__ import annotations
 
 import asyncio
+import base64
 import json
 from collections.abc import Callable, Mapping
 from pathlib import Path
+from typing import cast
 
 from mcp import types
 from mcp.server import Server
@@ -107,6 +110,23 @@ TOOLS: dict[str, tuple[str, dict[str, object], bool]] = {
         "Show a bundled MCU profile (pads, functions, memory regions)",
         _schema({"profile": {"type": "string"}}, ["profile"]),
         True,
+    ),
+    "firmware_render": (
+        "Render pin map / gate report / sim timeline PNGs (report view reruns "
+        "static gates; sim view re-evaluates existing sim-*.log transcripts and "
+        "never runs QEMU)",
+        _schema(
+            {
+                **_CONTRACT,
+                **_OUT,
+                "views": {
+                    "type": "array",
+                    "items": {"type": "string", "enum": ["pinmap", "report", "sim"]},
+                },
+            },
+            ["contract_path"],
+        ),
+        False,
     ),
     "firmware_record_decision": (
         "Record a design decision (VibeBB Record Protocol): first principles, at least "
@@ -241,6 +261,11 @@ def dispatch(name: str, arguments: dict[str, object]) -> service.Json:
             "vision-review", arguments
         ),
         "firmware_records_status": service.records_status_payload,
+        "firmware_render": lambda: service.render_payload(
+            _path(arguments, "contract_path"),
+            _opt_path(arguments, "out_dir"),
+            _strs(arguments, "views"),
+        ),
     }
     handler = handlers.get(name)
     if handler is None:
@@ -248,21 +273,63 @@ def dispatch(name: str, arguments: dict[str, object]) -> service.Json:
     return handler()
 
 
+_IMAGE_TOOLS = {
+    "firmware_gates",
+    "firmware_check",
+    "firmware_pinmap_export",
+    "firmware_sim",
+    "firmware_render",
+}
+_MAX_INLINE_IMAGES = 4
+_MAX_IMAGE_BYTES = 4 * 1024 * 1024
+
+
+def _inline_images(payload: service.Json) -> list[types.ImageContent]:
+    """Inline written PNGs as ImageContent so a vision model sees them."""
+    written = payload.get("written")
+    if not isinstance(written, list):
+        return []
+    images: list[types.ImageContent] = []
+    skipped: list[str] = []
+    for entry in cast(list[object], written):
+        path = Path(str(entry))
+        if path.suffix != ".png":
+            continue
+        if len(images) >= _MAX_INLINE_IMAGES:
+            skipped.append(str(path))
+            continue
+        try:
+            if not path.is_file() or path.stat().st_size > _MAX_IMAGE_BYTES:
+                skipped.append(str(path))
+                continue
+            data = base64.b64encode(path.read_bytes()).decode("ascii")
+        except OSError:
+            skipped.append(str(path))
+            continue
+        images.append(types.ImageContent(type="image", data=data, mimeType="image/png"))
+    if skipped:
+        payload["images_skipped"] = skipped
+    return images
+
+
 @server.call_tool()
 async def call_tool(name: str, arguments: dict[str, object]) -> types.CallToolResult:
     is_error = False
+    payload: service.Json
     try:
         payload = await asyncio.to_thread(dispatch, name, arguments or {})
         is_error = name not in TOOLS
     except Exception as exc:  # fail-closed transport
         payload = {"verdict": "fail", "detail": f"{name} error: {exc}"}
         is_error = True
-    return types.CallToolResult(
-        content=[
-            types.TextContent(type="text", text=json.dumps(payload, ensure_ascii=False, indent=2))
-        ],
-        isError=is_error,
+    content: list[types.ContentBlock] = []
+    if name in _IMAGE_TOOLS:
+        content += _inline_images(payload)
+    content.insert(
+        0,
+        types.TextContent(type="text", text=json.dumps(payload, ensure_ascii=False, indent=2)),
     )
+    return types.CallToolResult(content=content, isError=is_error)
 
 
 async def _run() -> None:

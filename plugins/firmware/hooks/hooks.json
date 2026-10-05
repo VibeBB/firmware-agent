@@ -94,7 +94,7 @@
       ]
     },
     {
-      "matcher": "file_editor",
+      "matcher": "file_editor|firmware_render|firmware_gates|firmware_check|firmware_pinmap_export|firmware_sim",
       "hooks": [
         {
           "type": "command",
