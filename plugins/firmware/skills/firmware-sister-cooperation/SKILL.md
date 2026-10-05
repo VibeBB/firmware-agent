@@ -38,6 +38,8 @@ always re-derives the connectivity from the current brief/netlist, so a
 pin map checked against a stale export fails there.
 
 Change requests: `target` is one of `circuit`, `mech`, `wire`, `ux`,
-`bard`, `doc`, `production`; `risk: high` for anything that changes the
-board. The request carries the contract hash so the receiver can detect a
-stale ask. Never edit a sister's input files.
+`bard`, `doc`, `prodeng`, `sim`, `fpga`, `dashboard`; `risk: high` for
+anything that changes the board (and then needs at least one decision
+ref from `observations/firmware/decisions.jsonl`). The request carries
+the contract hash and hashed inputs so the receiver can detect a stale
+ask. Never edit a sister's input files.

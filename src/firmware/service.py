@@ -227,6 +227,7 @@ def request_payload(
     rationale: str,
     nets: list[str],
     failing_checks: list[str],
+    decision_refs: list[str] | None = None,
 ) -> Json:
     try:
         contract = load_contract(contract_path)
@@ -240,6 +241,8 @@ def request_payload(
             rationale=rationale,
             nets=nets,
             failing_checks=failing_checks,
+            decision_refs=decision_refs,
+            connectivity=contract.circuit.connectivity,
         )
     except (OSError, ValueError, ValidationError) as exc:
         return {"verdict": FAIL, "stage": "request", "detail": str(exc)}

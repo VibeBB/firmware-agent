@@ -68,6 +68,7 @@ def _parser() -> argparse.ArgumentParser:
     request.add_argument("--rationale", required=True)
     request.add_argument("--net", dest="nets", action="append", default=[])
     request.add_argument("--failing-check", dest="failing_checks", action="append", default=[])
+    request.add_argument("--decision-ref", dest="decision_refs", action="append", default=[])
     request.add_argument("--out", type=Path)
     sub.add_parser("profile").add_argument("id")
     record = sub.add_parser("record", help="append a VibeBB Record Protocol record")
@@ -125,6 +126,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 rationale=args.rationale,
                 nets=args.nets,
                 failing_checks=args.failing_checks,
+                decision_refs=args.decision_refs,
             )
         )
     if command == "record":
