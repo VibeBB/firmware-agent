@@ -87,7 +87,7 @@ TOOLS: dict[str, tuple[str, dict[str, object], bool]] = {
         False,
     ),
     "firmware_request": (
-        "Write a change request (*.fw-request.json) to a sibling agent",
+        "Write a change request (*.fw-request.json) to a sister agent",
         _schema(
             {
                 **_CONTRACT,

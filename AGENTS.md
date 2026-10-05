@@ -1,7 +1,7 @@
 # AGENTS.md — VibeBB firmware-agent
 
 Guidance for AI agents and humans working on this repository, the
-firmware sibling in the VibeBB OpenHands plugin family.
+firmware sister in the VibeBB OpenHands plugin family.
 
 ## Authoring rules
 
@@ -15,8 +15,8 @@ firmware sibling in the VibeBB OpenHands plugin family.
   `intake/attachments/manifest.jsonl` are generated; never edit them by hand.
 - Gates fail closed: missing tools, files or unparseable output are
   failures. GDB output is advisory and never changes a verdict.
-- Sibling cooperation is JSON artifacts in the workspace; never import a
-  sibling's code and never edit a sibling's inputs (write a
+- Sister cooperation is JSON artifacts in the workspace; never import a
+  sister's code and never edit a sister's inputs (write a
   `fw_request`).
 - External tools run as subprocesses. Do not import GPL/AGPL code.
   Downloaded tools are pinned by version and sha256 and listed in

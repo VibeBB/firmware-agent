@@ -25,7 +25,7 @@ The workflow and field references live in the plugin skills:
 [contract](../plugins/firmware/skills/firmware-contract/SKILL.md),
 [MCU and pin map](../plugins/firmware/skills/firmware-mcu-pinmap/SKILL.md),
 [power modes](../plugins/firmware/skills/firmware-power-modes/SKILL.md),
-[sibling cooperation](../plugins/firmware/skills/firmware-sibling-cooperation/SKILL.md),
+[sister cooperation](../plugins/firmware/skills/firmware-sister-cooperation/SKILL.md),
 [QEMU and GDB](../plugins/firmware/skills/firmware-qemu/SKILL.md).
 
 ## Records

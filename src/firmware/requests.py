@@ -1,7 +1,7 @@
-"""Change requests from firmware to a sibling agent (``*.fw-request.json``).
+"""Change requests from firmware to a sister agent (``*.fw-request.json``).
 
-Firmware never edits a sibling's inputs. When the pin map needs a circuit
-change (a different pad, a pull resistor, a level shifter) or a sibling
+Firmware never edits a sister's inputs. When the pin map needs a circuit
+change (a different pad, a pull resistor, a level shifter) or a sister
 contract change, the firmware agent writes a request the owning agent
 triages.
 """

@@ -21,7 +21,7 @@ EXPECTED_SKILLS = {
     "firmware-mcu-pinmap",
     "firmware-power-modes",
     "firmware-qemu",
-    "firmware-sibling-cooperation",
+    "firmware-sister-cooperation",
     "firmware-workflow",
 }
 EXPECTED_COMMANDS = {"debug", "design", "doctor", "gates", "pinmap", "simulate"}

@@ -19,7 +19,7 @@ _SKILL_FILES = [
     "plugins/firmware/skills/firmware-mcu-pinmap/SKILL.md",
     "plugins/firmware/skills/firmware-power-modes/SKILL.md",
     "plugins/firmware/skills/firmware-qemu/SKILL.md",
-    "plugins/firmware/skills/firmware-sibling-cooperation/SKILL.md",
+    "plugins/firmware/skills/firmware-sister-cooperation/SKILL.md",
     "plugins/firmware/skills/firmware-workflow/SKILL.md",
 ]
 

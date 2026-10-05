@@ -63,7 +63,7 @@ Return findings as a list with file:line, severity, and the suggested fix.
 Visual evidence: when the workspace holds images that bear on the
 firmware — a user-attached logic-analyzer or oscilloscope capture under
 `intake/attachments/` (see its `manifest.jsonl`), a board photo, a
-datasheet pinout or timing diagram, or a sibling render such as the
+datasheet pinout or timing diagram, or a sister render such as the
 circuit schematic PNG — open each with `file_editor view`; a
 vision-capable `vibebb-review` model sees the picture. Compare what it
 shows (pin labels and GPIO numbers, signal timing, PWM frequency and

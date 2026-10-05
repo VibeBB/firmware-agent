@@ -1,5 +1,5 @@
-"""Sibling interchange: the circuit export firmware consumes and the pin map
-export circuit consumes back. Both are plain JSON files; no sibling code is
+"""Sister interchange: the circuit export firmware consumes and the pin map
+export circuit consumes back. Both are plain JSON files; no sister code is
 imported."""
 
 from __future__ import annotations

@@ -62,7 +62,7 @@ Rules:
 - When a simulation fails, run `firmware debug <contract> --id <sim>
   --break <fn> --print <expr>` (MCP `firmware_debug`). The debug record
   is advisory evidence for your diagnosis; only the gates decide.
-- If the fix needs a circuit or sibling change, write a
+- If the fix needs a circuit or sister change, write a
   `firmware request` instead of working around the hardware.
 
 User-attached images are materialized under `intake/attachments/` with a

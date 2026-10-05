@@ -9,7 +9,7 @@ Subcommands:
   pinmap    export <name>.fw-pinmap.json for electrical-circuit-agent
   sim       run one QEMU simulation
   debug     scripted GDB session on a QEMU simulation (advisory)
-  request   write a change request to a sibling agent
+  request   write a change request to a sister agent
   profile   print a bundled MCU profile
   record    append a VibeBB Record Protocol record (decision, impression,
             vision-review) or print the records status

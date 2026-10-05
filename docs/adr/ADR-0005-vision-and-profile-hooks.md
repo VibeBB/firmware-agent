@@ -6,7 +6,7 @@
 ## Context
 
 Firmware reviews need to inspect user-attached captures, board photos,
-datasheets, and sibling renders without treating image interpretation as a
+datasheets, and sister renders without treating image interpretation as a
 measurement or gate verdict. Vision-capable profile routing also needs an
 advisory check that does not change user profile settings.
 

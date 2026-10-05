@@ -1,16 +1,16 @@
 ---
-name: firmware-sibling-cooperation
-description: How firmware exchanges JSON artifacts with sibling plugins — circuit firmware export/check, fw-request change proposals, bard product cues, and the UX producer plan.
+name: firmware-sister-cooperation
+description: How firmware exchanges JSON artifacts with sister plugins — circuit firmware export/check, fw-request change proposals, bard product cues, and the UX producer plan.
 version: 0.1.0
 license: BSD-3-Clause
 triggers:
   - circuit
-  - sibling
+  - sister
   - fw-request
   - 姉妹連携
 ---
 
-# Sibling cooperation
+# Sister cooperation
 
 Cooperation is JSON files in the shared workspace — never code imports.
 
@@ -18,7 +18,7 @@ Cooperation is JSON files in the shared workspace — never code imports.
 | --- | --- | --- | --- |
 | in | `<design>.firmware.json` (`circuit_firmware_connectivity`) | `circuit firmware-export` | `fw.netlist_match` |
 | out | `<name>.fw-pinmap.json` (`firmware_pinmap`) | `firmware pinmap` / `firmware gates` | `circuit firmware-check` |
-| out | `<design>.<id>.fw-request.json` (`fw_request`) | `firmware request` | the target sibling |
+| out | `<design>.<id>.fw-request.json` (`fw_request`) | `firmware request` | the target sister |
 | in | bard `cues.json` / MIDI | bard-agent product cue mode | firmware sound tables (buzzer PWM) |
 | in/out | `<product>.production.json` workstream `firmware` | UX producer | firmware reports as evidence |
 
@@ -32,4 +32,4 @@ pin map checked against a stale export fails there.
 Change requests: `target` is one of `circuit`, `mech`, `wire`, `ux`,
 `bard`, `doc`, `production`; `risk: high` for anything that changes the
 board. The request carries the contract hash so the receiver can detect a
-stale ask. Never edit a sibling's input files.
+stale ask. Never edit a sister's input files.

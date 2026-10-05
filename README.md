@@ -3,7 +3,7 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/VibeBB/firmware-agent)
 
 VibeBB firmware plugin for OpenHands (AgentCanvas). It designs and verifies
-microcontroller firmware together with the sibling plugins
+microcontroller firmware together with the sister plugins
 (`electrical-circuit-agent`, `mechanical-agent`, `wire-agent`,
 `UX-creator-agent`, `bard-agent`, `document-agent`).
 
