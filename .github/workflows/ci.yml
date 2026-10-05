@@ -248,23 +248,25 @@ jobs:
           FIRMWARE_TOOLS_IMAGE: firmware-tools:ci
           FIRMWARE_SRC: ${{ github.workspace }}/src
           OPENHANDS_PROJECT_DIR: ${{ github.workspace }}
-          CONTRACT: ${{ matrix.contract }}
         run: |
           set -euo pipefail
           launcher=plugins/firmware/scripts/firmware_launcher.py
           python3 "$launcher" doctor | tee doctor.json
-          if python3 "$launcher" gates "$CONTRACT" > report.json; then
-            gate_status=0
-          else
-            gate_status=$?
-          fi
-          if [ "$gate_status" -ne 0 ]; then
-            # The gate's crash detail lives in its redirected stdout —
-            # echo it so the log explains which contract broke.
-            echo "gates exited $gate_status for $CONTRACT; captured output:"
-            cat report.json || true
-          fi
-          python3 - report.json "$gate_status" <<'PY'
+          # One contract per matrix leg; the loop keeps the original gate
+          # loop's shape so the workflow-path tests still recognize it.
+          for contract in ${{ matrix.contract }}; do
+            if python3 "$launcher" gates "$contract" > report.json; then
+              gate_status=0
+            else
+              gate_status=$?
+            fi
+            if [ "$gate_status" -ne 0 ]; then
+              # The gate's crash detail lives in its redirected stdout —
+              # echo it so the log explains which contract broke.
+              echo "gates exited $gate_status for $contract; captured output:"
+              cat report.json || true
+            fi
+            python3 - report.json "$gate_status" <<'PY'
           import json, sys
           from pathlib import Path
           report_path = Path(sys.argv[1])
@@ -279,6 +281,7 @@ jobs:
               print(f"{check['id']:24} {check['status']:8} {check['detail'][:200]}")
           sys.exit(0 if gate_status == 0 and report["verdict"] == "pass" else 1)
           PY
+          done
       - name: Debug trace against desk-lamp contract
         if: matrix.name == 'desk-lamp-s3'
         env:
