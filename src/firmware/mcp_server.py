@@ -18,6 +18,7 @@ from mcp.server.models import InitializationOptions
 from mcp.server.stdio import stdio_server
 
 from . import __version__, service
+from .records import DecisionInput, StageImpressionInput, VisionReviewInput
 from .workspace import workspace_path
 
 server: Server = Server(f"firmware-mcp/{__version__}")
@@ -105,6 +106,35 @@ TOOLS: dict[str, tuple[str, dict[str, object], bool]] = {
     "firmware_profile": (
         "Show a bundled MCU profile (pads, functions, memory regions)",
         _schema({"profile": {"type": "string"}}, ["profile"]),
+        True,
+    ),
+    "firmware_record_decision": (
+        "Record a design decision (VibeBB Record Protocol): first principles, at least "
+        "two options with pros/cons, the chosen option, a rationale of 200+ chars, "
+        "evidence paths (hashed) or references, assumptions, unknowns, risks, revisit "
+        "trigger. Record one for every non-trivial choice without being asked.",
+        DecisionInput.model_json_schema(),
+        False,
+    ),
+    "firmware_record_impression": (
+        "Record the long-form impression that closes a stage (400+ chars, 3+ "
+        "sentences): what you noticed, what works, what worries you, how a maker or "
+        "user would read it, what to do next. Binds the stage artifacts by sha256; "
+        "record it after the final regeneration.",
+        StageImpressionInput.model_json_schema(),
+        False,
+    ),
+    "firmware_record_vision_review": (
+        "Record what you thought after looking at an image (400+ char impression plus "
+        "findings). Bind it to image_path (hashed) or to the source_event_id of an "
+        "inspect_image_with_vision event. Required for every image you viewed.",
+        VisionReviewInput.model_json_schema(),
+        False,
+    ),
+    "firmware_records_status": (
+        "Counts of decision / impression / vision-review records and the last "
+        "Stop-hook verdict listing records this session still owes.",
+        _schema({}, []),
         True,
     ),
 }
@@ -205,6 +235,12 @@ def dispatch(name: str, arguments: dict[str, object]) -> service.Json:
             failing_checks=_strs(arguments, "failing_checks"),
         ),
         "firmware_profile": lambda: service.profile_payload(_str(arguments, "profile")),
+        "firmware_record_decision": lambda: service.record_write_payload("decision", arguments),
+        "firmware_record_impression": lambda: service.record_write_payload("impression", arguments),
+        "firmware_record_vision_review": lambda: service.record_write_payload(
+            "vision-review", arguments
+        ),
+        "firmware_records_status": service.records_status_payload,
     }
     handler = handlers.get(name)
     if handler is None:

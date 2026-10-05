@@ -29,10 +29,15 @@ EXPECTED_SESSION_START_HOOKS = {
     "firmware-doctor",
     "intake-attachments",
     "ensure-llm-profiles",
+    "require-records",
 }
 EXPECTED_USER_PROMPT_SUBMIT_HOOKS = {"intake-attachments"}
 EXPECTED_PRE_TOOL_USE_HOOKS = {"protect-generated", "safety-rail"}
-EXPECTED_STOP_HOOKS = {"report-firmware-status", "intake-attachments"}
+EXPECTED_STOP_HOOKS = {
+    "report-firmware-status",
+    "intake-attachments",
+    "require-records",
+}
 EXPECTED_POST_TOOL_USE_HOOKS = {
     "record-image-observation",
     "record-vision-tool-event",

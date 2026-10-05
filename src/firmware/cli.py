@@ -11,6 +11,8 @@ Subcommands:
   debug     scripted GDB session on a QEMU simulation (advisory)
   request   write a change request to a sibling agent
   profile   print a bundled MCU profile
+  record    append a VibeBB Record Protocol record (decision, impression,
+            vision-review) or print the records status
 
 Every command prints a JSON payload; exit 0 only when verdict is pass.
 """
@@ -64,11 +66,15 @@ def _parser() -> argparse.ArgumentParser:
     request.add_argument("--failing-check", dest="failing_checks", action="append", default=[])
     request.add_argument("--out", type=Path)
     sub.add_parser("profile").add_argument("id")
+    record = sub.add_parser("record", help="append a VibeBB Record Protocol record")
+    record.add_argument("kind", choices=["decision", "impression", "vision-review", "status"])
+    record.add_argument("--json", type=Path, default=None, help="record fields as a JSON file")
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    args = _parser().parse_args(argv)
+    parser = _parser()
+    args = parser.parse_args(argv)
     command: str = args.command
     if command == "doctor":
         payload = service.doctor_payload()
@@ -103,6 +109,12 @@ def main(argv: Sequence[str] | None = None) -> int:
                 failing_checks=args.failing_checks,
             )
         )
+    if command == "record":
+        if args.kind == "status":
+            return _emit(service.records_status_payload())
+        if args.json is None:
+            parser.error("record decision|impression|vision-review requires --json")
+        return _emit(service.record_file_payload(args.kind, args.json))
     return _emit(service.profile_payload(args.id))
 
 

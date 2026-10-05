@@ -38,6 +38,10 @@ def test_mcp_tools_registered() -> None:
         "firmware_debug",
         "firmware_request",
         "firmware_profile",
+        "firmware_record_decision",
+        "firmware_record_impression",
+        "firmware_record_vision_review",
+        "firmware_records_status",
     }
 
 
@@ -63,6 +67,14 @@ def test_cli_validate_and_profile(kettle: Path, capsys: pytest.CaptureFixture[st
         "fw-reports/k.fw-report.md",
         "observations/firmware/image-observations.jsonl",
         "observations/firmware/vision-tool-events.jsonl",
+        "observations/firmware/decisions.jsonl",
+        "observations/firmware/impressions.jsonl",
+        "observations/firmware/vision-reviews.jsonl",
+        "observations/firmware/records-status.json",
+        "observations/firmware/.sessions/s1.json",
+        "fw-reports/board.pinmap.png",
+        "fw-reports/k.fw-report.png",
+        "fw-reports/sim-boot.png",
         "intake/attachments/manifest.jsonl",
     ],
 )

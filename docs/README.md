@@ -28,6 +28,10 @@ The workflow and field references live in the plugin skills:
 [sibling cooperation](../plugins/firmware/skills/firmware-sibling-cooperation/SKILL.md),
 [QEMU and GDB](../plugins/firmware/skills/firmware-qemu/SKILL.md).
 
+## Records
+
+- [VibeBB Record Protocol](records-protocol.md) — decisions, stage impressions and vision reviews every session must leave
+
 ## Maintenance
 
 See the [dependency update review guide](dependency-updates.md).

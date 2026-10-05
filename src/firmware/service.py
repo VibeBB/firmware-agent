@@ -4,7 +4,9 @@ payload with a fail-closed ``verdict``."""
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from pathlib import Path
+from typing import cast
 
 from pydantic import ValidationError
 
@@ -15,6 +17,7 @@ from .gates import FAIL, PASS, run_gates, write_outputs
 from .interchange import sha256_file
 from .profiles import load_profile
 from .projections import pinmap_export, pinmap_markdown, pins_header, write_text
+from .records import RECORDERS, records_summary
 from .requests import write_request
 from .sim import run_simulation
 
@@ -181,6 +184,28 @@ def request_payload(
     except (OSError, ValueError, ValidationError) as exc:
         return {"verdict": FAIL, "stage": "request", "detail": str(exc)}
     return {"verdict": PASS, "stage": "request", "id": request.id, "written": [str(path)]}
+
+
+def record_write_payload(kind: str, payload: Mapping[str, object]) -> Json:
+    """Append one VibeBB Record Protocol record; fail-closed on invalid input."""
+    try:
+        return cast(Json, RECORDERS[kind](dict(payload)))
+    except (KeyError, ValueError) as exc:
+        return {"verdict": FAIL, "stage": "record", "detail": str(exc)}
+
+
+def record_file_payload(kind: str, json_path: Path) -> Json:
+    try:
+        raw = json.loads(json_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return {"verdict": FAIL, "stage": "record", "detail": str(exc)}
+    if not isinstance(raw, dict):
+        return {"verdict": FAIL, "stage": "record", "detail": "record JSON must be an object"}
+    return record_write_payload(kind, cast(Mapping[str, object], raw))
+
+
+def records_status_payload() -> Json:
+    return cast(Json, records_summary())
 
 
 def profile_payload(profile_id: str) -> Json:
