@@ -290,8 +290,11 @@ class Canvas:
 
 
 def _hatch(canvas: Canvas, x: int, y: int, w: int, h: int, color: Color) -> None:
-    for offset in range(-h, w + h, 5):
-        canvas.line(x + offset, y + h - 1, x + offset + h, y, color)
+    for offset in range(-h, w, 5):
+        for step in range(h):
+            px = x + offset + step
+            if x <= px < x + w:
+                canvas.pixel(px, y + h - 1 - step, color)
 
 
 def _function_class(function: str) -> str:

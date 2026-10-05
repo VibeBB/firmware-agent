@@ -317,3 +317,12 @@ def test_sim_timeline_text_within_canvas() -> None:
     for result in (None, SimResult(ok=True, detail="x", argv=[], exit_code=0, seconds=1.0)):
         canvas = render.sim_timeline_canvas(sim, lines, result)
         _boxes_within(canvas)
+
+
+def test_hatch_stays_inside_pad() -> None:
+    canvas = render.Canvas(40, 30)
+    render._hatch(canvas, 10, 10, 12, 10, render.BLACK)  # pyright: ignore[reportPrivateUsage]
+    rows = canvas._rows  # pyright: ignore[reportPrivateUsage]
+    inked = {(x, y) for y, row in enumerate(rows) for x in range(40) if row[3 * x] != 255}
+    assert inked
+    assert all(10 <= x < 22 and 10 <= y < 20 for x, y in inked)
