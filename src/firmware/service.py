@@ -10,7 +10,7 @@ from typing import cast
 
 from pydantic import ValidationError
 
-from . import doctor
+from . import doctor, liaison
 from .contract import Simulation, load_contract, resolve
 from .debug import run_debug
 from .gates import FAIL, PASS, run_gates, write_outputs
@@ -244,6 +244,29 @@ def request_payload(
     except (OSError, ValueError, ValidationError) as exc:
         return {"verdict": FAIL, "stage": "request", "detail": str(exc)}
     return {"verdict": PASS, "stage": "request", "id": request.id, "written": [str(path)]}
+
+
+def ux_inbox_payload(workspace: Path | None) -> Json:
+    try:
+        return liaison.inbox(workspace)
+    except OSError as exc:
+        return {"verdict": FAIL, "stage": "ux_inbox", "detail": str(exc)}
+
+
+def ux_respond_payload(workspace: Path | None, fields: Mapping[str, object]) -> Json:
+    try:
+        payload = dict(fields)
+        payload.pop("workspace", None)
+        return cast(
+            Json,
+            liaison.respond(
+                workspace,
+                str(payload.pop("request")),
+                **payload,  # type: ignore[arg-type]
+            ),
+        )
+    except (TypeError, OSError) as exc:
+        return {"verdict": FAIL, "stage": "ux_respond", "detail": str(exc)}
 
 
 RENDER_VIEWS = ("pinmap", "report", "sim")

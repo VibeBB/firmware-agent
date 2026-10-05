@@ -24,7 +24,16 @@ EXPECTED_SKILLS = {
     "firmware-sister-cooperation",
     "firmware-workflow",
 }
-EXPECTED_COMMANDS = {"debug", "design", "doctor", "gates", "pinmap", "render", "simulate"}
+EXPECTED_COMMANDS = {
+    "debug",
+    "design",
+    "doctor",
+    "gates",
+    "liaison",
+    "pinmap",
+    "render",
+    "simulate",
+}
 EXPECTED_SESSION_START_HOOKS = {
     "firmware-doctor",
     "intake-attachments",

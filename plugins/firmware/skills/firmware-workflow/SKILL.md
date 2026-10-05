@@ -36,6 +36,9 @@ projections of it and are write-protected by the `protect-generated` hook.
 8. **Circuit confirmation** — hand `<name>.fw-pinmap.json` to
    `circuit firmware-check`. Both sides must pass.
 9. **Debug** — `firmware debug` (advisory) when a simulation fails.
+10. **Liaison** — check `firmware ux inbox` for ux-creator SLP v2
+    requests and answer each one with `firmware ux respond` (decision and
+    impression refs required for `done`).
 
 ## Gates (all fail closed)
 

@@ -21,6 +21,14 @@ Cooperation is JSON files in the shared workspace — never code imports.
 | out | `<design>.<id>.fw-request.json` (`fw_request`) | `firmware request` | the target sister |
 | in | bard `cues.json` / MIDI | bard-agent product cue mode | firmware sound tables (buzzer PWM) |
 | in/out | `<product>.production.json` workstream `firmware` | UX producer | firmware reports as evidence |
+| in | `liaison/<id>.ux-request.json` (SLP v2) | ux-creator | `firmware ux inbox` / `firmware_ux_inbox` |
+| out | `liaison/<id>.ux-response.json` (SLP v2) | `firmware ux respond` / `firmware_ux_respond` | ux-creator |
+
+SLP v2: ux-creator drops hashed-input requests into `liaison/`; firmware
+classifies each as `new`, `stale` (input hash drifted), `blocked`
+(missing dependency response or a cycle) or `answered`, and answers via
+`ux respond` — `done` needs clean gate verdicts, an artifact, and one
+decision + one impression ref. `*.ux-response.json` is generated.
 
 The circuit export carries `brief_sha256` (and `netlist_sha256` for
 netlist exports) and the gate report records the export's own hash

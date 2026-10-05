@@ -14,6 +14,8 @@ Subcommands:
   record    append a VibeBB Record Protocol record (decision, impression,
             vision-review) or print the records status
   render    render pin map / gate report / sim timeline PNGs
+  ux        ux-creator liaison: `ux inbox` lists requests,
+            `ux respond --json <file>` answers one
 
 Every command prints a JSON payload; exit 0 only when verdict is pass.
 """
@@ -24,6 +26,7 @@ import argparse
 import json
 from collections.abc import Sequence
 from pathlib import Path
+from typing import cast
 
 from . import service
 
@@ -80,6 +83,10 @@ def _parser() -> argparse.ArgumentParser:
         choices=list(service.RENDER_VIEWS),
         default=None,
     )
+    ux = sub.add_parser("ux", help="ux-creator SLP v2 liaison")
+    ux.add_argument("action", choices=["inbox", "respond"])
+    ux.add_argument("--workspace", type=Path, default=None)
+    ux.add_argument("--json", type=Path, default=None, help="respond fields as a JSON file")
     return parser
 
 
@@ -128,6 +135,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _emit(service.record_file_payload(args.kind, args.json))
     if command == "render":
         return _emit(service.render_payload(args.contract, args.out, args.views))
+    if command == "ux":
+        if args.action == "inbox":
+            return _emit(service.ux_inbox_payload(args.workspace))
+        if args.json is None:
+            parser.error("ux respond requires --json")
+        fields: object = json.loads(args.json.read_text(encoding="utf-8"))
+        if not isinstance(fields, dict):
+            parser.error("ux respond --json must be a JSON object")
+        return _emit(service.ux_respond_payload(args.workspace, cast(dict[str, object], fields)))
     return _emit(service.profile_payload(args.id))
 
 

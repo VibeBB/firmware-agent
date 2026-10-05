@@ -110,3 +110,11 @@ Vision and impressions are advisory: they never override a deterministic
 gate verdict. Results do not have to be identical from run to run; the
 reasoning must be recorded every run. `firmware_records_status` shows
 what is still owed.
+
+## UX-creator liaison (SLP v2)
+
+At session start call `firmware_ux_inbox`; answer every request (`new`,
+`stale`, `blocked` → `needs_info`/`deferred` with a reason) via
+`firmware_ux_respond` with decision and impression refs from
+`observations/firmware/`. `*.ux-response.json` is generated; never write
+it by hand.

@@ -43,6 +43,8 @@ def test_mcp_tools_registered() -> None:
         "firmware_record_impression",
         "firmware_record_vision_review",
         "firmware_records_status",
+        "firmware_ux_inbox",
+        "firmware_ux_respond",
     }
 
 

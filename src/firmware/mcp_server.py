@@ -128,6 +128,53 @@ TOOLS: dict[str, tuple[str, dict[str, object], bool]] = {
         ),
         False,
     ),
+    "firmware_ux_inbox": (
+        "List ux-creator SLP v2 requests: new, stale, blocked or answered",
+        _schema({"workspace": {"type": "string"}}, []),
+        True,
+    ),
+    "firmware_ux_respond": (
+        "Answer a ux-creator SLP v2 request (writes <id>.ux-response.json)",
+        _schema(
+            {
+                "request": {"type": "string"},
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "accepted",
+                        "in_progress",
+                        "done",
+                        "rejected",
+                        "deferred",
+                        "needs_info",
+                    ],
+                },
+                "reason": {"type": "string"},
+                "artifacts": _STRINGS,
+                "gate_verdicts": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "gate": {"type": "string"},
+                            "verdict": {
+                                "type": "string",
+                                "enum": ["pass", "fail", "unknown", "skipped"],
+                            },
+                        },
+                        "required": ["gate", "verdict"],
+                    },
+                },
+                "decision_refs": _STRINGS,
+                "impression_refs": _STRINGS,
+                "questions_for_user": _STRINGS,
+                "report_paths": _STRINGS,
+                "workspace": {"type": "string"},
+            },
+            ["request", "status"],
+        ),
+        False,
+    ),
     "firmware_record_decision": (
         "Record a design decision (VibeBB Record Protocol): first principles, at least "
         "two options with pros/cons, the chosen option, a rationale of 200+ chars, "
@@ -261,6 +308,10 @@ def dispatch(name: str, arguments: dict[str, object]) -> service.Json:
             "vision-review", arguments
         ),
         "firmware_records_status": service.records_status_payload,
+        "firmware_ux_inbox": lambda: service.ux_inbox_payload(_opt_path(arguments, "workspace")),
+        "firmware_ux_respond": lambda: service.ux_respond_payload(
+            _opt_path(arguments, "workspace"), arguments
+        ),
         "firmware_render": lambda: service.render_payload(
             _path(arguments, "contract_path"),
             _opt_path(arguments, "out_dir"),
