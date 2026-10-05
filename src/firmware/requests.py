@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from typing import Literal
+from typing import Literal, cast
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -70,8 +70,10 @@ def _decision_ids(root: Path) -> set[str]:
                 event: object = json.loads(line)
             except ValueError:
                 continue
-            if isinstance(event, dict) and isinstance(event.get("event_id"), str):
-                ids.add(event["event_id"])
+            if isinstance(event, dict):
+                event_id = cast(dict[str, object], event).get("event_id")
+                if isinstance(event_id, str):
+                    ids.add(event_id)
     return ids
 
 
@@ -90,14 +92,26 @@ def write_request(
     connectivity: str | None = None,
     root: Path | None = None,
 ) -> tuple[FirmwareRequest, Path]:
+    resolved_root = (root or workspace_root()).resolve()
+    contract_abs = contract_path.resolve()
+
+    def rel(value: Path, fallback: str) -> str:
+        try:
+            return value.relative_to(resolved_root).as_posix()
+        except ValueError:
+            return fallback
+
     inputs = [
-        HashedPath(path=contract_path.name, sha256=sha256_file(contract_path)),
+        HashedPath(path=rel(contract_abs, contract_path.name), sha256=sha256_file(contract_path)),
     ]
     if connectivity:
-        connectivity_path = (contract_path.resolve().parent / connectivity).resolve()
+        connectivity_path = (contract_abs.parent / connectivity).resolve()
         if connectivity_path.is_file():
             inputs.append(
-                HashedPath(path=connectivity, sha256=sha256_file(connectivity_path))
+                HashedPath(
+                    path=rel(connectivity_path, connectivity),
+                    sha256=sha256_file(connectivity_path),
+                )
             )
     known = _decision_ids(root or workspace_root())
     for ref in decision_refs or []:

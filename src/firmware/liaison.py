@@ -72,7 +72,7 @@ class UxRequest(BaseModel):
 class GateVerdict(BaseModel):
     model_config = ConfigDict(extra="forbid")
     gate: str = Field(min_length=1)
-    verdict: Literal["pass", "fail", "unknown", "skipped"]
+    verdict: Literal["pass", "fail", "unknown"]
 
 
 Status = Literal["accepted", "in_progress", "done", "rejected", "deferred", "needs_info"]
@@ -140,7 +140,9 @@ def _load_request(path: Path) -> tuple[UxRequest | None, str | None]:
     return request, None
 
 
-def _load_response(path: Path) -> tuple[UxResponse | None, str | None]:
+def _load_response(
+    path: Path, responder: str | None = None
+) -> tuple[UxResponse | None, str | None]:
     try:
         raw = json.loads(path.read_text(encoding="utf-8"))
         response = UxResponse.model_validate(raw)
@@ -148,6 +150,8 @@ def _load_response(path: Path) -> tuple[UxResponse | None, str | None]:
         return None, str(exc)
     if response.request != path.name.removesuffix(".ux-response.json"):
         return None, "response request does not match the file stem"
+    if responder is not None and response.responder != responder:
+        return None, f"response responder is {response.responder}, expected {responder}"
     return response, None
 
 
@@ -174,11 +178,13 @@ def _record_refs(root: Path) -> tuple[set[str], set[str]]:
     )
 
 
-def _response_for(workspace: Path, request_id: str) -> tuple[UxResponse | None, str | None]:
+def _response_for(
+    workspace: Path, request_id: str, responder: str | None = None
+) -> tuple[UxResponse | None, str | None]:
     path = _liaison(workspace) / f"{request_id}.ux-response.json"
     if not path.is_file():
         return None, None
-    return _load_response(path)
+    return _load_response(path, responder)
 
 
 def _firmware_graph(requests: dict[str, UxRequest]) -> dict[str, list[str]]:
@@ -212,7 +218,7 @@ def _evaluate(
     firmware_ids: set[str],
 ) -> dict[str, object]:
     """State for one firmware request: stale > answered > blocked > new."""
-    response, response_error = _response_for(workspace, request.id)
+    response, _response_error = _response_for(workspace, request.id, "firmware")
     stale_inputs: list[dict[str, object]] = []
     for item in request.inputs:
         try:
@@ -228,8 +234,6 @@ def _evaluate(
         return {"state": "stale", "stale_inputs": stale_inputs}
     if response is not None:
         return {"state": "answered", "response_status": response.status}
-    if response_error:
-        return {"state": "stale", "stale_inputs": [], "response_error": response_error}
     graph = _firmware_graph({rid: r for rid, r in all_requests.items() if rid in firmware_ids})
     blocked_by = [dep for dep in request.depends_on if _response_for(workspace, dep)[0] is None]
     circular = request.id in graph and _on_cycle(graph, request.id)
@@ -255,6 +259,12 @@ def inbox(workspace: Path | None = None) -> dict[str, object]:
             all_requests[request.id] = request
     firmware_ids = {rid for rid, r in all_requests.items() if r.target_agent == "firmware"}
     other_targets = len(all_requests) - len(firmware_ids)
+    for rid in firmware_ids:
+        response_path = liaison / f"{rid}.ux-response.json"
+        if response_path.is_file():
+            _, response_error = _load_response(response_path, "firmware")
+            if response_error:
+                malformed.append({"path": str(response_path), "error": response_error})
     entries: list[dict[str, object]] = []
     for rid in sorted(firmware_ids):
         request = all_requests[rid]
@@ -305,9 +315,11 @@ def _merge_report_checks(
             return [], [], f"unreadable report {value}: {exc}"
         for check in checks:
             status = check.get("status")
-            merged: Literal["pass", "fail", "skipped"] = cast(
-                "Literal['pass', 'fail', 'skipped']",
-                {"pass": "pass", "fail": "fail"}.get(status, "skipped"),
+            if status == "not_applicable":
+                continue
+            merged: Literal["pass", "fail", "unknown"] = cast(
+                "Literal['pass', 'fail', 'unknown']",
+                {"pass": "pass", "fail": "fail"}.get(status, "unknown"),
             )
             verdicts.append(GateVerdict(gate=str(check.get("id", "fw.report")), verdict=merged))
         contract = path.parent / f"{path.name.removesuffix('.fw-report.json')}.fw.json"

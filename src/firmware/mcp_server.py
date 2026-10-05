@@ -160,7 +160,7 @@ TOOLS: dict[str, tuple[str, dict[str, object], bool]] = {
                             "gate": {"type": "string"},
                             "verdict": {
                                 "type": "string",
-                                "enum": ["pass", "fail", "unknown", "skipped"],
+                                "enum": ["pass", "fail", "unknown"],
                             },
                         },
                         "required": ["gate", "verdict"],

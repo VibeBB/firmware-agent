@@ -285,3 +285,36 @@ def test_cli_and_mcp_round_trip(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
     )
     assert cli.main(["ux", "respond", "--workspace", str(tmp_path), "--json", str(fields)]) == 0
     assert cli.main(["ux", "inbox", "--workspace", str(tmp_path)]) == 0
+
+
+def test_malformed_response_listed_and_counts_as_open(tmp_path: Path) -> None:
+    _write_request(tmp_path, _request("bad-response"))
+    (tmp_path / "liaison" / "bad-response.ux-response.json").write_text(
+        json.dumps({"schema_version": 2, "system": "ux-creator", "bogus": True}),
+        encoding="utf-8",
+    )
+    payload = liaison.inbox(tmp_path)
+    assert len(cast(list[object], payload["malformed"])) == 1
+    # malformed response is not an answer: the request stays open (new)
+    assert _states(payload)["bad-response"] == "new"
+    assert payload["verdict"] == "fail"
+
+
+def test_responder_mismatch_is_malformed(tmp_path: Path) -> None:
+    _write_request(tmp_path, _request("wrong-responder"))
+    (tmp_path / "liaison" / "wrong-responder.ux-response.json").write_text(
+        json.dumps(
+            {
+                "schema_version": 2,
+                "system": "ux-creator",
+                "request": "wrong-responder",
+                "responder": "mech",
+                "status": "accepted",
+                "responded_at": "2026-01-01T00:00:00+00:00",
+            }
+        ),
+        encoding="utf-8",
+    )
+    payload = liaison.inbox(tmp_path)
+    assert len(cast(list[object], payload["malformed"])) == 1
+    assert _states(payload)["wrong-responder"] == "new"

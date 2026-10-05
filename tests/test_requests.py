@@ -72,9 +72,7 @@ def test_connectivity_input_hashed(tmp_path: Path) -> None:
     assert paths == ["board.fw.json", "board.firmware.json"]
 
 
-def test_high_risk_needs_decision_ref(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_high_risk_needs_decision_ref(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("OPENHANDS_PROJECT_DIR", str(tmp_path))
     payload = service.request_payload(
         KETTLE,
@@ -102,9 +100,7 @@ def test_high_risk_needs_decision_ref(
     assert payload["verdict"] == "pass"
 
 
-def test_unknown_decision_ref_refused(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_unknown_decision_ref_refused(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     _decision(tmp_path, monkeypatch)
     payload = service.request_payload(
         KETTLE,
@@ -117,6 +113,4 @@ def test_unknown_decision_ref_refused(
         failing_checks=[],
         decision_refs=["0" * 64],
     )
-    assert payload["verdict"] == "fail" and "unknown decision ref" in str(
-        payload["detail"]
-    )
+    assert payload["verdict"] == "fail" and "unknown decision ref" in str(payload["detail"])
