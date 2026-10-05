@@ -334,4 +334,3 @@ jobs:
               print(f"::error::e2e legs not {expected}: {bad}")
               sys.exit(1)
           PY
-          if-no-files-found: warn
