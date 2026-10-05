@@ -227,3 +227,93 @@ def test_render_failure_keeps_verdict(tmp_path: Path, monkeypatch: pytest.Monkey
     assert payload["verdict"] == "pass"
     render_errors = cast(list[str], payload["render_errors"])
     assert len(render_errors) == 2
+
+
+def test_font_glyphs_unique() -> None:
+    rows = render.FONT_ROWS
+    assert len(rows) == 95
+    assert len(set(rows.values())) == 95
+
+
+def _pixels(ch: str) -> set[tuple[int, int]]:
+    return {
+        (x, y)
+        for y, row in enumerate(render.FONT_ROWS[ch])
+        for x, cell in enumerate(row)
+        if cell == "#"
+    }
+
+
+def test_digits_distinct() -> None:
+    digits = [str(d) for d in range(10)]
+    for a in digits:
+        for b in digits:
+            if a < b:
+                assert len(_pixels(a) ^ _pixels(b)) >= 3, f"{a} vs {b}"
+
+
+def test_punctuation_sparse() -> None:
+    for ch in ".,:-_":
+        assert len(_pixels(ch)) <= 4, ch
+
+
+def test_descender_glyphs_unique() -> None:
+    for ch in "fgjpqy":
+        assert ch in render.FONT_ROWS
+    assert len({frozenset(_pixels(ch)) for ch in "fgjpqy"}) == 6
+
+
+def _boxes_within(canvas: render.Canvas) -> None:
+    for x0, y0, x1, y1 in canvas.text_boxes:
+        assert 0 <= x0 <= x1 <= canvas.width
+        assert 0 <= y0 <= y1 <= canvas.height
+
+
+def _boxes_disjoint(boxes: list[tuple[int, int, int, int]]) -> None:
+    for i, a in enumerate(boxes):
+        for b in boxes[i + 1 :]:
+            overlap = not (a[2] <= b[0] or b[2] <= a[0] or a[3] <= b[1] or b[3] <= a[1])
+            assert not overlap, f"text boxes intersect: {a} {b}"
+
+
+@pytest.mark.parametrize("example", ["smart-kettle", "desk-lamp-s3"])
+def test_pinmap_layout_collision_free(example: str) -> None:
+    contract_path = next((EXAMPLES / example).glob("*.fw.json"))
+    contract = load_contract(contract_path)
+    profile = load_profile(contract.mcu.profile, [contract_path.parent])
+    canvas = render.pinmap_canvas(contract, profile, "c" * 64)
+    _boxes_within(canvas)
+    _boxes_disjoint(canvas.text_boxes)
+
+
+def test_report_text_within_canvas() -> None:
+    contract = load_contract(EXAMPLES / "smart-kettle" / "smart-kettle.fw.json")
+    report = GateReport(
+        design="x",
+        scope="full",
+        contract_sha256="c" * 64,
+        circuit_sha256=None,
+        profile="esp32s3",
+        verdict="pass",
+        checks=[Check(id="fw.memory_budget", status="pass")],
+        metrics={
+            "flash_bytes": 100_000.0,
+            "flash_capacity_bytes": 1_000_000.0,
+            "flash_budget_bytes": 800_000.0,
+            "ram_bytes": 50_000.0,
+            "ram_capacity_bytes": 500_000.0,
+            "ram_budget_bytes": 400_000.0,
+            "average_ua": 42.0,
+            "average_budget_ua": 100.0,
+        },
+    )
+    canvas = render.report_canvas(report, contract)
+    _boxes_within(canvas)
+
+
+def test_sim_timeline_text_within_canvas() -> None:
+    sim = _sim()
+    lines = ["noise", "boot ok", "more noise", "sensor ready", "panic!"]
+    for result in (None, SimResult(ok=True, detail="x", argv=[], exit_code=0, seconds=1.0)):
+        canvas = render.sim_timeline_canvas(sim, lines, result)
+        _boxes_within(canvas)
