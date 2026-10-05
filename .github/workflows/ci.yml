@@ -230,7 +230,7 @@ jobs:
             docker buildx build --load
             -f docker/firmware-tools.Dockerfile -t firmware-tools:ci
             --build-arg "IMAGE_REVISION=${{ github.sha }}"
-            --cache-from type=gha,scope=firmware-tools
+            --cache-from "type=gha,scope=firmware-tools"
           )
           if [ "$GHCR" = "true" ]; then
             args+=(--cache-from "type=registry,ref=ghcr.io/$owner/firmware-tools-buildcache:main")
