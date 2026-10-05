@@ -153,7 +153,8 @@ def test_report_status_lists_failures(tmp_path: Path) -> None:
     assert "fw.build" in context
 
 
-def test_launcher_host_mode_runs_cli(kettle: Path, tmp_path: Path) -> None:
+@pytest.mark.parametrize(("warn", "code"), [(False, 1), (True, 0)])
+def test_launcher_without_pinned_image_fails_closed(tmp_path: Path, warn: bool, code: int) -> None:
     plugin_root = tmp_path / "isolated" / "plugins" / "firmware"
     shutil.copytree(PLUGIN, plugin_root)
     (plugin_root / "tools-image.json").write_text(
@@ -172,17 +173,16 @@ def test_launcher_host_mode_runs_cli(kettle: Path, tmp_path: Path) -> None:
         "FIRMWARE_SRC": str(ROOT / "src"),
         "PYTHONPATH": ":".join(sys.path),
     }
-    result = subprocess.run(
-        [
-            sys.executable,
-            str(plugin_root / "scripts" / "firmware_launcher.py"),
-            "validate",
-            str(kettle),
-        ],
-        capture_output=True,
-        text=True,
-        env=env,
-        check=False,
-    )
-    assert result.returncode == 0, result.stderr
-    assert json.loads(result.stdout)["verdict"] == "pass"
+    argv = [
+        sys.executable,
+        str(plugin_root / "scripts" / "firmware_launcher.py"),
+        "doctor",
+    ]
+    if warn:
+        argv.append("--warn")
+    result = subprocess.run(argv, capture_output=True, text=True, env=env, check=False)
+    assert result.returncode == code, result.stderr
+    payload = json.loads(result.stdout)
+    assert payload["verdict"] == "fail"
+    assert "no firmware-tools image pinned" in payload["error"]
+    assert "Docker-only" in payload["error"]

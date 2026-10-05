@@ -18,8 +18,9 @@ Image resolution order (first hit wins):
   1. $FIRMWARE_TOOLS_IMAGE (full ref, e.g. ghcr.io/.../firmware-tools@sha256:...)
   2. <plugin>/tools-image.json or repo docker/image-digests.json
      (image + digest, falling back to image + tag)
-  3. none resolvable -> host mode: the package runs on the host interpreter
-     and every missing tool fails its gate (``doctor`` reports which)
+  3. none resolvable -> fail closed: the plugin is Docker-only; the
+     launcher reports a ``fail`` verdict and exits non-zero (exit 0 with
+     ``--warn``)
 
 Usage: mcp_server | prewarm | <firmware cli args...>. When ``--warn`` is
 present (SessionStart doctor mode), launcher failures print a warning and
@@ -349,6 +350,20 @@ def _warn_or_die(message: str, argv: list[str]) -> int:
     return 1
 
 
+def _no_image(argv: list[str]) -> int:
+    """Fail closed when no firmware-tools image is pinned: the plugin is Docker-only."""
+    message = (
+        "no firmware-tools image pinned; the plugin is Docker-only "
+        "(set FIRMWARE_TOOLS_IMAGE or pin tools-image.json / docker/image-digests.json)"
+    )
+    print(json.dumps({"verdict": "fail", "error": message}))
+    if "--warn" in argv:
+        print(f"warn: {message}", file=sys.stderr)
+        return 0
+    print(f"firmware_launcher: {message}", file=sys.stderr)
+    return 1
+
+
 def main() -> int:
     argv = sys.argv[1:]
     if not argv:
@@ -367,17 +382,7 @@ def main() -> int:
     pin = image_pin(plugin_root)
     ref = pin["ref"] if pin is not None else None
     if ref is None:
-        if argv[0] == "prewarm":
-            return _warn_or_die("no firmware tools image pinned; host mode only", argv)
-        if source is None:
-            return _warn_or_die("firmware package source not found and no image pinned", argv)
-        env = dict(os.environ)
-        env["PYTHONPATH"] = os.pathsep.join(
-            p for p in (str(source), env.get("PYTHONPATH", "")) if p
-        )
-        command = inner_argv(argv, sys.executable)
-        os.execvpe(command[0], command, env)
-        return 0
+        return _no_image(argv)
     assert pin is not None
     try:
         _ensure_image(

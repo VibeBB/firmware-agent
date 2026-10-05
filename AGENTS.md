@@ -13,6 +13,9 @@ firmware sister in the VibeBB OpenHands plugin family.
   `*.fw-pinmap.json`, `*.pinmap.md`, `*.fw-report.*`, `sim-*.log`,
   `debug-*.advisory.json`, `observations/firmware/*.jsonl` and
   `intake/attachments/manifest.jsonl` are generated; never edit them by hand.
+- The plugin is Docker-only: `firmware_launcher.py` fails closed when no
+  pinned `firmware-tools` image resolves; there is no host-interpreter
+  fallback.
 - Gates fail closed: missing tools, files or unparseable output are
   failures. GDB output is advisory and never changes a verdict.
 - Sister cooperation is JSON artifacts in the workspace; never import a
