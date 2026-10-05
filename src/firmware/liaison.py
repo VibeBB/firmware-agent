@@ -28,7 +28,7 @@ Stage = Literal[
 Target = Literal[
     "bard", "circuit", "dashboard", "doc", "firmware", "fpga", "mech", "prodeng", "sim", "wire"
 ]
-_SLUG = r"^[a-z0-9][a-z0-9-]*$"
+_SLUG = r"^[a-z0-9][a-z0-9._-]{0,63}$"
 _SHA256 = r"^[0-9a-f]{64}$"
 _JOB_TOKEN = re.compile(r"\b[a-z][a-z0-9]*_[a-z0-9_]+\b")
 _NON_EMPTY = Annotated[str, Field(min_length=1)]

@@ -318,3 +318,8 @@ def test_responder_mismatch_is_malformed(tmp_path: Path) -> None:
     payload = liaison.inbox(tmp_path)
     assert len(cast(list[object], payload["malformed"])) == 1
     assert _states(payload)["wrong-responder"] == "new"
+
+
+def test_family_request_id_with_dot_and_underscore_is_accepted(tmp_path: Path) -> None:
+    _write_request(tmp_path, _request("kettle.lid_button-2"))
+    assert _states(liaison.inbox(tmp_path)) == {"kettle.lid_button-2": "new"}
