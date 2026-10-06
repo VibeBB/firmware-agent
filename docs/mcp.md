@@ -17,6 +17,7 @@ return `{"verdict": "fail", "detail": ...}` with `isError` set.
 | `firmware_gates` | `contract_path`, `out_dir` | full `GateReport` incl. build/memory/cppcheck/sims; writes all projections, `sim-*.log`/`.png`, PNGs | no |
 | `firmware_pins` | `contract_path` | regenerates `fw_pins.h` | no |
 | `firmware_cues` | `contract_path` | regenerates `fw_cues.h` from the pinned bard `cues.json` | no |
+| `firmware_fpga_regs` | `contract_path` | regenerates `fw_fpga_regs.h` from the pinned fpga `*.fpga-regmap.json` | no |
 | `firmware_pinmap_export` | `contract_path`, `out_dir` | `<name>.fw-pinmap.json`, `*.pinmap.md`, `*.pinmap.png` | no |
 | `firmware_sim` | `contract_path`, `out_dir`, `simulation` | one QEMU run → `SimResult`, `sim-<id>.log`, `sim-<id>.png` | no |
 | `firmware_debug` | `contract_path`, `out_dir`, `simulation`, `elf`, `breaks`, `prints` | `debug-*.advisory.json` (never changes a verdict) | no |

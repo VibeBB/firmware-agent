@@ -25,7 +25,8 @@ projections of it and are write-protected by the `protect-generated` hook.
 3. **Static gates** — `firmware check <contract>` (MCP `firmware_check`).
 4. **Pin header** — `firmware pins <contract>` writes `build.pins_header`;
    with a `cues` block, `firmware cues <contract>` writes the bard cue
-   header.
+   header; with an `fpga` block, `firmware fpga-regs <contract>` writes the
+   FPGA register header.
 5. **Implementation** — sources include the header; hardware access stays
    behind a HAL so logic builds for QEMU too.
 6. **Full gates** — `firmware gates <contract>` (MCP `firmware_gates`)
@@ -52,6 +53,7 @@ projections of it and are write-protected by the `protect-generated` hook.
 | `fw.power_modes` | a run mode exists, duties sum to 1, every sleep mode has a wake source (`gpio_in` pin or `timer`; deep-sleep pins must be wake-capable), powered peripherals exist, average current within budget |
 | `fw.pins_header` | the generated header matches the contract byte for byte |
 | `fw.bard_cues` | (only with a `cues` block) the bard `cues.json` matches the pinned sha256, the cue pin is a PWM pin with a peripheral, every sounded tone sits inside `min_hz`..`max_hz`, tone timing is contiguous, only warning/error cues loop, and `fw_cues.h` matches byte for byte |
+| `fw.fpga_regmap` | (only with an `fpga` block) the fpga `*.fpga-regmap.json` matches the pinned sha256, the linked peripheral uses the map's bus, and `fw_fpga_regs.h` is current |
 | `fw.build` | the build backend exits 0 and the ELF exists |
 | `fw.memory_budget` | flash and RAM usage from the ELF sections are within `build.budget` of the MCU capacity |
 | `fw.static_analysis` | cppcheck reports no finding at a `fail_on` severity outside justified suppressions |

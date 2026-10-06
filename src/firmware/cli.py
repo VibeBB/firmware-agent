@@ -42,7 +42,7 @@ def _parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
     doctor = sub.add_parser("doctor")
     doctor.add_argument("--warn", action="store_true", help="always exit 0")
-    for name in ("validate", "pins", "cues"):
+    for name in ("validate", "pins", "cues", "fpga-regs"):
         sub.add_parser(name).add_argument("contract", type=Path)
     for name in ("check", "gates", "pinmap"):
         command = sub.add_parser(name)
@@ -106,6 +106,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _emit(service.gates_payload(args.contract, args.out, full=command == "gates"))
     if command == "pins":
         return _emit(service.pins_payload(args.contract))
+    if command == "fpga-regs":
+        return _emit(service.fpga_regs_payload(args.contract))
     if command == "cues":
         return _emit(service.cues_payload(args.contract))
     if command == "pinmap":

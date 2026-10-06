@@ -14,10 +14,11 @@ from . import doctor, liaison
 from .contract import Simulation, load_contract, resolve
 from .debug import run_debug
 from .gates import FAIL, PASS, run_gates, write_outputs
-from .interchange import load_cue_manifest, sha256_file
+from .interchange import load_cue_manifest, load_fpga_regmap, sha256_file
 from .profiles import load_profile
 from .projections import (
     cues_header,
+    fpga_regs_header,
     pinmap_export,
     pinmap_markdown,
     pins_header,
@@ -127,6 +128,38 @@ def cues_payload(contract_path: Path) -> Json:
         cues_header(contract, manifest, manifest_sha),
     )
     return {"verdict": PASS, "stage": "cues", "written": [str(header)], "cues": len(manifest.cues)}
+
+
+def fpga_regs_payload(contract_path: Path) -> Json:
+    """Regenerate ``fpga.header`` from the pinned fpga register map."""
+    try:
+        contract = load_contract(contract_path)
+        if contract.fpga is None:
+            return {
+                "verdict": FAIL,
+                "stage": "fpga-regs",
+                "detail": "contract declares no fpga link",
+            }
+        regmap_path = resolve(contract_path, contract.fpga.regmap)
+        regmap = load_fpga_regmap(regmap_path)
+        regmap_sha = sha256_file(regmap_path)
+        if regmap_sha != contract.fpga.sha256:
+            return {
+                "verdict": FAIL,
+                "stage": "fpga-regs",
+                "detail": f"register map sha256 {regmap_sha} differs from pinned "
+                f"{contract.fpga.sha256}; review the new map and re-pin fpga.sha256",
+            }
+        text = fpga_regs_header(contract, regmap, regmap_sha)
+    except (OSError, ValueError, ValidationError) as exc:
+        return {"verdict": FAIL, "stage": "fpga-regs", "detail": str(exc)}
+    header = write_text(resolve(contract_path, contract.fpga.header), text)
+    return {
+        "verdict": PASS,
+        "stage": "fpga-regs",
+        "written": [str(header)],
+        "registers": len(regmap.registers),
+    }
 
 
 def pinmap_payload(contract_path: Path, out_dir: Path | None) -> Json:
