@@ -53,7 +53,9 @@ everything else is generated or exchanged.
 strictly (`authority: none`): `product`, `device` (piezo/speaker),
 `cues[]` (`id`, `purpose`, `ux_feedback`, `loop`, `bpm`, `program`,
 `duration_ms`, `mid`/`mml` file refs, `tones[]` of `start_ms`,
-`duration_ms`, `midi` or null for a rest, `freq_hz`), `artifacts[]`.
+`duration_ms`, `midi` or null for a rest, `freq_hz`), `artifacts[]`, and
+the optional advisory `accessibility` / `audibility` reports, which are
+carried through unread.
 
 ## `firmware_gate_report` — `<design>.fw-report.json` (schema 1)
 

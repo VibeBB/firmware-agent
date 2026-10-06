@@ -134,6 +134,8 @@ class BardCueManifest(_Strict):
     device: Literal["piezo", "speaker"]
     cues: list[BardCue] = Field(min_length=1)
     artifacts: list[str]
+    accessibility: dict[str, object] | None = None
+    audibility: dict[str, object] | None = None
 
 
 def load_cue_manifest(path: Path) -> BardCueManifest:
