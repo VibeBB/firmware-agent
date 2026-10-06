@@ -21,6 +21,8 @@ datasheets of your board. You get back:
 
 - `*.fw.json` — the firmware contract: MCU, pin map, peripherals, power modes
 - a generated pin header (`fw_pins.h`) your code includes
+- a generated sound-cue header (`fw_cues.h`) that plays the bard plugin's
+  product cues on a buzzer pin, checked against the buzzer's frequency band
 - a pin map PNG of the chip and a gate report (JSON/Markdown/PNG)
 - a QEMU simulation transcript and timeline PNG
 - a record of every decision, stage impression and image review
@@ -88,6 +90,7 @@ VibeBB プラグインファミリーの firmware 姉妹プラグインです
 - `*.fw.json` — MCU、ピンマップ、ペリフェラル、電源モードを定義した
   ファームウェア契約
 - コードがインクルードする生成済みピンヘッダ `fw_pins.h`
+- bardプラグインの製品の効果音（cue）をブザーで鳴らすための生成済みヘッダ `fw_cues.h`（ブザーが鳴らせる周波数の範囲に収まるかを確認済み）
 - チップのピンマップ PNG とゲートレポート（JSON/Markdown/PNG）
 - QEMU シミュレーションのログとタイムライン PNG
 - すべての決定・ステージ感想・画像レビューの記録

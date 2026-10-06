@@ -26,6 +26,9 @@ everything else is generated or exchanged.
 - `analysis`: `tool` cppcheck, `std`, `sources[]`, `includes[]`,
   `defines[]`, `fail_on[]`, `suppressions[]` (`id`, `file?`, `line?`,
   `rationale`)
+- `cues?`: `manifest` (path to bard `cues.json`), `sha256` (pinned
+  manifest hash), `pin` (a `pwm` pin signal), `header` (generated
+  `fw_cues.h`), `min_hz` < `max_hz` (transducer band), `rationale`
 - `simulations[]`: `id`, `runner` (qemu-arm needs `exit_code`, qemu-esp
   forbids it), `machine`, `fidelity` (mcu/core), `image`, `build?`,
   `expect[]`, `forbid[]`, `exit_code?`, `timeout_s` (≤600)
@@ -43,6 +46,14 @@ everything else is generated or exchanged.
 `source` (brief/netlist), `brief_sha256`, `netlist_sha256?`,
 `mcus[]` (`ref`, `lib_id`, `value?`, `footprint`,
 `pins[]`:`pin`, `function?`, `net?`, `signal_class?`, `voltage_v?`).
+
+## `bard_cue_manifest` — bard `cues.json` (schema 0.1)
+
+`interchange.py::BardCueManifest` reads bard-agent's rendered manifest
+strictly (`authority: none`): `product`, `device` (piezo/speaker),
+`cues[]` (`id`, `purpose`, `ux_feedback`, `loop`, `bpm`, `program`,
+`duration_ms`, `mid`/`mml` file refs, `tones[]` of `start_ms`,
+`duration_ms`, `midi` or null for a rest, `freq_hz`), `artifacts[]`.
 
 ## `firmware_gate_report` — `<design>.fw-report.json` (schema 1)
 

@@ -53,4 +53,9 @@ Rules enforced at load time (unknown keys are rejected everywhere):
 - `qemu-arm` simulations declare `exit_code` (semihosting exit);
   `qemu-esp` simulations cannot (the image runs until the expectations
   complete or the timeout).
+- `cues` (optional) binds a bard `cues.json`: `manifest`, pinned
+  `sha256`, the `pwm` `pin` that drives the buzzer, the generated
+  `header`, and the transducer band `min_hz` < `max_hz` from its
+  datasheet. Re-pin `sha256` only after reviewing a re-rendered cue set;
+  then run `firmware cues`.
 - Paths are relative to the contract file.

@@ -1,0 +1,163 @@
+{
+  "artifact_kind": "bard_cue_manifest",
+  "artifacts": [
+    "cue-boot.mid",
+    "cue-boot.mml",
+    "cue-done.mid",
+    "cue-done.mml",
+    "cue-overheat.mid",
+    "cue-overheat.mml",
+    "cue-press.mid",
+    "cue-press.mml",
+    "cues.timeline.svg"
+  ],
+  "authority": "none",
+  "cues": [
+    {
+      "bpm": 180,
+      "duration_ms": 333,
+      "id": "boot",
+      "loop": false,
+      "mid": {
+        "path": "cue-boot.mid",
+        "sha256": "6d2dbe0ba3167e35d1a5826427e1856c7ef1320c9ee43421f17486e4859d42d0"
+      },
+      "mml": {
+        "path": "cue-boot.mml",
+        "sha256": "d7d15af7223d4c1486454104f2d1b8e1c0e9c075bc8b63ef3992341cb58cffe6"
+      },
+      "program": 80,
+      "purpose": "startup",
+      "tones": [
+        {
+          "duration_ms": 83,
+          "freq_hz": 1046.5,
+          "midi": 84,
+          "start_ms": 0
+        },
+        {
+          "duration_ms": 84,
+          "freq_hz": 1318.51,
+          "midi": 88,
+          "start_ms": 83
+        },
+        {
+          "duration_ms": 166,
+          "freq_hz": 1567.98,
+          "midi": 91,
+          "start_ms": 167
+        }
+      ],
+      "ux_feedback": null
+    },
+    {
+      "bpm": 150,
+      "duration_ms": 600,
+      "id": "done",
+      "loop": false,
+      "mid": {
+        "path": "cue-done.mid",
+        "sha256": "01e7e11feacec3a0ea89f06001f7ced0c25a1667beae7ca73c078f7bbd95ba91"
+      },
+      "mml": {
+        "path": "cue-done.mml",
+        "sha256": "506fe8dee63c2bbb0b73953eb17c7501df1a2e112dc0326ecca37c66dfe6e7b7"
+      },
+      "program": 80,
+      "purpose": "completion",
+      "tones": [
+        {
+          "duration_ms": 200,
+          "freq_hz": 1567.98,
+          "midi": 91,
+          "start_ms": 0
+        },
+        {
+          "duration_ms": 400,
+          "freq_hz": 2093.0,
+          "midi": 96,
+          "start_ms": 200
+        }
+      ],
+      "ux_feedback": "beep_done"
+    },
+    {
+      "bpm": 120,
+      "duration_ms": 750,
+      "id": "overheat",
+      "loop": true,
+      "mid": {
+        "path": "cue-overheat.mid",
+        "sha256": "73394833bfbccf0f380338d602026e54520161f9bf3032a980974d463e2d0e52"
+      },
+      "mml": {
+        "path": "cue-overheat.mml",
+        "sha256": "61b9f9bfb2b24d5b50c34dac6f2a33259f907e77566ed14bd1a7798043ab418c"
+      },
+      "program": 80,
+      "purpose": "warning",
+      "tones": [
+        {
+          "duration_ms": 125,
+          "freq_hz": 1760.0,
+          "midi": 93,
+          "start_ms": 0
+        },
+        {
+          "duration_ms": 125,
+          "freq_hz": 0.0,
+          "midi": null,
+          "start_ms": 125
+        },
+        {
+          "duration_ms": 125,
+          "freq_hz": 1760.0,
+          "midi": 93,
+          "start_ms": 250
+        },
+        {
+          "duration_ms": 125,
+          "freq_hz": 0.0,
+          "midi": null,
+          "start_ms": 375
+        },
+        {
+          "duration_ms": 250,
+          "freq_hz": 1760.0,
+          "midi": 93,
+          "start_ms": 500
+        }
+      ],
+      "ux_feedback": null
+    },
+    {
+      "bpm": 180,
+      "duration_ms": 83,
+      "id": "press",
+      "loop": false,
+      "mid": {
+        "path": "cue-press.mid",
+        "sha256": "9acf864bdc526bbdf11948c30d29238e24ff61897242aa355f54bdf30acda544"
+      },
+      "mml": {
+        "path": "cue-press.mml",
+        "sha256": "d0f2528a5b72cd0beb73fc491d12170da305388cfa765d6a27e8039a56ec4f92"
+      },
+      "program": 80,
+      "purpose": "confirm",
+      "tones": [
+        {
+          "duration_ms": 83,
+          "freq_hz": 2093.0,
+          "midi": 96,
+          "start_ms": 0
+        }
+      ],
+      "ux_feedback": null
+    }
+  ],
+  "device": "piezo",
+  "product": "smart-kettle",
+  "schema_version": "0.1",
+  "system": "bard"
+}

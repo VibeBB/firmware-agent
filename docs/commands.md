@@ -14,6 +14,7 @@ launcher.
 | `check` | `contract` `[--out dir]` | static gates only; writes report + pin map projections and PNGs |
 | `gates` | `contract` `[--out dir]` | all gates incl. build, memory budget, cppcheck, QEMU sims |
 | `pins` | `contract` | regenerate `build.pins_header` (`fw_pins.h`) |
+| `cues` | `contract` | regenerate `cues.header` (`fw_cues.h`) from the pinned bard `cues.json`; fails when the manifest hash differs from `cues.sha256` |
 | `pinmap` | `contract` `[--out dir]` | export `<name>.fw-pinmap.json` + `*.pinmap.md`/`*.pinmap.png` |
 | `sim` | `contract` `--id <sim>` `[--out dir]` | run one declared QEMU simulation; writes `sim-<id>.log`/`sim-<id>.png` |
 | `debug` | `contract` `--id <sim>` `[--elf f] [--break b] [--print e] [--out dir]` | scripted GDB session → `debug-<id>.advisory.json` (advisory) |

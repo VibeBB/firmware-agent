@@ -197,6 +197,29 @@ class CircuitLink(_Strict):
     connectivity: str
 
 
+class CueLink(_Strict):
+    """bard product sound cues played through one PWM pin.
+
+    ``sha256`` pins the bard ``cues.json`` manifest so a re-rendered cue set
+    is reviewed before the generated header changes. ``min_hz``/``max_hz``
+    is the transducer's usable band from its datasheet.
+    """
+
+    manifest: str
+    sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    pin: str = Field(pattern=IDENT)
+    header: str
+    min_hz: float = Field(gt=0)
+    max_hz: float = Field(gt=0)
+    rationale: str = ""
+
+    @model_validator(mode="after")
+    def _band(self) -> CueLink:
+        if self.min_hz >= self.max_hz:
+            raise ValueError("cues: min_hz must be below max_hz")
+        return self
+
+
 class FirmwareContract(_Strict):
     schema_version: Literal[1] = SCHEMA_VERSION
     system: Literal["firmware"] = "firmware"
@@ -211,6 +234,7 @@ class FirmwareContract(_Strict):
     build: Build
     analysis: Analysis
     simulations: list[Simulation] = Field(default_factory=list[Simulation])
+    cues: CueLink | None = None
 
     @model_validator(mode="after")
     def _unique(self) -> FirmwareContract:

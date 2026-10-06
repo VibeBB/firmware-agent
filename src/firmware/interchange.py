@@ -96,3 +96,45 @@ def pad_of(function: str | None) -> str | None:
         return None
     head = function.replace("/", "_").split("_", 1)[0].upper()
     return head or None
+
+
+class BardFileRef(_Strict):
+    path: str
+    sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+
+
+class BardTone(_Strict):
+    start_ms: int = Field(ge=0)
+    duration_ms: int = Field(ge=0)
+    midi: int | None = Field(default=None, ge=0, le=127)
+    freq_hz: float = Field(ge=0)
+
+
+class BardCue(_Strict):
+    id: str = Field(pattern=r"^[a-z][a-z0-9_]{0,31}$")
+    purpose: str
+    ux_feedback: str | None = None
+    loop: bool
+    bpm: int
+    program: int
+    duration_ms: int = Field(gt=0)
+    mid: BardFileRef
+    mml: BardFileRef
+    tones: list[BardTone] = Field(min_length=1)
+
+
+class BardCueManifest(_Strict):
+    """``cues.json`` (``bard_cue_manifest``) rendered by bard-agent."""
+
+    artifact_kind: Literal["bard_cue_manifest"]
+    schema_version: Literal["0.1"]
+    system: Literal["bard"]
+    authority: Literal["none"]
+    product: str
+    device: Literal["piezo", "speaker"]
+    cues: list[BardCue] = Field(min_length=1)
+    artifacts: list[str]
+
+
+def load_cue_manifest(path: Path) -> BardCueManifest:
+    return BardCueManifest.model_validate(json.loads(path.read_text(encoding="utf-8")))

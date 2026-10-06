@@ -42,6 +42,28 @@ that exact export (`circuit_sha256` in the gate report). Firmware hands
 after every circuit change — a pin map checked against a stale export
 fails there.
 
+## bard cue interchange
+
+bard-agent renders a cue set to `cues/<slug>/cues.json`
+(`bard_cue_manifest`: per cue `id`, `purpose`, `loop`, `duration_ms` and
+`tones[]` of `{start_ms, duration_ms, midi, freq_hz}`). The contract's
+optional `cues` block binds it:
+
+- `manifest` and `sha256` pin the exact manifest. A re-rendered cue set
+  fails `fw.bard_cues` until the new tones are reviewed and the hash is
+  re-pinned, so firmware never plays a cue it has not looked at.
+- `pin` names the PWM pin that drives the transducer; `min_hz`/`max_hz`
+  is the transducer's usable band from its datasheet. Every sounded tone
+  must fall inside it.
+- `firmware cues` (`firmware_cues`) writes `header` (`fw_cues.h`): one
+  centihertz/millisecond tone table per cue, `FW_CUE_<ID>` indices and
+  `fw_cue_centihz_at(cue, elapsed_ms)`, a pure lookup the firmware's timer
+  tick calls to get the PWM frequency (`0` = silence or done; looping
+  cues wrap). `fw.bard_cues` fails when the header is missing or stale.
+
+A cue that needs a frequency the transducer cannot play goes back to bard
+as a `firmware request --target bard`.
+
 ## Outbound requests — `fw_request` v2
 
 `firmware request` writes `<design>.<id>.fw-request.json` to `circuit`,
@@ -52,6 +74,6 @@ stale ask; high risk requires a `decision_refs` entry.
 
 ## Other sisters
 
-bard cues and the UX producer plan are read as inputs only; firmware's
+The UX producer plan is read as an input only; firmware's
 reports serve as evidence back to them, and `firmware_ux_*` answers
 UX-creator directly.

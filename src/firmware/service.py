@@ -14,9 +14,16 @@ from . import doctor, liaison
 from .contract import Simulation, load_contract, resolve
 from .debug import run_debug
 from .gates import FAIL, PASS, run_gates, write_outputs
-from .interchange import sha256_file
+from .interchange import load_cue_manifest, sha256_file
 from .profiles import load_profile
-from .projections import pinmap_export, pinmap_markdown, pins_header, write_bytes, write_text
+from .projections import (
+    cues_header,
+    pinmap_export,
+    pinmap_markdown,
+    pins_header,
+    write_bytes,
+    write_text,
+)
 from .records import RECORDERS, records_summary
 from .render import render_pinmap, render_sim_timeline
 from .requests import write_request
@@ -95,6 +102,31 @@ def pins_payload(contract_path: Path) -> Json:
         resolve(contract_path, contract.build.pins_header), pins_header(contract, profile)
     )
     return {"verdict": PASS, "stage": "pins", "written": [str(header)]}
+
+
+def cues_payload(contract_path: Path) -> Json:
+    """Regenerate ``cues.header`` from the pinned bard cue manifest."""
+    try:
+        contract = load_contract(contract_path)
+        if contract.cues is None:
+            return {"verdict": FAIL, "stage": "cues", "detail": "contract declares no cues"}
+        manifest_path = resolve(contract_path, contract.cues.manifest)
+        manifest = load_cue_manifest(manifest_path)
+        manifest_sha = sha256_file(manifest_path)
+    except (OSError, ValueError, ValidationError) as exc:
+        return {"verdict": FAIL, "stage": "cues", "detail": str(exc)}
+    if manifest_sha != contract.cues.sha256:
+        return {
+            "verdict": FAIL,
+            "stage": "cues",
+            "detail": f"manifest sha256 {manifest_sha} differs from pinned {contract.cues.sha256}; "
+            "review the new cues and re-pin cues.sha256",
+        }
+    header = write_text(
+        resolve(contract_path, contract.cues.header),
+        cues_header(contract, manifest, manifest_sha),
+    )
+    return {"verdict": PASS, "stage": "cues", "written": [str(header)], "cues": len(manifest.cues)}
 
 
 def pinmap_payload(contract_path: Path, out_dir: Path | None) -> Json:

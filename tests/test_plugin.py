@@ -33,6 +33,7 @@ def test_mcp_tools_registered() -> None:
         "firmware_check",
         "firmware_gates",
         "firmware_pins",
+        "firmware_cues",
         "firmware_pinmap_export",
         "firmware_sim",
         "firmware_debug",
