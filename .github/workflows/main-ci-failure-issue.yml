@@ -17,6 +17,7 @@ on:
       - "Scorecard"
       - "Workflow lint"
       - "CodeQL"
+      - "Mutation probe"
     types: [completed]
     branches: [main]
   # Runs dispatched with GITHUB_TOKEN (post-merge digest-lock verification)
