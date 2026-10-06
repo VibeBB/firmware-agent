@@ -37,7 +37,12 @@ src = ["src", "scripts", "tests"]
 
 [tool.ruff.format]
 # Family-canonical files are byte-identical across repos (formatted at 88).
-exclude = ["scripts/structural_coverage.py", "tests/test_structural_coverage.py"]
+exclude = [
+  "scripts/mutation_probe.py",
+  "scripts/structural_coverage.py",
+  "tests/test_mutation_probe.py",
+  "tests/test_structural_coverage.py",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
@@ -72,6 +77,12 @@ decision = 65
 c2 = 62
 mcdc = 41
 boundary = 45
+
+[tool.vibebb-mutation]
+# Advisory weekly mutation probe (scripts/mutation_probe.py); never a gate.
+targets = ["src/firmware/gates.py", "src/firmware/elf.py"]
+tests = ["tests/test_gates.py", "tests/test_gate_boundaries.py"]
+max_mutants = 400
 
 [tool.coverage.report]
 fail_under = 82
