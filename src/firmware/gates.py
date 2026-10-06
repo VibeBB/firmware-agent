@@ -29,11 +29,19 @@ from .interchange import (
     CircuitFirmwareConnectivity,
     CircuitMcuPin,
     load_circuit,
+    load_cue_manifest,
     pad_of,
     sha256_file,
 )
 from .profiles import McuProfile, load_profile
-from .projections import pinmap_export, pinmap_markdown, pins_header, write_bytes, write_text
+from .projections import (
+    cues_header,
+    pinmap_export,
+    pinmap_markdown,
+    pins_header,
+    write_bytes,
+    write_text,
+)
 from .render import render_pinmap, render_report
 from .sim import run_simulation
 
@@ -276,6 +284,61 @@ def check_pins_header(
     return _check("fw.pins_header", contract.build.pins_header, [])
 
 
+def check_bard_cues(contract: FirmwareContract, contract_path: Path) -> Check:
+    """bard cue manifest pinned, playable on the declared pin, header current."""
+    link = contract.cues
+    if link is None:
+        raise ValueError("contract declares no cues")
+    manifest_path = resolve(contract_path, link.manifest)
+    try:
+        manifest = load_cue_manifest(manifest_path)
+        manifest_sha = sha256_file(manifest_path)
+    except (OSError, ValueError, ValidationError) as exc:
+        return _check("fw.bard_cues", link.manifest, [f"unreadable bard cue manifest: {exc}"])
+    problems: list[str] = []
+    if manifest_sha != link.sha256:
+        problems.append(
+            f"manifest sha256 {manifest_sha} differs from pinned {link.sha256}; "
+            "review the new cues and re-pin cues.sha256"
+        )
+    pin = contract.pin(link.pin)
+    if pin is None:
+        problems.append(f"cue pin {link.pin} is not declared")
+    elif pin.function != "pwm" or pin.peripheral is None:
+        problems.append(f"cue pin {link.pin} must be a pwm pin with a peripheral")
+    tones = 0
+    sounded: list[float] = []
+    for cue in manifest.cues:
+        if cue.loop and cue.purpose not in ("warning", "error"):
+            problems.append(f"cue {cue.id}: only warning/error cues may loop")
+        clock = 0
+        for tone in cue.tones:
+            tones += 1
+            if tone.start_ms != clock:
+                problems.append(f"cue {cue.id}: tone at {tone.start_ms} ms leaves a gap or overlap")
+            clock = tone.start_ms + tone.duration_ms
+            if (tone.midi is None) != (tone.freq_hz == 0):
+                problems.append(f"cue {cue.id}: tone at {tone.start_ms} ms mixes rest and pitch")
+            elif tone.freq_hz > 0:
+                sounded.append(tone.freq_hz)
+                if not link.min_hz <= tone.freq_hz <= link.max_hz:
+                    problems.append(
+                        f"cue {cue.id}: {tone.freq_hz} Hz outside the transducer band "
+                        f"{link.min_hz}-{link.max_hz} Hz"
+                    )
+        if clock != cue.duration_ms:
+            problems.append(f"cue {cue.id}: tones last {clock} ms, cue says {cue.duration_ms} ms")
+    header = resolve(contract_path, link.header)
+    if not header.is_file():
+        problems.append(f"{link.header} missing; run `firmware cues`")
+    elif header.read_text(encoding="utf-8") != cues_header(contract, manifest, manifest_sha):
+        problems.append(f"{link.header} stale; regenerate with `firmware cues`")
+    evidence = [f"cues={len(manifest.cues)}", f"tones={tones}", f"sha256={manifest_sha}"]
+    if sounded:
+        evidence.append(f"band={min(sounded)}-{max(sounded)}Hz")
+    return _check("fw.bard_cues", link.manifest, problems, evidence)
+
+
 def _memory_check(
     contract: FirmwareContract, profile: McuProfile, elf_path: Path
 ) -> tuple[Check, dict[str, float]]:
@@ -379,6 +442,8 @@ def run_gates(
         checks.append(check_netlist_match(contract, profile, circuit))
     checks.append(check_power_modes(contract, profile))
     checks.append(check_pins_header(contract, profile, contract_path))
+    if contract.cues is not None:
+        checks.append(check_bard_cues(contract, contract_path))
     metrics: dict[str, float] = {
         "average_ua": sum(mode.current_ua * mode.duty for mode in contract.power.modes),
     }

@@ -19,7 +19,7 @@ Cooperation is JSON files in the shared workspace — never code imports.
 | in | `<design>.firmware.json` (`circuit_firmware_connectivity`) | `circuit firmware-export` | `fw.netlist_match` |
 | out | `<name>.fw-pinmap.json` (`firmware_pinmap`) | `firmware pinmap` / `firmware gates` | `circuit firmware-check` |
 | out | `<design>.<id>.fw-request.json` (`fw_request`) | `firmware request` | the target sister |
-| in | bard `cues.json` / MIDI | bard-agent product cue mode | firmware sound tables (buzzer PWM) |
+| in | bard `cues.json` (`bard_cue_manifest`), pinned by `cues.sha256` | bard-agent cue mode (`render_cues.py`) | `firmware cues` → `fw_cues.h`; `fw.bard_cues` |
 | in/out | `<product>.production.json` workstream `firmware` | UX producer | firmware reports as evidence |
 | in | `liaison/<id>.ux-request.json` (SLP v2) | ux-creator | `firmware ux inbox` / `firmware_ux_inbox` |
 | out | `liaison/<id>.ux-response.json` (SLP v2) | `firmware ux respond` / `firmware_ux_respond` | ux-creator |

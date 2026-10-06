@@ -62,6 +62,11 @@ TOOLS: dict[str, tuple[str, dict[str, object], bool]] = {
         _schema(_CONTRACT, ["contract_path"]),
         False,
     ),
+    "firmware_cues": (
+        "Regenerate the bard cue header from the pinned cues.json",
+        _schema(_CONTRACT, ["contract_path"]),
+        False,
+    ),
     "firmware_pinmap_export": (
         "Export <name>.fw-pinmap.json for electrical-circuit-agent",
         _schema({**_CONTRACT, **_OUT}, ["contract_path"]),
@@ -276,6 +281,7 @@ def dispatch(name: str, arguments: dict[str, object]) -> service.Json:
             _path(arguments, "contract_path"), _opt_path(arguments, "out_dir"), full=True
         ),
         "firmware_pins": lambda: service.pins_payload(_path(arguments, "contract_path")),
+        "firmware_cues": lambda: service.cues_payload(_path(arguments, "contract_path")),
         "firmware_pinmap_export": lambda: service.pinmap_payload(
             _path(arguments, "contract_path"), _opt_path(arguments, "out_dir")
         ),

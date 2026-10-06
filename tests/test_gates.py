@@ -31,12 +31,14 @@ def test_static_gates_pass(example: str, request: pytest.FixtureRequest) -> None
     contract: Path = request.getfixturevalue(example)
     report = _static(contract)
     assert report.verdict == "pass", report.model_dump_json(indent=2)
+    cue_gate = {"fw.bard_cues"} if example == "kettle" else set[str]()
     assert set(_status(report)) == {
         "fw.contract",
         "fw.pin_functions",
         "fw.netlist_match",
         "fw.power_modes",
         "fw.pins_header",
+        *cue_gate,
     }
 
 
