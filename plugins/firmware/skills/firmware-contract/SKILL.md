@@ -58,4 +58,9 @@ Rules enforced at load time (unknown keys are rejected everywhere):
   `header`, and the transducer band `min_hz` < `max_hz` from its
   datasheet. Re-pin `sha256` only after reviewing a re-rendered cue set;
   then run `firmware cues`.
+- `ftm` (optional) binds production-engineering's
+  `factory-test-spec.json`: `spec`, pinned `sha256`, the generated
+  `header`, and the `peripheral` carrying the factory transport (none for
+  swd/jtag). Re-pin only after reviewing a changed spec; then run
+  `firmware ftm`.
 - Paths are relative to the contract file.
