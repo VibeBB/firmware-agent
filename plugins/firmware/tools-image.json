@@ -1,11 +1,11 @@
 {
-  "attestation": "https://github.com/VibeBB/firmware-agent/attestations/53045049",
-  "digest": "sha256:0658865c6ee6cbc0e2e0c63049b5ab793a87e5a48fa4dfaa1c007ec3cd4ab210",
+  "attestation": "https://github.com/VibeBB/firmware-agent/attestations/53379401",
+  "digest": "sha256:4839a556a86853a6ec02812487d2b885f120b029d9fee5026313bd02da77f8c2",
   "dockerfile": "docker/firmware-tools.Dockerfile",
   "image": "ghcr.io/vibebb/firmware-tools",
-  "published_at": "2026-10-06T03:56:08Z",
-  "sbom_attestation": "https://github.com/VibeBB/firmware-agent/attestations/53045402",
-  "tag": "953f71970d7d656b99a80458e9c4d6a7bf7e6318-tools",
+  "published_at": "2026-10-06T23:41:09Z",
+  "sbom_attestation": "https://github.com/VibeBB/firmware-agent/attestations/53379619",
+  "tag": "b55c5cf76aa3da550ce0b2d89e0fbe188650f817-tools",
   "tools": {
     "cppcheck": "cppcheck --version: Cppcheck 2.19.0",
     "espressif32": "python -c 'import json; from pathlib import Path; print(\"espressif32=\" + json.loads(Path(\"/opt/platformio/platforms/espressif32/platform.json\").read_text())[\"version\"])': 7.1.3",
@@ -17,5 +17,5 @@
     "qemu_xtensa": "qemu-system-xtensa --version: QEMU emulator version 9.2.2 (esp_develop_9.2.2_20260417)",
     "uv": "uv --version: 0.12.23 (x86_64-unknown-linux-musl)"
   },
-  "workflow_run": "https://github.com/VibeBB/firmware-agent/actions/runs/37408248154"
+  "workflow_run": "https://github.com/VibeBB/firmware-agent/actions/runs/37545726434"
 }
