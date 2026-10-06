@@ -99,3 +99,26 @@ find what they missed.
 - **Mutation testing**: a mutant (a flipped comparison, a removed condition)
   that survives the suite marks an assertion that is missing even though the
   line is covered. Mutation runs are advisory evidence, not a CI gate.
+
+## Reference suite
+
+`tests/test_gate_boundaries.py` applies these techniques to the
+deterministic gates in `src/firmware/gates.py`, `src/firmware/elf.py` and
+`src/firmware/contract.py`, following the family pattern set by wire-agent:
+
+- 3-value boundaries for the flash and RAM budgets (byte below, on and
+  above `flash_kb * flash_pct` and `ram_kb * ram_pct`), memory-region
+  capacity, region address limits, the 52-byte ELF header minimum, the
+  program-header table length, segment `memsz`, the average-current budget
+  (`math.nextafter`), the 1e-6 duty-sum tolerance, and `timeout_s`;
+- equivalence classes and corrupted inputs for the ELF reader: bad class or
+  endianness, big-endian ELF32, ELF64, truncated tables, non-`PT_LOAD`
+  segments, and every `e_machine` mapping;
+- decision tables for flash charging of RAM segments (load address x
+  `image_backed` x `filesz`), the build backend x `env` rule, and the
+  power-mode wake rules;
+- fail-closed cases: an unreadable ELF, segments outside every region, and
+  an ELF whose machine does not match the MCU core.
+
+CI's verify job has no cppcheck, Arm GCC, QEMU, GDB or PlatformIO, so the
+floors are measured with those removed from `PATH`.

@@ -66,12 +66,12 @@ branch = true
 [tool.vibebb-coverage]
 # Ratchet floors (percent) for scripts/structural_coverage.py, measured on
 # main minus one point for interpreter variance. Raise them, never lower.
-c0 = 82
-c1 = 69
-decision = 62
-c2 = 59
-mcdc = 36
-boundary = 26
+c0 = 84
+c1 = 72
+decision = 65
+c2 = 62
+mcdc = 41
+boundary = 45
 
 [tool.coverage.report]
-fail_under = 79
+fail_under = 82
