@@ -2,7 +2,7 @@
 """Reject writes to generated firmware projections and reports.
 
 Generated files include the pin header ``fw_pins.h``,
-``*.fw-pinmap.json``, ``*.pinmap.md``, ``*.fw-report.json/.md``,
+``*.fw-pinmap.json``, ``*.fw-power.json``, ``*.pinmap.md``, ``*.fw-report.json/.md``,
 ``sim-*.log`` transcripts, ``debug-*.advisory.json`` records,
 ``observations/firmware/*.jsonl``, and
 ``intake/attachments/manifest.jsonl``. Editing projections by hand breaks
@@ -27,6 +27,7 @@ from typing import Any, cast
 
 ARTIFACT_SUFFIXES = (
     ".fw-pinmap.json",
+    ".fw-power.json",
     ".pinmap.md",
     ".pinmap.png",
     ".fw-report.json",

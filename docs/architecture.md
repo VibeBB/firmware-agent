@@ -13,7 +13,7 @@ launcher.
 | `profiles/` | bundled MCU profiles `esp32s3`, `rp2040` (pads, functions, memory regions, package) + `load_profile` |
 | `gates.py` | deterministic gate evaluation: static (`fw.contract`, `fw.pin_functions`, `fw.netlist_match`, `fw.power_modes`, `fw.pins_header`) and toolchain (`fw.build`, `fw.memory_budget`, `fw.static_analysis`, `fw.sim.<id>`); `GateReport` + `metrics`; `write_outputs` |
 | `interchange.py` | sister-facing models: `CircuitFirmwareConnectivity` (in), `FirmwarePinmap` (out), `sha256_file` |
-| `projections.py` | generated projections: `fw_pins.h`, `*.fw-pinmap.json`, `*.pinmap.md`, `*.fw-report.md`; `write_text`/`write_bytes` |
+| `projections.py` | generated projections: `fw_pins.h`, `*.fw-pinmap.json`, `*.fw-power.json`, `*.pinmap.md`, `*.fw-report.md`; `write_text`/`write_bytes` |
 | `render.py` | stdlib PNG renders (Canvas, 5×7 hand-authored font, PNG encoder): `render_pinmap`, `render_report`, `render_sim_timeline`, `render_glyph_sheet` |
 | `build.py` | make/CMake/PlatformIO build subprocesses |
 | `elf.py` | ELF segment accounting for the memory budget gate |

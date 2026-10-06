@@ -74,6 +74,14 @@ For `circuit firmware-check`: `design`, `contract_sha256`, `mcu_ref`,
 `function`, `peripheral`), `free_pads[]` (`pad`, `pad_aliases`,
 `package_pin`).
 
+## `firmware_power` — `<name>.fw-power.json` (schema 1)
+
+`interchange.py::FirmwarePower`, for simulation-agent PDN imports:
+`design`, `contract_sha256`, `mcu_ref`, `supply_net`, `peak_current_a`
+(largest authored mode current), `average_current_a` (duty-weighted),
+`modes[]` (`id`, `kind`, `current_a`, `duty`). Currents are the authored
+`current_ua` values in amperes; nothing is estimated.
+
 ## `fw_request` v2 — `<design>.<id>.fw-request.json` (schema 2)
 
 `requests.py::FirmwareRequest`: `id`, `design`,

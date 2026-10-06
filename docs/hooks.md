@@ -12,7 +12,7 @@ every command resolves the plugin root the same way
 | session_start | `*` | `ensure-llm-profiles` | `ensure_llm_profiles.py` (shared, byte-equal) | provision LLM profile config |
 | session_start | `*` | `require-records` | `require_records.py session-start` (shared) | seed the records session ledger |
 | user_prompt_submit | `*` | `intake-attachments` | `intake_attachments.py` | pick up attachments sent mid-session |
-| pre_tool_use | `file_editor\|apply_patch\|terminal` | `protect-generated` | `protect_generated.py` | deny writes to generated artifacts (`fw_pins.h`, `*.fw-pinmap.json`, `*.pinmap.*`, `*.fw-report.*`, `sim-*.{log,png}`, `debug-*.advisory.json`, `*.ux-response.json`, `observations/firmware/*`, `intake/attachments/manifest.jsonl`); exit 2 = deny |
+| pre_tool_use | `file_editor\|apply_patch\|terminal` | `protect-generated` | `protect_generated.py` | deny writes to generated artifacts (`fw_pins.h`, `*.fw-pinmap.json`, `*.fw-power.json`, `*.pinmap.*`, `*.fw-report.*`, `sim-*.{log,png}`, `debug-*.advisory.json`, `*.ux-response.json`, `observations/firmware/*`, `intake/attachments/manifest.jsonl`); exit 2 = deny |
 | pre_tool_use | `terminal` | `safety-rail` | `safety_rail.py` (shared, byte-equal) | block dangerous shell commands |
 | stop | `*` | `require-records` | `require_records.py` (shared) | refuse to finish while VRP records are owed (`records-policy.json`, `max_stop_denials` 2) |
 | stop | `*` | `report-firmware-status` | `report_firmware_status.py` | print the session's firmware status |

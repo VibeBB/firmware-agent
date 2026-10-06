@@ -81,6 +81,32 @@ class FirmwarePinmap(_Strict):
     free_pads: list[FreePad]
 
 
+class PowerModeExport(_Strict):
+    id: str
+    kind: str
+    current_a: float
+    duty: float
+
+
+class FirmwarePower(_Strict):
+    """``<name>.fw-power.json``: the MCU draw on its supply net, for simulation-agent.
+
+    ``peak_current_a`` is the largest authored mode current, the worst case a
+    PDN load must carry; ``average_current_a`` is the duty-weighted mean.
+    """
+
+    schema_version: Literal[1] = 1
+    system: Literal["firmware"] = "firmware"
+    artifact_kind: Literal["firmware_power"] = "firmware_power"
+    design: str
+    contract_sha256: str
+    mcu_ref: str
+    supply_net: str
+    peak_current_a: float
+    average_current_a: float
+    modes: list[PowerModeExport]
+
+
 def sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
