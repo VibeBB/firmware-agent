@@ -29,6 +29,10 @@ everything else is generated or exchanged.
 - `cues?`: `manifest` (path to bard `cues.json`), `sha256` (pinned
   manifest hash), `pin` (a `pwm` pin signal), `header` (generated
   `fw_cues.h`), `min_hz` < `max_hz` (transducer band), `rationale`
+- `ftm?`: `spec` (path to production-engineering `factory-test-spec.json`),
+  `sha256` (pinned spec hash), `header` (generated `fw_ftm.h`),
+  `peripheral?` (the uart/usb/i2c/spi peripheral carrying the factory
+  transport; omitted for swd/jtag), `rationale`
 - `simulations[]`: `id`, `runner` (qemu-arm needs `exit_code`, qemu-esp
   forbids it), `machine`, `fidelity` (mcu/core), `image`, `build?`,
   `expect[]`, `forbid[]`, `exit_code?`, `timeout_s` (≤600)
@@ -73,6 +77,27 @@ For `circuit firmware-check`: `design`, `contract_sha256`, `mcu_ref`,
 `pins[]` (`signal`, `pad`, `pad_aliases`, `package_pin`, `net`,
 `function`, `peripheral`), `free_pads[]` (`pad`, `pad_aliases`,
 `package_pin`).
+
+## `prodeng_ftm_spec` — prodeng `factory-test-spec.json`
+
+`interchange.py::ProdengFtmSpec` mirrors production-engineering's
+generated spec with `declared: true`: `entry` (`method`, `detail`,
+`conditions[]`), `field_lockout`, `interface` (`transport`, `settings`,
+`nets[]`), `commands[]` (`id` `TC-NN`, `name`, `request`,
+`response_pattern`, `timeout_ms`, `measures_nets[]`, `covers[]`,
+`destructive`), `provisioning[]`, `exit`, `max_duration_s`,
+`command_timeout_budget_s`. A spec with `declared: false` or extra keys
+is unreadable.
+
+## `firmware_production` — `<name>.fw-production.json` (schema 1)
+
+`interchange.py::FirmwareProduction`, for production-engineering
+programming operations: `design`, `contract_sha256`,
+`gate_report_sha256`, `mcu_ref`, `mcu_profile`, `part`, `package`, `elf`
+(relative to the artifact), `elf_sha256`, `elf_bytes`, `ftm_spec_sha256`
+(`null` without an `ftm` link), `ftm_commands[]`. Written only when the
+last gate report is a passing full run for the current contract and the
+ELF still hashes to the report's `elf_sha256`.
 
 ## `fw_request` v2 — `<design>.<id>.fw-request.json` (schema 2)
 

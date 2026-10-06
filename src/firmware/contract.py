@@ -220,6 +220,21 @@ class CueLink(_Strict):
         return self
 
 
+class FtmLink(_Strict):
+    """production-engineering factory test spec the firmware must serve.
+
+    ``sha256`` pins the exact ``factory-test-spec.json`` so a changed spec is
+    reviewed before the generated header changes. ``peripheral`` is the
+    firmware peripheral carrying the factory transport (none for SWD/JTAG).
+    """
+
+    spec: str
+    sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    header: str
+    peripheral: str | None = Field(default=None, pattern=IDENT)
+    rationale: str = ""
+
+
 class FirmwareContract(_Strict):
     schema_version: Literal[1] = SCHEMA_VERSION
     system: Literal["firmware"] = "firmware"
@@ -235,6 +250,7 @@ class FirmwareContract(_Strict):
     analysis: Analysis
     simulations: list[Simulation] = Field(default_factory=list[Simulation])
     cues: CueLink | None = None
+    ftm: FtmLink | None = None
 
     @model_validator(mode="after")
     def _unique(self) -> FirmwareContract:

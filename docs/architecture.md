@@ -11,9 +11,10 @@ launcher.
 | --- | --- |
 | `contract.py` | `<name>.fw.json` firmware contract model (MCU, pins, peripherals, power, build, analysis, simulations) + `load_contract`, `resolve` |
 | `profiles/` | bundled MCU profiles `esp32s3`, `rp2040` (pads, functions, memory regions, package) + `load_profile` |
-| `gates.py` | deterministic gate evaluation: static (`fw.contract`, `fw.pin_functions`, `fw.netlist_match`, `fw.power_modes`, `fw.pins_header`) and toolchain (`fw.build`, `fw.memory_budget`, `fw.static_analysis`, `fw.sim.<id>`); `GateReport` + `metrics`; `write_outputs` |
+| `gates.py` | deterministic gate evaluation: static (`fw.contract`, `fw.pin_functions`, `fw.netlist_match`, `fw.power_modes`, `fw.pins_header`, `fw.bard_cues`, `fw.ftm`) and toolchain (`fw.build`, `fw.memory_budget`, `fw.static_analysis`, `fw.sim.<id>`); `GateReport` + `metrics` + `elf_sha256`; `write_outputs` |
+| `production.py` | `production_export`: binds the ELF of the last passing full gate run (and the pinned factory test spec) into `*.fw-production.json` for production-engineering-agent |
 | `interchange.py` | sister-facing models: `CircuitFirmwareConnectivity` (in), `FirmwarePinmap` (out), `sha256_file` |
-| `projections.py` | generated projections: `fw_pins.h`, `*.fw-pinmap.json`, `*.pinmap.md`, `*.fw-report.md`; `write_text`/`write_bytes` |
+| `projections.py` | generated projections: `fw_pins.h`, `*.fw-pinmap.json`, `*.pinmap.md`, `*.fw-report.md`, the FTM header; `write_text`/`write_bytes` |
 | `render.py` | stdlib PNG renders (Canvas, 5×7 hand-authored font, PNG encoder): `render_pinmap`, `render_report`, `render_sim_timeline`, `render_glyph_sheet` |
 | `build.py` | make/CMake/PlatformIO build subprocesses |
 | `elf.py` | ELF segment accounting for the memory budget gate |
