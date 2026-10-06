@@ -108,7 +108,7 @@ jobs:
       - name: Pytest
         id: pytest
         continue-on-error: ${{ matrix.experimental || false }}
-        run: uv run pytest --cov --cov-report=term-missing:skip-covered
+        run: uv run python scripts/structural_coverage.py run --json out/structural-coverage.json
       - name: Plugin load (OpenHands SDK)
         id: plugin-load-openhands-sdk
         continue-on-error: ${{ matrix.experimental || false }}

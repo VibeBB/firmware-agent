@@ -16,6 +16,7 @@
 - [Performance and limits](performance-and-limits.md) — timeouts, sizes, coverage gaps
 - [Operations](operations.md) — image pinning, attestation, publish, release
 - [Development](development.md) — setup, verify commands, how to extend
+- [Test coverage and test design](test-coverage.md) — C0/C1/C2/MCC/MC/DC and boundary coverage, floors, test-design techniques
 - [Improvement notes](improvement-notes.md) — adopted ideas and open gaps
 - [Dependency updates](dependency-updates.md) — dependency review guide
 
@@ -30,6 +31,7 @@
 - [ADR-0007](adr/ADR-0007-publish-firmware-tools-image-by-digest.md) — publish firmware-tools and lock its digest
 - [ADR-0008](adr/ADR-0008-attest-published-tools-images.md) — attest published tools images
 - [ADR-0009](adr/ADR-0009-records-liaison-vision-refactor.md) — VRP v1, SLP v2, renders, Docker-only launcher, sister rename, docs rebuild
+- [ADR-0010](adr/ADR-0010-structural-coverage.md) — structural coverage gate (C0, C1, C2, MC/DC, boundaries)
 
 ## Research
 
