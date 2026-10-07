@@ -47,6 +47,7 @@ _CONTAINER_SRC = "/plugin-src"
 _ENV_PREFIXES = ("OPENHANDS_", "FIRMWARE_")
 _ENV_KEYS = ("TMPDIR",)
 _INSPECT_TIMEOUT_S = 30
+_DOCKER_INFO_TIMEOUT_S = 10
 _PULL_TIMEOUT_S = 900
 _CONTAINER_ENV = {
     "HOME": "/tmp",
@@ -300,6 +301,39 @@ def _ensure_image(
         raise RuntimeError(f"firmware tools image {ref} not present locally and pull failed")
 
 
+def _docker_info_security_options() -> str | None:
+    """Return `docker info` security options, or None when unavailable."""
+    docker = shutil.which("docker")
+    if docker is None:
+        return None
+    try:
+        result = subprocess.run(
+            [docker, "info", "-f", "{{json .SecurityOptions}}"],
+            capture_output=True,
+            text=True,
+            timeout=_DOCKER_INFO_TIMEOUT_S,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    return result.stdout if result.returncode == 0 else None
+
+
+def _container_user() -> str:
+    """uid:gid to run the tools container as.
+
+    On rootless Docker the host uid maps to an unmapped subuid inside the
+    container user namespace, so bind-mounted workspace writes fail. There
+    container root (0:0) maps back to the daemon's owner — the invoking
+    user — so 0:0 keeps writes working without weakening isolation (the
+    container stays read-only/cap-dropped). On rootful Docker keep the host
+    uid so artifacts stay user-owned.
+    """
+    if "name=rootless" in (_docker_info_security_options() or ""):
+        return "0:0"
+    return f"{os.getuid()}:{os.getgid()}"
+
+
 def docker_argv(image: str, source: Path | None, inner_argv: list[str]) -> list[str]:
     workdir = os.environ.get("OPENHANDS_PROJECT_DIR") or os.getcwd()
     cwd = Path.cwd()
@@ -316,7 +350,7 @@ def docker_argv(image: str, source: Path | None, inner_argv: list[str]) -> list[
         "--security-opt",
         "no-new-privileges",
         "--user",
-        f"{os.getuid()}:{os.getgid()}",
+        _container_user(),
         "-v",
         f"{workdir}:{workdir}",
         "-w",

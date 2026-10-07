@@ -145,3 +145,20 @@ def test_pull_timeout_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:
         (["docker", "image", "inspect", "image:tag"], 30),
         (["docker", "pull", "image:tag"], 900),
     ]
+
+
+def test_container_user_rootless(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Rootless daemons get 0:0 — the host uid maps to an unusable subuid."""
+    import os
+
+    module = _load_launcher()
+    monkeypatch.setattr(
+        module,
+        "_docker_info_security_options",
+        lambda: '["name=seccomp,profile=builtin","name=rootless","name=cgroupns"]',
+    )
+    assert module._container_user() == "0:0"
+    argv = module.docker_argv(image="img", source=None, inner_argv=["doctor"])
+    assert argv[argv.index("--user") + 1] == "0:0"
+    monkeypatch.setattr(module, "_docker_info_security_options", lambda: None)
+    assert module._container_user() == f"{os.getuid()}:{os.getgid()}"
