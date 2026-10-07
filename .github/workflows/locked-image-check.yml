@@ -146,34 +146,39 @@ jobs:
           python-version: "3.14"
           cache-suffix: locked-image-check
       - run: uv sync --locked
-      - name: Warn that tools image has no attestation metadata
-        if: needs.check-lock.outputs.attestation == ''
-        run: echo "::warning::firmware_tools image lock has no attestation metadata; skipping provenance verification."
-      - name: Verify tools image provenance
-        if: needs.check-lock.outputs.attestation != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-          IMAGE: ${{ needs.check-lock.outputs.image }}
-          DIGEST: ${{ needs.check-lock.outputs.digest }}
-        run: |
-          gh attestation verify "oci://${IMAGE}@${DIGEST}" \
-            --repo "$GITHUB_REPOSITORY" \
-            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/publish-firmware-images.yml"
-      - name: Warn when tools image has no SBOM attestation
-        if: needs.check-lock.outputs.sbom_attestation == ''
-        run: echo "::warning::firmware_tools image lock has no SBOM attestation; continuing"
-      - name: Verify tools image SBOM attestation
-        if: needs.check-lock.outputs.sbom_attestation != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-          IMAGE: ${{ needs.check-lock.outputs.image }}
-          DIGEST: ${{ needs.check-lock.outputs.digest }}
-        run: |
-          gh attestation verify "oci://${IMAGE}@${DIGEST}" \
-            --repo "$GITHUB_REPOSITORY" \
-            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/publish-firmware-images.yml" \
-            --predicate-type https://spdx.dev/Document/v2.3
-      - run: uv run python scripts/pull_locked_image.py --entry firmware_tools
+      # The attestation verifications and the image pull only need the lock
+      # contents — not each other — so they run as one parallel group and
+      # the pulled image is guaranteed present by the implicit wait.
+      - parallel:
+          - name: Warn that tools image has no attestation metadata
+            if: needs.check-lock.outputs.attestation == ''
+            run: echo "::warning::firmware_tools image lock has no attestation metadata; skipping provenance verification."
+          - name: Verify tools image provenance
+            if: needs.check-lock.outputs.attestation != ''
+            env:
+              GH_TOKEN: ${{ github.token }}
+              IMAGE: ${{ needs.check-lock.outputs.image }}
+              DIGEST: ${{ needs.check-lock.outputs.digest }}
+            run: |
+              gh attestation verify "oci://${IMAGE}@${DIGEST}" \
+                --repo "$GITHUB_REPOSITORY" \
+                --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/publish-firmware-images.yml"
+          - name: Warn when tools image has no SBOM attestation
+            if: needs.check-lock.outputs.sbom_attestation == ''
+            run: echo "::warning::firmware_tools image lock has no SBOM attestation; continuing"
+          - name: Verify tools image SBOM attestation
+            if: needs.check-lock.outputs.sbom_attestation != ''
+            env:
+              GH_TOKEN: ${{ github.token }}
+              IMAGE: ${{ needs.check-lock.outputs.image }}
+              DIGEST: ${{ needs.check-lock.outputs.digest }}
+            run: |
+              gh attestation verify "oci://${IMAGE}@${DIGEST}" \
+                --repo "$GITHUB_REPOSITORY" \
+                --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/publish-firmware-images.yml" \
+                --predicate-type https://spdx.dev/Document/v2.3
+          - name: Pull locked image
+            run: uv run python scripts/pull_locked_image.py --entry firmware_tools
       - name: Smoke locked image
         env:
           GH_TOKEN: ${{ github.token }}

@@ -27,6 +27,8 @@ projections of it and are write-protected by the `protect-generated` hook.
    with a `cues` block, `firmware cues <contract>` writes the bard cue
    header; with an `fpga` block, `firmware fpga-regs <contract>` writes the
    FPGA register header.
+   header; with an `ftm` block, `firmware ftm <contract>` writes the
+   factory test header.
 5. **Implementation** — sources include the header; hardware access stays
    behind a HAL so logic builds for QEMU too.
 6. **Full gates** — `firmware gates <contract>` (MCP `firmware_gates`)
@@ -38,6 +40,9 @@ projections of it and are write-protected by the `protect-generated` hook.
    `inspect_image_with_vision`) and record a `firmware_record_vision_review`.
 8. **Circuit confirmation** — hand `<name>.fw-pinmap.json` to
    `circuit firmware-check`. Both sides must pass.
+8b. **Production** — after passing full gates, `firmware production
+   <contract>` writes `<name>.fw-production.json` for prodeng. Never
+   flash hardware from the agent.
 9. **Debug** — `firmware debug` (advisory) when a simulation fails.
 10. **Liaison** — check `firmware ux inbox` for ux-creator SLP v2
     requests and answer each one with `firmware ux respond` (decision and
@@ -54,6 +59,7 @@ projections of it and are write-protected by the `protect-generated` hook.
 | `fw.pins_header` | the generated header matches the contract byte for byte |
 | `fw.bard_cues` | (only with a `cues` block) the bard `cues.json` matches the pinned sha256, the cue pin is a PWM pin with a peripheral, every sounded tone sits inside `min_hz`..`max_hz`, tone timing is contiguous, only warning/error cues loop, and `fw_cues.h` matches byte for byte |
 | `fw.fpga_regmap` | (only with an `fpga` block) the fpga `*.fpga-regmap.json` matches the pinned sha256, the linked peripheral uses the map's bus, and `fw_fpga_regs.h` is current |
+| `fw.ftm` | (only with an `ftm` block) the prodeng `factory-test-spec.json` matches the pinned sha256, the transport maps to `ftm.peripheral` (swd/jtag need none), interface nets sit on MCU pins and reach that peripheral, a `gpio_strap` entry has a `gpio_in` pin, and `fw_ftm.h` matches byte for byte |
 | `fw.build` | the build backend exits 0 and the ELF exists |
 | `fw.memory_budget` | flash and RAM usage from the ELF sections are within `build.budget` of the MCU capacity |
 | `fw.static_analysis` | cppcheck reports no finding at a `fail_on` severity outside justified suppressions |

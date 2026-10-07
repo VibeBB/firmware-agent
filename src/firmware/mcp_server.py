@@ -72,6 +72,16 @@ TOOLS: dict[str, tuple[str, dict[str, object], bool]] = {
         _schema(_CONTRACT, ["contract_path"]),
         False,
     ),
+    "firmware_ftm": (
+        "Regenerate the factory test header from the pinned prodeng factory-test-spec.json",
+        _schema(_CONTRACT, ["contract_path"]),
+        False,
+    ),
+    "firmware_production_export": (
+        "Export <name>.fw-production.json (gated ELF) for production-engineering-agent",
+        _schema({**_CONTRACT, **_OUT}, ["contract_path"]),
+        False,
+    ),
     "firmware_pinmap_export": (
         "Export <name>.fw-pinmap.json for electrical-circuit-agent",
         _schema({**_CONTRACT, **_OUT}, ["contract_path"]),
@@ -288,6 +298,10 @@ def dispatch(name: str, arguments: dict[str, object]) -> service.Json:
         "firmware_pins": lambda: service.pins_payload(_path(arguments, "contract_path")),
         "firmware_cues": lambda: service.cues_payload(_path(arguments, "contract_path")),
         "firmware_fpga_regs": lambda: service.fpga_regs_payload(_path(arguments, "contract_path")),
+        "firmware_ftm": lambda: service.ftm_payload(_path(arguments, "contract_path")),
+        "firmware_production_export": lambda: service.production_payload(
+            _path(arguments, "contract_path"), _opt_path(arguments, "out_dir")
+        ),
         "firmware_pinmap_export": lambda: service.pinmap_payload(
             _path(arguments, "contract_path"), _opt_path(arguments, "out_dir")
         ),

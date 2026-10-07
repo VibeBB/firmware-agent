@@ -2,7 +2,7 @@
 an agent's word.
 
 Static gates (no toolchain): ``fw.contract``, ``fw.pin_functions``,
-``fw.netlist_match``, ``fw.power_modes``, ``fw.pins_header``.
+``fw.netlist_match``, ``fw.power_modes``, ``fw.pins_header``, ``fw.ftm``.
 Toolchain gates: ``fw.build``, ``fw.memory_budget``, ``fw.static_analysis``,
 ``fw.sim.<id>``.
 """
@@ -31,6 +31,7 @@ from .interchange import (
     load_circuit,
     load_cue_manifest,
     load_fpga_regmap,
+    load_ftm_spec,
     pad_of,
     sha256_file,
 )
@@ -38,6 +39,7 @@ from .profiles import McuProfile, load_profile
 from .projections import (
     cues_header,
     fpga_regs_header,
+    ftm_header,
     pinmap_export,
     pinmap_markdown,
     pins_header,
@@ -52,6 +54,8 @@ Verdict = Literal["pass", "fail"]
 PASS: Verdict = "pass"
 FAIL: Verdict = "fail"
 POWER_CLASSES = frozenset({"power", "ground"})
+FTM_TRANSPORT_KIND = {"uart": "uart", "usb_cdc": "usb", "i2c": "i2c", "spi": "spi"}
+DEBUG_TRANSPORTS = frozenset({"swd", "jtag"})
 CORE_MACHINE = {"cortex": "arm", "xtensa": "xtensa", "riscv": "riscv"}
 
 
@@ -77,6 +81,7 @@ class GateReport(BaseModel):
     verdict: Verdict
     checks: list[Check]
     metrics: dict[str, float] = Field(default_factory=dict[str, float])
+    elf_sha256: str | None = None
 
 
 def _check(
@@ -386,6 +391,82 @@ def check_fpga_regmap(contract: FirmwareContract, contract_path: Path) -> Check:
     return _check("fw.fpga_regmap", link.regmap, problems, evidence)
 
 
+def _ftm_wiring(
+    contract: FirmwareContract, transport: str, nets: list[str], entry: str
+) -> list[str]:
+    link = contract.ftm
+    if link is None:
+        raise ValueError("contract declares no ftm link")
+    if transport in DEBUG_TRANSPORTS:
+        if link.peripheral is not None:
+            return [f"ftm transport {transport} is a debug port; drop ftm.peripheral"]
+        return []
+    kind = FTM_TRANSPORT_KIND.get(transport)
+    if kind is None:
+        return [f"ftm transport {transport} has no firmware peripheral to check against"]
+    problems: list[str] = []
+    peripheral = contract.peripheral(link.peripheral) if link.peripheral else None
+    if link.peripheral is None:
+        problems.append(f"ftm transport {transport} needs ftm.peripheral (a {kind} peripheral)")
+    elif peripheral is None:
+        problems.append(f"ftm peripheral {link.peripheral} is not declared")
+    elif peripheral.kind != kind:
+        problems.append(
+            f"ftm peripheral {link.peripheral} is {peripheral.kind}; "
+            f"the factory test spec uses {transport}"
+        )
+    by_net = {pin.net: pin for pin in contract.pins}
+    missing = sorted(net for net in nets if net not in by_net)
+    if missing:
+        problems.append(f"factory test nets not on an MCU pin: {', '.join(missing)}")
+    wired = [by_net[net] for net in nets if net in by_net]
+    if peripheral is not None and not any(pin.peripheral == peripheral.id for pin in wired):
+        problems.append(f"no factory test net is routed to ftm peripheral {peripheral.id}")
+    if entry == "gpio_strap" and not any(pin.function == "gpio_in" for pin in wired):
+        problems.append("gpio_strap entry needs a gpio_in pin on a factory test net")
+    return problems
+
+
+def check_ftm(contract: FirmwareContract, contract_path: Path) -> Check:
+    """prodeng factory test spec pinned, transport wired, header current."""
+    link = contract.ftm
+    if link is None:
+        raise ValueError("contract declares no ftm link")
+    spec_path = resolve(contract_path, link.spec)
+    try:
+        spec = load_ftm_spec(spec_path)
+        spec_sha = sha256_file(spec_path)
+    except (OSError, ValueError, ValidationError) as exc:
+        return _check("fw.ftm", link.spec, [f"unreadable factory test spec: {exc}"])
+    problems: list[str] = []
+    if spec_sha != link.sha256:
+        problems.append(
+            f"factory test spec sha256 {spec_sha} differs from pinned {link.sha256}; "
+            "review the new spec and re-pin ftm.sha256"
+        )
+    problems += _ftm_wiring(
+        contract, spec.interface.transport, spec.interface.nets, spec.entry.method
+    )
+    if not problems:
+        header = resolve(contract_path, link.header)
+        try:
+            expected = ftm_header(contract, spec, spec_sha)
+        except ValueError as exc:
+            problems.append(str(exc))
+        else:
+            if not header.is_file():
+                problems.append(f"{link.header} missing; run `firmware ftm`")
+            elif header.read_text(encoding="utf-8") != expected:
+                problems.append(f"{link.header} stale; regenerate with `firmware ftm`")
+    evidence = [
+        f"transport={spec.interface.transport}",
+        f"entry={spec.entry.method}",
+        f"commands={','.join(command.id for command in spec.commands)}",
+        f"sha256={spec_sha}",
+    ]
+    return _check("fw.ftm", link.spec, problems, evidence)
+
+
 def _memory_check(
     contract: FirmwareContract, profile: McuProfile, elf_path: Path
 ) -> tuple[Check, dict[str, float]]:
@@ -493,11 +574,14 @@ def run_gates(
         checks.append(check_bard_cues(contract, contract_path))
     if contract.fpga is not None:
         checks.append(check_fpga_regmap(contract, contract_path))
+    if contract.ftm is not None:
+        checks.append(check_ftm(contract, contract_path))
     metrics: dict[str, float] = {
         "average_ua": sum(mode.current_ua * mode.duty for mode in contract.power.modes),
     }
     if contract.power.average_budget_ua is not None:
         metrics["average_budget_ua"] = contract.power.average_budget_ua
+    elf_sha: str | None = None
     if full:
         build = run_build(contract.build, root, out_dir / "build.log")
         checks.append(
@@ -509,6 +593,7 @@ def run_gates(
             )
         )
         if build.ok:
+            elf_sha = sha256_file(build.elf)
             memory, memory_metrics = _memory_check(contract, profile, build.elf)
             checks.append(memory)
             metrics.update(memory_metrics)
@@ -542,6 +627,7 @@ def run_gates(
         verdict=verdict,
         checks=checks,
         metrics=metrics,
+        elf_sha256=elf_sha,
     )
 
 

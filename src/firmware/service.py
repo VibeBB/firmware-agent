@@ -14,11 +14,18 @@ from . import doctor, liaison
 from .contract import Simulation, load_contract, resolve
 from .debug import run_debug
 from .gates import FAIL, PASS, run_gates, write_outputs
-from .interchange import load_cue_manifest, load_fpga_regmap, sha256_file
+from .interchange import (
+    load_cue_manifest,
+    load_fpga_regmap,
+    load_ftm_spec,
+    sha256_file,
+)
+from .production import production_export
 from .profiles import load_profile
 from .projections import (
     cues_header,
     fpga_regs_header,
+    ftm_header,
     pinmap_export,
     pinmap_markdown,
     pins_header,
@@ -159,6 +166,54 @@ def fpga_regs_payload(contract_path: Path) -> Json:
         "stage": "fpga-regs",
         "written": [str(header)],
         "registers": len(regmap.registers),
+    }
+
+
+def ftm_payload(contract_path: Path) -> Json:
+    """Regenerate ``ftm.header`` from the pinned prodeng factory test spec."""
+    try:
+        contract = load_contract(contract_path)
+        if contract.ftm is None:
+            return {"verdict": FAIL, "stage": "ftm", "detail": "contract declares no ftm link"}
+        spec_path = resolve(contract_path, contract.ftm.spec)
+        spec = load_ftm_spec(spec_path)
+        spec_sha = sha256_file(spec_path)
+        if spec_sha != contract.ftm.sha256:
+            return {
+                "verdict": FAIL,
+                "stage": "ftm",
+                "detail": f"factory test spec sha256 {spec_sha} differs from pinned "
+                f"{contract.ftm.sha256}; review the new spec and re-pin ftm.sha256",
+            }
+        text = ftm_header(contract, spec, spec_sha)
+    except (OSError, ValueError, ValidationError) as exc:
+        return {"verdict": FAIL, "stage": "ftm", "detail": str(exc)}
+    header = write_text(resolve(contract_path, contract.ftm.header), text)
+    return {
+        "verdict": PASS,
+        "stage": "ftm",
+        "written": [str(header)],
+        "commands": len(spec.commands),
+    }
+
+
+def production_payload(contract_path: Path, out_dir: Path | None) -> Json:
+    """Export ``<name>.fw-production.json`` for the last passing full gate run."""
+    out = out_dir or _default_out(contract_path)
+    try:
+        export = production_export(contract_path, out)
+    except (OSError, ValueError, ValidationError) as exc:
+        return {"verdict": FAIL, "stage": "production", "detail": str(exc)}
+    path = write_text(
+        out / f"{export.design}.fw-production.json",
+        json.dumps(export.model_dump(mode="json"), indent=2, ensure_ascii=False) + "\n",
+    )
+    return {
+        "verdict": PASS,
+        "stage": "production",
+        "elf_sha256": export.elf_sha256,
+        "ftm_spec_sha256": export.ftm_spec_sha256,
+        "written": [str(path)],
     }
 
 

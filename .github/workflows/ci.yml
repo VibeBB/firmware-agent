@@ -23,6 +23,8 @@ jobs:
   changes:
     runs-on: ubuntu-26.04
     timeout-minutes: 10
+    # No actions/cache usage: forbid restore and save entirely.
+    cache-mode: none
     outputs:
       code: ${{ steps.scope.outputs.code }}
     steps:
@@ -89,36 +91,49 @@ jobs:
         id: sync-dependencies
         continue-on-error: ${{ matrix.experimental || false }}
         run: uv sync --locked
+      # Seven independent check legs: each keeps its own id/continue-on-error
+      # for the 3.15 canary outcome report, so they run as top-level
+      # background steps (a parallel group would hide the ids from
+      # actionlint's expression check) and join at the wait below.
       - name: Shared hooks
         id: shared-hooks
         continue-on-error: ${{ matrix.experimental || false }}
+        background: true
         run: uv run python scripts/check_shared_hooks.py
       - name: Check shared workflows
         id: check-shared-workflows
         continue-on-error: ${{ matrix.experimental || false }}
+        background: true
         run: uv run python scripts/check_shared_workflows.py
       - name: Ruff
         id: ruff
         continue-on-error: ${{ matrix.experimental || false }}
+        background: true
         run: uv run ruff check . && uv run ruff format --check .
       - name: Pyright
         id: pyright
         continue-on-error: ${{ matrix.experimental || false }}
+        background: true
         run: uv run pyright
       - name: Pytest
         id: pytest
         continue-on-error: ${{ matrix.experimental || false }}
+        background: true
         run: uv run python scripts/structural_coverage.py run --json out/structural-coverage.json
       - name: Plugin load (OpenHands SDK)
         id: plugin-load-openhands-sdk
         continue-on-error: ${{ matrix.experimental || false }}
+        background: true
         env:
           OPENHANDS_SUPPRESS_BANNER: "1"
         run: uv run --group sdk-check python scripts/check_plugin_load.py
       - name: Docs
         id: docs
         continue-on-error: ${{ matrix.experimental || false }}
+        background: true
         run: uv run python scripts/verify_docs.py
+      - name: Wait for check legs
+        wait-all: true
 
       - name: Report 3.15 canary outcome
         if: matrix.experimental && (steps.setup-uv.outcome == 'failure' || steps.sync-dependencies.outcome == 'failure' || steps.shared-hooks.outcome == 'failure' || steps.check-shared-workflows.outcome == 'failure' || steps.ruff.outcome == 'failure' || steps.pyright.outcome == 'failure' || steps.pytest.outcome == 'failure' || steps.plugin-load-openhands-sdk.outcome == 'failure' || steps.docs.outcome == 'failure')
@@ -127,6 +142,8 @@ jobs:
   dockerfile-lint:
     runs-on: ubuntu-26.04
     timeout-minutes: 10
+    # No actions/cache usage: forbid restore and save entirely.
+    cache-mode: none
     steps:
       - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
@@ -136,7 +153,11 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.sha }}
           persist-credentials: false
+      # Hadolint is read-only on docker/**: overlap it with the BuildKit
+      # setup + --check and join it before the job ends.
       - name: Lint Dockerfiles with hadolint
+        id: hadolint
+        background: true
         uses: hadolint/hadolint-action@06be81baf89a55ffd0e24b8f04a4185738dd3387 # v3.5.0
         with:
           dockerfile: docker/firmware-tools.Dockerfile
@@ -144,6 +165,8 @@ jobs:
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: Run BuildKit checks
         run: docker build --check -f docker/firmware-tools.Dockerfile .
+      - name: Wait for hadolint
+        wait: hadolint
 
   e2e-contracts:
     needs: changes
@@ -246,6 +269,9 @@ jobs:
             fi
           fi
           "${args[@]}" .
+      # The gate run and the debug trace regenerate the same contract's
+      # derived artifacts (fw-pinmap.json, out/, sim logs, observations
+      # appends) inside the mounted workspace, so they stay sequential.
       - name: Full gates in the image (no network)
         env:
           FIRMWARE_TOOLS_IMAGE: firmware-tools:ci
