@@ -30,6 +30,7 @@ from .interchange import (
     CircuitMcuPin,
     load_circuit,
     load_cue_manifest,
+    load_fpga_regmap,
     load_ftm_spec,
     pad_of,
     sha256_file,
@@ -37,6 +38,7 @@ from .interchange import (
 from .profiles import McuProfile, load_profile
 from .projections import (
     cues_header,
+    fpga_regs_header,
     ftm_header,
     pinmap_export,
     pinmap_markdown,
@@ -344,6 +346,51 @@ def check_bard_cues(contract: FirmwareContract, contract_path: Path) -> Check:
     return _check("fw.bard_cues", link.manifest, problems, evidence)
 
 
+def check_fpga_regmap(contract: FirmwareContract, contract_path: Path) -> Check:
+    """fpga register map pinned, reached over a matching bus, header current."""
+    link = contract.fpga
+    if link is None:
+        raise ValueError("contract declares no fpga link")
+    regmap_path = resolve(contract_path, link.regmap)
+    try:
+        regmap = load_fpga_regmap(regmap_path)
+        regmap_sha = sha256_file(regmap_path)
+    except (OSError, ValueError, ValidationError) as exc:
+        return _check("fw.fpga_regmap", link.regmap, [f"unreadable fpga register map: {exc}"])
+    problems: list[str] = []
+    if regmap_sha != link.sha256:
+        problems.append(
+            f"register map sha256 {regmap_sha} differs from pinned {link.sha256}; "
+            "review the new map and re-pin fpga.sha256"
+        )
+    peripheral = next((p for p in contract.peripherals if p.id == link.peripheral), None)
+    if peripheral is None:
+        problems.append(f"fpga peripheral {link.peripheral} is not declared")
+    elif peripheral.kind != regmap.bus:
+        problems.append(
+            f"fpga peripheral {link.peripheral} is {peripheral.kind}; "
+            f"the FPGA map uses {regmap.bus}"
+        )
+    else:
+        header = resolve(contract_path, link.header)
+        try:
+            expected = fpga_regs_header(contract, regmap, regmap_sha)
+        except ValueError as exc:
+            problems.append(str(exc))
+        else:
+            if not header.is_file():
+                problems.append(f"{link.header} missing; run `firmware fpga-regs`")
+            elif header.read_text(encoding="utf-8") != expected:
+                problems.append(f"{link.header} stale; regenerate with `firmware fpga-regs`")
+    evidence = [
+        f"design={regmap.design}",
+        f"bus={regmap.bus}",
+        f"registers={len(regmap.registers)}",
+        f"sha256={regmap_sha}",
+    ]
+    return _check("fw.fpga_regmap", link.regmap, problems, evidence)
+
+
 def _ftm_wiring(
     contract: FirmwareContract, transport: str, nets: list[str], entry: str
 ) -> list[str]:
@@ -525,6 +572,8 @@ def run_gates(
     checks.append(check_pins_header(contract, profile, contract_path))
     if contract.cues is not None:
         checks.append(check_bard_cues(contract, contract_path))
+    if contract.fpga is not None:
+        checks.append(check_fpga_regmap(contract, contract_path))
     if contract.ftm is not None:
         checks.append(check_ftm(contract, contract_path))
     metrics: dict[str, float] = {

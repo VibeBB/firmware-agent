@@ -23,6 +23,8 @@ datasheets of your board. You get back:
 - a generated pin header (`fw_pins.h`) your code includes
 - a generated sound-cue header (`fw_cues.h`) that plays the bard plugin's
   product cues on a buzzer pin, checked against the buzzer's frequency band
+- a generated FPGA register header (`fw_fpga_regs.h`) built from the FPGA
+  plugin's register map, so firmware and HDL use the same addresses
 - a generated factory-test header (`fw_ftm.h`) built from the
   production-engineering factory test spec, and a production handoff
   (`*.fw-production.json`) that pins the gated ELF for the factory
@@ -94,6 +96,7 @@ VibeBB プラグインファミリーの firmware 姉妹プラグインです
   ファームウェア契約
 - コードがインクルードする生成済みピンヘッダ `fw_pins.h`
 - bardプラグインの製品の効果音（cue）をブザーで鳴らすための生成済みヘッダ `fw_cues.h`（ブザーが鳴らせる周波数の範囲に収まるかを確認済み）
+- FPGAプラグインのレジスタマップから生成したヘッダ `fw_fpga_regs.h`（ファームウェアとHDLが同じアドレスを使います）
 - 生産技術プラグインの工場試験仕様から作る工場試験ヘッダ `fw_ftm.h` と、ゲートに合格した ELF を工場へ渡すための `*.fw-production.json`
 - チップのピンマップ PNG とゲートレポート（JSON/Markdown/PNG）
 - QEMU シミュレーションのログとタイムライン PNG

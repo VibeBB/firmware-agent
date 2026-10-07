@@ -67,6 +67,11 @@ TOOLS: dict[str, tuple[str, dict[str, object], bool]] = {
         _schema(_CONTRACT, ["contract_path"]),
         False,
     ),
+    "firmware_fpga_regs": (
+        "Regenerate the FPGA register header from the pinned fpga-regmap.json",
+        _schema(_CONTRACT, ["contract_path"]),
+        False,
+    ),
     "firmware_power_export": (
         "Export <name>.fw-power.json (peak and average draw on the supply net) "
         "for simulation-agent PDN imports",
@@ -298,6 +303,7 @@ def dispatch(name: str, arguments: dict[str, object]) -> service.Json:
         ),
         "firmware_pins": lambda: service.pins_payload(_path(arguments, "contract_path")),
         "firmware_cues": lambda: service.cues_payload(_path(arguments, "contract_path")),
+        "firmware_fpga_regs": lambda: service.fpga_regs_payload(_path(arguments, "contract_path")),
         "firmware_power_export": lambda: service.power_payload(
             _path(arguments, "contract_path"), _opt_path(arguments, "out_dir")
         ),

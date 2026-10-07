@@ -25,6 +25,8 @@ projections of it and are write-protected by the `protect-generated` hook.
 3. **Static gates** — `firmware check <contract>` (MCP `firmware_check`).
 4. **Pin header** — `firmware pins <contract>` writes `build.pins_header`;
    with a `cues` block, `firmware cues <contract>` writes the bard cue
+   header; with an `fpga` block, `firmware fpga-regs <contract>` writes the
+   FPGA register header.
    header; with an `ftm` block, `firmware ftm <contract>` writes the
    factory test header.
 5. **Implementation** — sources include the header; hardware access stays
@@ -56,6 +58,7 @@ projections of it and are write-protected by the `protect-generated` hook.
 | `fw.power_modes` | a run mode exists, duties sum to 1, every sleep mode has a wake source (`gpio_in` pin or `timer`; deep-sleep pins must be wake-capable), powered peripherals exist, average current within budget |
 | `fw.pins_header` | the generated header matches the contract byte for byte |
 | `fw.bard_cues` | (only with a `cues` block) the bard `cues.json` matches the pinned sha256, the cue pin is a PWM pin with a peripheral, every sounded tone sits inside `min_hz`..`max_hz`, tone timing is contiguous, only warning/error cues loop, and `fw_cues.h` matches byte for byte |
+| `fw.fpga_regmap` | (only with an `fpga` block) the fpga `*.fpga-regmap.json` matches the pinned sha256, the linked peripheral uses the map's bus, and `fw_fpga_regs.h` is current |
 | `fw.ftm` | (only with an `ftm` block) the prodeng `factory-test-spec.json` matches the pinned sha256, the transport maps to `ftm.peripheral` (swd/jtag need none), interface nets sit on MCU pins and reach that peripheral, a `gpio_strap` entry has a `gpio_in` pin, and `fw_ftm.h` matches byte for byte |
 | `fw.build` | the build backend exits 0 and the ELF exists |
 | `fw.memory_budget` | flash and RAM usage from the ELF sections are within `build.budget` of the MCU capacity |

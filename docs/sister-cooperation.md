@@ -64,6 +64,24 @@ optional `cues` block binds it:
 A cue that needs a frequency the transducer cannot play goes back to bard
 as a `firmware request --target bard`.
 
+## fpga register map interchange
+
+When the MCU drives an FPGA over SPI, I2C or UART, fpga-agent's
+`fpga regmap` writes `<design>.fpga-regmap.json` (`fpga_regmap`) from the
+same contract section that generates the FPGA's HDL constants. The
+contract's optional `fpga` block binds it:
+
+- `regmap` and `sha256` pin the exact export. A changed register map
+  fails `fw.fpga_regmap` until it is reviewed and re-pinned.
+- `peripheral` names the declared bus peripheral that reaches the FPGA;
+  its `kind` must equal the map's `bus`.
+- `firmware fpga-regs` (`firmware_fpga_regs`) writes `header`
+  (`fw_fpga_regs.h`): `FW_FPGA_REG_<NAME>` addresses, `_RESET` values,
+  `_WRITABLE` flags, per-field `_SHIFT`/`_MASK`, the I2C address when the
+  bus is I2C, and the pinned hash. `fw.fpga_regmap` fails when the map is
+  missing, malformed, unpinned, on the wrong bus, would yield duplicate C
+  macros, or when the header is missing or stale.
+
 ## Simulation interchange
 
 `firmware power` writes `<name>.fw-power.json`: the authored power modes

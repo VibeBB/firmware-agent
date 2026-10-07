@@ -29,6 +29,10 @@ everything else is generated or exchanged.
 - `cues?`: `manifest` (path to bard `cues.json`), `sha256` (pinned
   manifest hash), `pin` (a `pwm` pin signal), `header` (generated
   `fw_cues.h`), `min_hz` < `max_hz` (transducer band), `rationale`
+- `fpga?`: `regmap` (path to fpga-agent `<design>.fpga-regmap.json`),
+  `sha256` (pinned register-map hash), `peripheral` (the declared spi/i2c/
+  uart peripheral that reaches the FPGA; its kind must equal the map's
+  `bus`), `header` (generated `fw_fpga_regs.h`), `rationale`
 - `ftm?`: `spec` (path to production-engineering `factory-test-spec.json`),
   `sha256` (pinned spec hash), `header` (generated `fw_ftm.h`),
   `peripheral?` (the uart/usb/i2c/spi peripheral carrying the factory
@@ -152,3 +156,14 @@ pinmap/report JSON+MD+PNG, fw-request, sim log/png, debug advisory),
 `ignore_globs` (examples/, tests/, .devin/, **/.pio/),
 `max_stop_denials` 2, `record_hint`. Liaison files are deliberately not
 artifact_globs.
+
+## `fpga_regmap` — fpga-agent `<design>.fpga-regmap.json` (read-only mirror)
+
+`interchange.py::FpgaRegmapSource` mirrors fpga-agent's export without
+importing it: `design`, `contract_sha256`, `device_ref`, `bus`
+(spi/i2c/uart), `i2c_address` (required for i2c only), `data_width`
+(8/16/32), `address_width`, `registers[]` (`name`, `offset`, `access`
+ro/rw/wo/w1c, `reset`, `description`, `fields[]` of `name`, `lsb`, `width`,
+`mask`, `access`, `description`). The mirror re-checks the layout: offsets
+unique and ascending inside `address_width`, resets inside `data_width`,
+each `mask` equal to its `lsb`/`width`, and no overlapping fields.

@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class _Strict(BaseModel):
@@ -166,6 +166,81 @@ class BardCueManifest(_Strict):
 
 def load_cue_manifest(path: Path) -> BardCueManifest:
     return BardCueManifest.model_validate(json.loads(path.read_text(encoding="utf-8")))
+
+
+RegAccess = Literal["ro", "rw", "wo", "w1c"]
+REG_NAME = r"^[a-z](?:_?[a-z0-9])*$"
+
+
+class FpgaRegField(_Strict):
+    name: str = Field(pattern=REG_NAME)
+    lsb: int = Field(ge=0)
+    width: int = Field(ge=1)
+    mask: int = Field(ge=1)
+    access: RegAccess
+    description: str
+
+
+class FpgaRegister(_Strict):
+    name: str = Field(pattern=REG_NAME)
+    offset: int = Field(ge=0)
+    access: RegAccess
+    reset: int = Field(ge=0)
+    description: str
+    fields: list[FpgaRegField]
+
+
+class FpgaRegmapSource(_Strict):
+    """Strict mirror of fpga-agent's ``<name>.fpga-regmap.json`` (never imported).
+
+    Layout facts are re-checked so a hand-edited or truncated export cannot
+    reach the generated header.
+    """
+
+    schema_version: Literal[1] = 1
+    system: Literal["fpga"] = "fpga"
+    artifact_kind: Literal["fpga_regmap"] = "fpga_regmap"
+    design: str = Field(min_length=1)
+    contract_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    device_ref: str = Field(min_length=1)
+    bus: Literal["spi", "i2c", "uart"]
+    i2c_address: int | None = Field(ge=0x08, le=0x77)
+    data_width: Literal[8, 16, 32]
+    address_width: int = Field(ge=1, le=16)
+    registers: list[FpgaRegister] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _layout(self) -> FpgaRegmapSource:
+        if (self.bus == "i2c") != (self.i2c_address is not None):
+            raise ValueError("i2c_address is required for i2c and only for i2c")
+        offsets = [r.offset for r in self.registers]
+        if offsets != sorted(set(offsets)):
+            raise ValueError("register offsets must be unique and ascending")
+        if len({r.name for r in self.registers}) != len(self.registers):
+            raise ValueError("duplicate register name")
+        for reg in self.registers:
+            if reg.offset >= 1 << self.address_width:
+                raise ValueError(f"register {reg.name}: offset exceeds address_width")
+            if reg.reset >= 1 << self.data_width:
+                raise ValueError(f"register {reg.name}: reset exceeds data_width")
+            used = 0
+            if len({f.name for f in reg.fields}) != len(reg.fields):
+                raise ValueError(f"register {reg.name}: duplicate field name")
+            for fld in reg.fields:
+                if fld.lsb + fld.width > self.data_width:
+                    raise ValueError(f"register {reg.name}.{fld.name}: exceeds data_width")
+                if fld.mask != ((1 << fld.width) - 1) << fld.lsb:
+                    raise ValueError(
+                        f"register {reg.name}.{fld.name}: mask disagrees with lsb/width"
+                    )
+                if used & fld.mask:
+                    raise ValueError(f"register {reg.name}.{fld.name}: overlaps another field")
+                used |= fld.mask
+        return self
+
+
+def load_fpga_regmap(path: Path) -> FpgaRegmapSource:
+    return FpgaRegmapSource.model_validate(json.loads(path.read_text(encoding="utf-8")))
 
 
 FtmTransport = Literal["uart", "usb_cdc", "swd", "jtag", "i2c", "spi", "can", "ble", "other"]

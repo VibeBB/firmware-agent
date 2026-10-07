@@ -220,6 +220,20 @@ class CueLink(_Strict):
         return self
 
 
+class FpgaLink(_Strict):
+    """fpga-agent register map the firmware reaches over ``peripheral``.
+
+    ``sha256`` pins the exact ``<design>.fpga-regmap.json`` so a changed map
+    is reviewed before the generated header changes.
+    """
+
+    regmap: str
+    sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    peripheral: str = Field(pattern=IDENT)
+    header: str
+    rationale: str = ""
+
+
 class FtmLink(_Strict):
     """production-engineering factory test spec the firmware must serve.
 
@@ -250,6 +264,7 @@ class FirmwareContract(_Strict):
     analysis: Analysis
     simulations: list[Simulation] = Field(default_factory=list[Simulation])
     cues: CueLink | None = None
+    fpga: FpgaLink | None = None
     ftm: FtmLink | None = None
 
     @model_validator(mode="after")

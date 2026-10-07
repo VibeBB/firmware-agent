@@ -21,6 +21,7 @@ Cooperation is JSON files in the shared workspace — never code imports.
 | out | `<name>.fw-power.json` (`firmware_power`) | `firmware power` / `firmware_power_export` | simulation-agent PDN load `current_a: "import:firmware:<net>"` |
 | out | `<design>.<id>.fw-request.json` (`fw_request`) | `firmware request` | the target sister |
 | in | bard `cues.json` (`bard_cue_manifest`), pinned by `cues.sha256` | bard-agent cue mode (`render_cues.py`) | `firmware cues` → `fw_cues.h`; `fw.bard_cues` |
+| in | fpga `<design>.fpga-regmap.json` (`fpga_regmap`), pinned by `fpga.sha256` | `fpga regmap` | `firmware fpga-regs` → `fw_fpga_regs.h`; `fw.fpga_regmap` |
 | in | prodeng `factory-test-spec.json` (`prodeng_ftm_spec`), pinned by `ftm.sha256` | `prodeng project` | `firmware ftm` → `fw_ftm.h`; `fw.ftm` |
 | out | `<name>.fw-production.json` (`firmware_production`) | `firmware production` / `firmware_production_export` after passing full gates | prodeng `import --from firmware-production`; `firmware.programming` |
 | in/out | `<product>.production.json` workstream `firmware` | UX producer | firmware reports as evidence |
