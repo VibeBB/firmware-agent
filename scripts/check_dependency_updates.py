@@ -801,9 +801,7 @@ def check_python_versions(
     # A source that already pins the latest minor (a CI matrix spanning
     # 3.12-3.15 alongside it) needs no update for its older legs.
     sources_at_latest = {
-        source
-        for value, source in values
-        if _python_minor(value, source) >= latest_minor
+        source for value, source in values if _python_minor(value, source) >= latest_minor
     }
     statuses: list[DependencyStatus] = []
     seen: set[tuple[str, str]] = set()
