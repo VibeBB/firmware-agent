@@ -42,3 +42,4 @@
 - [SDK v1.51.0 feature evaluation](research/sdk-v1.51.0-feature-evaluation.md)
 - [SDK v1.52.0 feature evaluation](research/sdk-v1.52.0-feature-evaluation.md)
 - [SDK v1.53.0 feature evaluation](research/sdk-v1.53.0-feature-evaluation.md)
+- [Agent Canvas v1.25 feature evaluation](research/ac-v1.25-feature-evaluation.md)
