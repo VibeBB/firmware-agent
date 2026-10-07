@@ -23,6 +23,7 @@ from .projections import (
     pinmap_export,
     pinmap_markdown,
     pins_header,
+    power_export,
     write_bytes,
     write_text,
 )
@@ -209,6 +210,28 @@ def pinmap_payload(contract_path: Path, out_dir: Path | None) -> Json:
     if render_errors:
         payload["render_errors"] = render_errors
     return _attach_image_meta(payload)
+
+
+def power_payload(contract_path: Path, out_dir: Path | None) -> Json:
+    """Export ``<name>.fw-power.json`` (supply-net draw) for simulation-agent imports."""
+    try:
+        contract = load_contract(contract_path)
+    except (OSError, ValueError, ValidationError) as exc:
+        return {"verdict": FAIL, "stage": "power", "detail": str(exc)}
+    out = out_dir or _default_out(contract_path)
+    export = power_export(contract, sha256_file(contract_path))
+    path = write_text(
+        out / f"{contract.name}.fw-power.json",
+        json.dumps(export.model_dump(mode="json"), indent=2, ensure_ascii=False) + "\n",
+    )
+    return {
+        "verdict": PASS,
+        "stage": "power",
+        "supply_net": export.supply_net,
+        "peak_current_a": export.peak_current_a,
+        "average_current_a": export.average_current_a,
+        "written": [str(path)],
+    }
 
 
 def sim_payload(contract_path: Path, sim_id: str, out_dir: Path | None) -> Json:

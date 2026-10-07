@@ -8,6 +8,7 @@ Subcommands:
   pins      regenerate the contract's pin header
   cues      regenerate the bard cue header from the pinned cues.json
   pinmap    export <name>.fw-pinmap.json for electrical-circuit-agent
+  power     export <name>.fw-power.json (supply-net draw) for simulation-agent
   sim       run one QEMU simulation
   debug     scripted GDB session on a QEMU simulation (advisory)
   request   write a change request to a sister agent
@@ -44,7 +45,7 @@ def _parser() -> argparse.ArgumentParser:
     doctor.add_argument("--warn", action="store_true", help="always exit 0")
     for name in ("validate", "pins", "cues", "ftm"):
         sub.add_parser(name).add_argument("contract", type=Path)
-    for name in ("check", "gates", "pinmap", "production"):
+    for name in ("check", "gates", "pinmap", "power", "production"):
         command = sub.add_parser(name)
         command.add_argument("contract", type=Path)
         command.add_argument("--out", type=Path)
@@ -114,6 +115,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _emit(service.production_payload(args.contract, args.out))
     if command == "pinmap":
         return _emit(service.pinmap_payload(args.contract, args.out))
+    if command == "power":
+        return _emit(service.power_payload(args.contract, args.out))
     if command == "sim":
         return _emit(service.sim_payload(args.contract, args.id, args.out))
     if command == "debug":

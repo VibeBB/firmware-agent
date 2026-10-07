@@ -67,6 +67,12 @@ TOOLS: dict[str, tuple[str, dict[str, object], bool]] = {
         _schema(_CONTRACT, ["contract_path"]),
         False,
     ),
+    "firmware_power_export": (
+        "Export <name>.fw-power.json (peak and average draw on the supply net) "
+        "for simulation-agent PDN imports",
+        _schema({**_CONTRACT, **_OUT}, ["contract_path"]),
+        False,
+    ),
     "firmware_ftm": (
         "Regenerate the factory test header from the pinned prodeng factory-test-spec.json",
         _schema(_CONTRACT, ["contract_path"]),
@@ -292,6 +298,9 @@ def dispatch(name: str, arguments: dict[str, object]) -> service.Json:
         ),
         "firmware_pins": lambda: service.pins_payload(_path(arguments, "contract_path")),
         "firmware_cues": lambda: service.cues_payload(_path(arguments, "contract_path")),
+        "firmware_power_export": lambda: service.power_payload(
+            _path(arguments, "contract_path"), _opt_path(arguments, "out_dir")
+        ),
         "firmware_ftm": lambda: service.ftm_payload(_path(arguments, "contract_path")),
         "firmware_production_export": lambda: service.production_payload(
             _path(arguments, "contract_path"), _opt_path(arguments, "out_dir")

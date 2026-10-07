@@ -6,6 +6,7 @@
     "**/*.fw.json",
     "**/fw_pins.h",
     "**/*.fw-pinmap.json",
+    "**/*.fw-power.json",
     "**/*.fw-production.json",
     "**/*.pinmap.md",
     "**/*.pinmap.png",

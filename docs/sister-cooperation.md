@@ -64,6 +64,17 @@ optional `cues` block binds it:
 A cue that needs a frequency the transducer cannot play goes back to bard
 as a `firmware request --target bard`.
 
+## Simulation interchange
+
+`firmware power` writes `<name>.fw-power.json`: the authored power modes
+in amperes, the peak (largest mode) and duty-weighted average current on
+`power.supply_net`, and the contract sha256. simulation-agent imports it
+with `system: "firmware"` and a PDN load declared as
+`current_a: "import:firmware:<net>"` draws the peak current, so the rail
+drop is solved with the MCU's worst case instead of a hand-copied number.
+The import is sha256-pinned in simulation's `imports.json`; re-export
+after every power-mode change.
+
 ## production-engineering interchange
 
 production-engineering owns the factory test mode (FTM) in its
