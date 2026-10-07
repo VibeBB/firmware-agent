@@ -269,61 +269,60 @@ jobs:
             fi
           fi
           "${args[@]}" .
-      # The gate run and the debug trace launch separate containers and
-      # write disjoint files (fw-reports/* vs debug-*.advisory.json,
-      # report.json vs debug.json), so they run as a parallel group.
-      - parallel:
-          - name: Full gates in the image (no network)
-            env:
-              FIRMWARE_TOOLS_IMAGE: firmware-tools:ci
-              FIRMWARE_SRC: ${{ github.workspace }}/src
-              OPENHANDS_PROJECT_DIR: ${{ github.workspace }}
-            run: |
-              set -euo pipefail
-              launcher=plugins/firmware/scripts/firmware_launcher.py
-              python3 "$launcher" doctor | tee doctor.json
-              # One contract per matrix leg; the loop keeps the original gate
-              # loop's shape so the workflow-path tests still recognize it.
-              for contract in ${{ matrix.contract }}; do
-                if python3 "$launcher" gates "$contract" > report.json; then
-                  gate_status=0
-                else
-                  gate_status=$?
-                fi
-                if [ "$gate_status" -ne 0 ]; then
-                  # The gate's crash detail lives in its redirected stdout —
-                  # echo it so the log explains which contract broke.
-                  echo "gates exited $gate_status for $contract; captured output:"
-                  cat report.json || true
-                fi
-                python3 - report.json "$gate_status" <<'PY'
-              import json, sys
-              from pathlib import Path
-              report_path = Path(sys.argv[1])
-              gate_status = int(sys.argv[2])
-              try:
-                  report = json.loads(report_path.read_text(encoding="utf-8"))
-              except (OSError, ValueError) as exc:
-                  if report_path.is_file():
-                      print(report_path.read_text(encoding="utf-8", errors="replace"), end="")
-                  sys.exit(f"gates produced no parseable report (exit {gate_status}): {exc}")
-              for check in report["checks"]:
-                  print(f"{check['id']:24} {check['status']:8} {check['detail'][:200]}")
-              sys.exit(0 if gate_status == 0 and report["verdict"] == "pass" else 1)
-              PY
-              done
-          - name: Debug trace against desk-lamp contract
-            if: matrix.name == 'desk-lamp-s3'
-            env:
-              FIRMWARE_TOOLS_IMAGE: firmware-tools:ci
-              FIRMWARE_SRC: ${{ github.workspace }}/src
-              OPENHANDS_PROJECT_DIR: ${{ github.workspace }}
-            run: |
-              set -euo pipefail
-              launcher=plugins/firmware/scripts/firmware_launcher.py
-              python3 "$launcher" debug examples/desk-lamp-s3/desk-lamp.fw.json \
-                --id lamp_selftest --break lamp_step > debug.json
-              python3 -c "import json,sys; d=json.load(open('debug.json')); print(d['verdict'], d.get('stops')); sys.exit(0 if d['verdict']=='pass' and d.get('stops') else 1)"
+      # The gate run and the debug trace regenerate the same contract's
+      # derived artifacts (fw-pinmap.json, out/, sim logs, observations
+      # appends) inside the mounted workspace, so they stay sequential.
+      - name: Full gates in the image (no network)
+        env:
+          FIRMWARE_TOOLS_IMAGE: firmware-tools:ci
+          FIRMWARE_SRC: ${{ github.workspace }}/src
+          OPENHANDS_PROJECT_DIR: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          launcher=plugins/firmware/scripts/firmware_launcher.py
+          python3 "$launcher" doctor | tee doctor.json
+          # One contract per matrix leg; the loop keeps the original gate
+          # loop's shape so the workflow-path tests still recognize it.
+          for contract in ${{ matrix.contract }}; do
+            if python3 "$launcher" gates "$contract" > report.json; then
+              gate_status=0
+            else
+              gate_status=$?
+            fi
+            if [ "$gate_status" -ne 0 ]; then
+              # The gate's crash detail lives in its redirected stdout —
+              # echo it so the log explains which contract broke.
+              echo "gates exited $gate_status for $contract; captured output:"
+              cat report.json || true
+            fi
+            python3 - report.json "$gate_status" <<'PY'
+          import json, sys
+          from pathlib import Path
+          report_path = Path(sys.argv[1])
+          gate_status = int(sys.argv[2])
+          try:
+              report = json.loads(report_path.read_text(encoding="utf-8"))
+          except (OSError, ValueError) as exc:
+              if report_path.is_file():
+                  print(report_path.read_text(encoding="utf-8", errors="replace"), end="")
+              sys.exit(f"gates produced no parseable report (exit {gate_status}): {exc}")
+          for check in report["checks"]:
+              print(f"{check['id']:24} {check['status']:8} {check['detail'][:200]}")
+          sys.exit(0 if gate_status == 0 and report["verdict"] == "pass" else 1)
+          PY
+          done
+      - name: Debug trace against desk-lamp contract
+        if: matrix.name == 'desk-lamp-s3'
+        env:
+          FIRMWARE_TOOLS_IMAGE: firmware-tools:ci
+          FIRMWARE_SRC: ${{ github.workspace }}/src
+          OPENHANDS_PROJECT_DIR: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          launcher=plugins/firmware/scripts/firmware_launcher.py
+          python3 "$launcher" debug examples/desk-lamp-s3/desk-lamp.fw.json \
+            --id lamp_selftest --break lamp_step > debug.json
+          python3 -c "import json,sys; d=json.load(open('debug.json')); print(d['verdict'], d.get('stops')); sys.exit(0 if d['verdict']=='pass' and d.get('stops') else 1)"
       - name: Upload reports
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
