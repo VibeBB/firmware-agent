@@ -33,6 +33,7 @@ does not re-verify an image that is already present locally.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import pwd
@@ -166,6 +167,22 @@ def image_ref(plugin_root: Path) -> str | None:
     return pin["ref"] if pin is not None else None
 
 
+def _inside_conversation_container() -> bool:
+    """True when running inside an OpenHands docker conversation runtime.
+
+    The runtime injects ``OH_PERSISTENCE_DIR``/``OH_RUNTIME_LAUNCHED_PROFILE``
+    into each ``agent-server-conversation-*`` container, which carries no
+    docker client — firmware tools then have nowhere to launch the pinned
+    tools image. ``OH_CONVERSATION_RUNTIME`` is not usable as the signal:
+    the runtime sets it to ``local`` inside the container itself.
+    """
+    if os.environ.get("OH_PERSISTENCE_DIR") or os.environ.get("OH_RUNTIME_LAUNCHED_PROFILE"):
+        return True
+    with contextlib.suppress(OSError):
+        return Path.home() == Path("/var/openhands/.openhands")
+    return False
+
+
 def _attestation_mode() -> str:
     mode = os.environ.get(_VERIFY_ENV, "auto")
     if mode not in {"auto", "require", "off"}:
@@ -265,7 +282,15 @@ def _ensure_image(
     ref = pin["ref"]
     docker = shutil.which("docker")
     if docker is None:
-        raise RuntimeError(f"docker not found on PATH (tools image {ref} is pinned)")
+        detail = f"docker not found on PATH (tools image {ref} is pinned)"
+        if _inside_conversation_container():
+            detail += (
+                " — this appears to be an OpenHands docker conversation "
+                "container, which cannot launch tool containers; set the "
+                "conversation runtime to local (Agent Canvas -> Settings -> "
+                "Application) and start a new conversation"
+            )
+        raise RuntimeError(detail)
     if prewarm:
         _verify_attestation(pin, override=override)
     try:

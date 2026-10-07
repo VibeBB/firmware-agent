@@ -24,7 +24,8 @@ firmware sister in the VibeBB OpenHands plugin family.
 - External tools run as subprocesses. Do not import GPL/AGPL code.
   Downloaded tools are pinned by version and sha256 and listed in
   `THIRD_PARTY_NOTICES.md`.
-- `ensure_llm_profiles.py` and `safety_rail.py` are canonical across the
+- `ensure_llm_profiles.py`, `ensure_agent_profiles.py` and `safety_rail.py`
+  are canonical across the
   plugin family; `_provenance.py` is canonical where present and intentionally
   absent from UX and Production Engineering. Change copies together and update
   `EXPECTED` in `scripts/check_shared_hooks.py`.

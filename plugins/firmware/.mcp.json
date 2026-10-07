@@ -4,7 +4,7 @@
       "command": "sh",
       "args": [
         "-c",
-        "p=$(for c in \"${FIRMWARE_PLUGIN_ROOT:-}\" \"${OPENHANDS_PROJECT_DIR:-.}/plugins/firmware\" \"${HOME:-}/.agents/plugins/firmware\" \"${HOME:-}/.openhands/plugins/installed/firmware\"; do [ -f \"$c/scripts/firmware_launcher.py\" ] && printf %s \"$c\" && break; done); [ -n \"$p\" ] || { echo \"firmware plugin root unresolved\" >&2; exit 2; }; exec python3 \"$p/scripts/firmware_launcher.py\" mcp_server"
+        "p=$(for c in \"${FIRMWARE_PLUGIN_ROOT:-}\" \"${OPENHANDS_PROJECT_DIR:-.}/plugins/firmware\" \"${HOME:-}/.agents/plugins/firmware\" \"${HOME:-}/.openhands/plugins/installed/firmware\" \"${HOME:-}/plugins/installed/firmware\" \"${OH_PERSISTENCE_DIR:-/nonexistent}/plugins/installed/firmware\"; do [ -f \"$c/scripts/firmware_launcher.py\" ] && printf %s \"$c\" && break; done); [ -n \"$p\" ] || { echo \"firmware plugin root unresolved\" >&2; exit 2; }; exec python3 \"$p/scripts/firmware_launcher.py\" mcp_server"
       ]
     }
   }

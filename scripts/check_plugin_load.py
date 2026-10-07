@@ -18,7 +18,9 @@ PLUGIN_DIR = REPO_ROOT / "plugins" / "firmware"
 EXPECTED_AGENTS = {"firmware-architect", "firmware-developer", "firmware-review"}
 EXPECTED_SKILLS = {
     "firmware-contract",
+    "firmware-contract-rules",
     "firmware-mcu-pinmap",
+    "firmware-out-rules",
     "firmware-power-modes",
     "firmware-qemu",
     "firmware-sister-cooperation",
@@ -38,6 +40,7 @@ EXPECTED_SESSION_START_HOOKS = {
     "firmware-doctor",
     "intake-attachments",
     "ensure-llm-profiles",
+    "ensure-agent-profiles",
     "require-records",
 }
 EXPECTED_USER_PROMPT_SUBMIT_HOOKS = {"intake-attachments"}
