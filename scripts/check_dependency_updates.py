@@ -854,7 +854,13 @@ def check_python_versions(
     )
     if not stable_minors:
         raise ValueError("no stable CPython minor series found")
-    latest = ".".join(str(part) for part in stable_minors[-1])
+    latest_minor = stable_minors[-1]
+    latest = ".".join(str(part) for part in latest_minor)
+    # A source that already pins the latest minor (a CI matrix spanning
+    # 3.12-3.15 alongside it) needs no update for its older legs.
+    sources_at_latest = {
+        source for value, source in values if _python_minor(value, source) >= latest_minor
+    }
     statuses: list[DependencyStatus] = []
     seen: set[tuple[str, str]] = set()
     for value, source in values:
@@ -870,7 +876,7 @@ def check_python_versions(
                 value,
                 latest,
                 source,
-                current_minor < stable_minors[-1],
+                current_minor < latest_minor and source not in sources_at_latest,
             )
         )
     return statuses

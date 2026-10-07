@@ -9,8 +9,8 @@
 ## Reporting a vulnerability
 
 Please do not open public issues for security vulnerabilities. Report them
-via GitHub's private vulnerability reporting on this repository, or by
-contacting the maintainer directly. Include:
+via [GitHub private vulnerability reporting](https://github.com/VibeBB/firmware-agent/security/advisories/new)
+on this repository, or by contacting the maintainer directly. Include:
 
 - the affected version/commit,
 - a minimal reproduction (contract JSON, command, or payload),

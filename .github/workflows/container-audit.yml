@@ -92,7 +92,13 @@ jobs:
         # private cache dir first and only ever writes there. Concurrent
         # trivy processes in one cache dir race on db/metadata.json and
         # corrupt it.
-        run: trivy image --download-db-only
+        run: |
+          trivy image --download-db-only
+          # The java-db mirror blob is ~934 MB; if the image ships jars,
+          # every leg would otherwise fetch it into its private cache dir at
+          # once (the disk-quota kill on the dashboard audit). Warm it once
+          # into the shared seed so the per-leg copies carry it.
+          trivy image --download-java-db-only
       # The scans read the same pinned image, each writes a disjoint
       # report path, and each trivy process writes to its own cache dir
       # seeded from the warmed DB, so they run as one parallel group
@@ -131,7 +137,7 @@ jobs:
               cp -a "$HOME/.cache/trivy/." "$TRIVY_CACHE_DIR/"
               # trivy exits 0 even when a mirror flake yields an empty Results
               # payload, so the retry keys on content, not the exit code.
-              for attempt in 1 2; do
+              for attempt in 1 2 3; do
                 trivy image --compliance docker-cis-1.6.0 --include-non-failures --report all \
                   --ignorefile /dev/null --format json \
                   --output "$RUNNER_TEMP/trivy-cis.json" "${PINNED_IMAGE}"
