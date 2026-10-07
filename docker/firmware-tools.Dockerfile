@@ -12,6 +12,13 @@ ARG ESPRESSIF32_PLATFORM=espressif32@7.1.3
 ARG ESP_QEMU_RELEASE=esp-develop-9.2.2-20260417
 ARG ESP_QEMU_ASSET=qemu-xtensa-softmmu-esp_develop_9.2.2_20260417-x86_64-linux-gnu.tar.xz
 ARG ESP_QEMU_SHA256=0eecb2a34a5586c0e59110f77b9343b7b336e82fdb0e1a30e1dc1bab8a547e35
+# cppcheck tracks Debian unstable (sid) instead of the resolute apt pin so
+# the image ships the newest release; the .deb is fetched from the permanent
+# snapshot.debian.org archive and verified before install. Its Depends are
+# satisfied from resolute (libc6 2.43, libtinyxml2-11, python3-pygments).
+ARG CPPCHECK_VERSION=2.22.0-1
+ARG CPPCHECK_DEB_URL=https://snapshot.debian.org/archive/debian/20261007T000000Z/pool/main/c/cppcheck/cppcheck_2.22.0-1_amd64.deb
+ARG CPPCHECK_DEB_SHA256=936dbeba9e147b2e9255c44b3c59c37f33373f118a271aac05799c85a45795c5
 
 # Fail the build when the left side of a verification pipe (curl|sha256sum)
 # breaks instead of silently passing the right side.
@@ -31,7 +38,8 @@ LABEL org.opencontainers.image.source="https://github.com/VibeBB/firmware-agent"
       org.opencontainers.image.revision="${IMAGE_REVISION}" \
       firmware.platformio.version="${PLATFORMIO_VERSION}" \
       firmware.espressif32.platform="${ESPRESSIF32_PLATFORM}" \
-      firmware.esp-qemu.release="${ESP_QEMU_RELEASE}"
+      firmware.esp-qemu.release="${ESP_QEMU_RELEASE}" \
+      firmware.cppcheck.version="${CPPCHECK_VERSION}"
 
 COPY --from=uv /uv /uvx /usr/local/bin/
 
@@ -51,7 +59,6 @@ RUN apt-get -o Acquire::Retries=5 update \
         binutils-arm-none-eabi \
         gdb-multiarch \
         qemu-system-arm \
-        cppcheck \
         libpixman-1-0 \
         libgcrypt20 \
         libsdl2-2.0-0 \
@@ -95,6 +102,24 @@ RUN pio pkg install -g --platform "${ESPRESSIF32_PLATFORM}" \
     && test -s /tmp/warm/fw/.pio/build/esp32s3/flash.bin \
     && rm -rf /tmp/warm /opt/platformio/.cache \
     && chmod -R a+rwX /opt/platformio
+
+# cppcheck (static analysis gate tool) from the checksum-pinned Debian sid
+# .deb: the sid pin reaches upstream 2.22 while the resolute apt channel is
+# stuck at 2.19. GPL-3.0; runs as a subprocess only.
+RUN curl --fail --location --silent --show-error \
+        --retry 5 --retry-delay 10 --retry-all-errors \
+        --output /tmp/cppcheck.deb \
+        "${CPPCHECK_DEB_URL}" \
+    && echo "${CPPCHECK_DEB_SHA256}  /tmp/cppcheck.deb" | sha256sum --check \
+    && apt-get -o Acquire::Retries=5 update \
+    && apt-get -o Acquire::Retries=5 install --no-install-recommends -y /tmp/cppcheck.deb \
+    && rm -rf /var/lib/apt/lists/* /tmp/cppcheck.deb \
+    && mkdir -p /usr/share/doc/cppcheck \
+    && printf '%s\n' \
+        "source=Debian unstable pool via snapshot.debian.org" \
+        "version=${CPPCHECK_VERSION}" \
+        "sha256=${CPPCHECK_DEB_SHA256}" \
+        > /usr/share/doc/cppcheck/SOURCE
 
 RUN arm-none-eabi-gcc --version | head -1 \
     && cppcheck --version \

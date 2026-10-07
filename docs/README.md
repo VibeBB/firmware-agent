@@ -36,6 +36,7 @@
 ## Research
 
 - [cppcheck 2.19 adoption](research/cppcheck-2.19-adoption.md)
+- [cppcheck 2.22 adoption](research/cppcheck-2.22-adoption.md)
 - [SDK v1.50.0 feature evaluation](research/sdk-v1.50.0-feature-evaluation.md)
 - [SDK v1.50.1 feature evaluation](research/sdk-v1.50.1-feature-evaluation.md)
 - [SDK v1.51.0 feature evaluation](research/sdk-v1.51.0-feature-evaluation.md)

@@ -16,6 +16,7 @@ from scripts.check_dependency_updates import (
     _github_latest_tag,  # pyright: ignore[reportPrivateUsage]
     check_docker_args,
     check_docker_base,
+    check_docker_debs,
     check_git_clones,
     check_github_actions,
     check_workflow_downloads,
@@ -68,6 +69,40 @@ def test_docker_platformio_pin_uses_pypi_latest() -> None:
     assert status.latest == "6.3.0"
     assert status.outdated is True
     assert status.fetch_failed is False
+
+
+def test_docker_debs_track_debian_sid() -> None:
+    def fetch_json(url: str):
+        assert url == "https://sources.debian.org/api/src/cppcheck/"
+        return {
+            "versions": [
+                {"version": "2.17.1-2", "suites": ["trixie"]},
+                {"version": "2.22.0-1", "suites": ["sid"]},
+            ]
+        }
+
+    statuses = check_docker_debs(ROOT, fetch_json=fetch_json)
+    rows = [(s.name, s.current, s.latest, s.outdated) for s in statuses]
+    assert rows == [("CPPCHECK_VERSION", "2.22.0-1", "2.22.0-1", False)]
+
+
+def test_docker_debs_flag_newer_sid_release() -> None:
+    def fetch_json(url: str):
+        return {"versions": [{"version": "9.99.0-1", "suites": ["sid"]}]}
+
+    statuses = check_docker_debs(ROOT, fetch_json=fetch_json)
+    assert statuses[0].outdated is True
+    assert statuses[0].latest == "9.99.0-1"
+
+
+def test_docker_debs_report_fetch_failed_on_error() -> None:
+    def fetch_json(url: str):
+        raise OSError("network down")
+
+    statuses = check_docker_debs(ROOT, fetch_json=fetch_json)
+    assert statuses[0].latest == "?"
+    assert statuses[0].note == "fetch failed"
+    assert statuses[0].fetch_failed is True
 
 
 def test_ubuntu_26_04_digest_pin_is_supported(tmp_path: Path) -> None:
