@@ -88,48 +88,47 @@ jobs:
         with:
           version: v0.75.0
       - name: Warm the Trivy DB for the raw-trivy scan legs
-        # Populate the raw-trivy legs' cache dir serially so those
-        # legs only ever read the DB. The trivy-action legs restore
-        # their own DB into per-leg cache-dir paths instead:
-        # concurrent DB updates in one cache dir race on
-        # db/metadata.json and corrupt it.
+        # Populate the shared seed dir serially; each leg copies it into a
+        # private cache dir first and only ever writes there. Concurrent
+        # trivy processes in one cache dir race on db/metadata.json and
+        # corrupt it.
         run: trivy image --download-db-only
       # The scans read the same pinned image, each writes a disjoint
-      # report path, and each trivy process writes to its own cache dir,
-      # so they run as one parallel group (implicit wait at the end).
+      # report path, and each trivy process writes to its own cache dir
+      # seeded from the warmed DB, so they run as one parallel group
+      # (implicit wait at the end). They invoke trivy directly instead of
+      # trivy-action: concurrent action legs race on the workspace
+      # `trivy_envs.txt` file the action uses to pass envs between its
+      # internal steps.
       - parallel:
           - name: Scan pinned image (Trivy SARIF)
-            uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-            with:
-              scan-type: image
-              cache-dir: ${{ runner.temp }}/trivy-cache-sarif
-              # The digest is frozen; the vulnerability DB is not — this scan
-              # surfaces newly disclosed CVEs against the shipped tools image.
-              scan-ref: ${{ env.PINNED_IMAGE }}
-              version: v0.75.0
-              scanners: vuln,secret,misconfig
-              severity: CRITICAL,HIGH
-              ignore-unfixed: true
-              exit-code: '0'
-              format: sarif
-              output: trivy-image.sarif
-              limit-severities-for-sarif: true
-              skip-setup-trivy: true
-          - name: Scan pinned image (Trivy JSON, full)
-            uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-            with:
-              scan-type: image
-              cache-dir: ${{ runner.temp }}/trivy-cache-json
-              scan-ref: ${{ env.PINNED_IMAGE }}
-              version: v0.75.0
-              scanners: vuln,secret,misconfig,license
-              exit-code: '0'
-              format: json
-              output: trivy-image.json
-              skip-setup-trivy: true
-          - name: Run Docker CIS compliance report
+            env:
+              TRIVY_CACHE_DIR: ${{ runner.temp }}/trivy-cache-sarif
+            # The digest is frozen; the vulnerability DB is not — this scan
+            # surfaces newly disclosed CVEs against the shipped tools image.
             run: |
               set -euo pipefail
+              mkdir -p "$TRIVY_CACHE_DIR"
+              cp -a "$HOME/.cache/trivy/." "$TRIVY_CACHE_DIR/"
+              trivy image --scanners vuln,secret,misconfig \
+                --severity CRITICAL,HIGH --ignore-unfixed \
+                --format sarif --output trivy-image.sarif "$PINNED_IMAGE"
+          - name: Scan pinned image (Trivy JSON, full)
+            env:
+              TRIVY_CACHE_DIR: ${{ runner.temp }}/trivy-cache-json
+            run: |
+              set -euo pipefail
+              mkdir -p "$TRIVY_CACHE_DIR"
+              cp -a "$HOME/.cache/trivy/." "$TRIVY_CACHE_DIR/"
+              trivy image --scanners vuln,secret,misconfig,license \
+                --format json --output trivy-image.json "$PINNED_IMAGE"
+          - name: Run Docker CIS compliance report
+            env:
+              TRIVY_CACHE_DIR: ${{ runner.temp }}/trivy-cache-cis
+            run: |
+              set -euo pipefail
+              mkdir -p "$TRIVY_CACHE_DIR"
+              cp -a "$HOME/.cache/trivy/." "$TRIVY_CACHE_DIR/"
               # trivy exits 0 even when a mirror flake yields an empty Results
               # payload, so the retry keys on content, not the exit code.
               for attempt in 1 2; do
