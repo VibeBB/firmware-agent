@@ -21,6 +21,7 @@ return `{"verdict": "fail", "detail": ...}` with `isError` set.
 | `firmware_ftm` | `contract_path` | regenerates `fw_ftm.h` from the pinned prodeng factory test spec | no |
 | `firmware_production_export` | `contract_path`, `out_dir` | `<name>.fw-production.json` for production-engineering-agent (gated ELF only) | no |
 | `firmware_pinmap_export` | `contract_path`, `out_dir` | `<name>.fw-pinmap.json`, `*.pinmap.md`, `*.pinmap.png` | no |
+| `firmware_power_export` | `contract_path`, `out_dir` | `<name>.fw-power.json` for simulation-agent PDN imports | no |
 | `firmware_sim` | `contract_path`, `out_dir`, `simulation` | one QEMU run → `SimResult`, `sim-<id>.log`, `sim-<id>.png` | no |
 | `firmware_debug` | `contract_path`, `out_dir`, `simulation`, `elf`, `breaks`, `prints` | `debug-*.advisory.json` (never changes a verdict) | no |
 | `firmware_request` | `contract_path`, `out_dir`, `target`, `risk`, `change`, `rationale`, `nets`, `failing_checks`, `decision_refs` | `<design>.<id>.fw-request.json` v2 (hashed inputs; high risk needs a decision ref) | no |

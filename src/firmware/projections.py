@@ -9,9 +9,11 @@ from .contract import FirmwareContract
 from .interchange import (
     BardCueManifest,
     FirmwarePinmap,
+    FirmwarePower,
     FpgaRegmapSource,
     FreePad,
     PinmapEntry,
+    PowerModeExport,
     ProdengFtmSpec,
 )
 from .profiles import McuProfile
@@ -177,6 +179,22 @@ def pinmap_export(
         supply_net=contract.power.supply_net,
         pins=entries,
         free_pads=free,
+    )
+
+
+def power_export(contract: FirmwareContract, contract_sha256: str) -> FirmwarePower:
+    modes = [
+        PowerModeExport(id=m.id, kind=m.kind, current_a=m.current_ua / 1e6, duty=m.duty)
+        for m in contract.power.modes
+    ]
+    return FirmwarePower(
+        design=contract.name,
+        contract_sha256=contract_sha256,
+        mcu_ref=contract.mcu.ref,
+        supply_net=contract.power.supply_net,
+        peak_current_a=max(m.current_a for m in modes),
+        average_current_a=sum(m.current_ua * m.duty for m in contract.power.modes) / 1e6,
+        modes=modes,
     )
 
 

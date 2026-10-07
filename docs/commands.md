@@ -19,6 +19,7 @@ launcher.
 | `ftm` | `contract` | regenerate `ftm.header` (`fw_ftm.h`) from the pinned prodeng `factory-test-spec.json`; fails when the spec hash differs from `ftm.sha256` |
 | `production` | `contract` `[--out dir]` | export `<name>.fw-production.json` (ELF sha256/size, contract/report sha256, MCU, factory test spec) from the last passing full gate run; never flashes hardware |
 | `pinmap` | `contract` `[--out dir]` | export `<name>.fw-pinmap.json` + `*.pinmap.md`/`*.pinmap.png` |
+| `power` | `contract` `[--out dir]` | export `<name>.fw-power.json` (peak/average draw on the supply net) for simulation-agent |
 | `sim` | `contract` `--id <sim>` `[--out dir]` | run one declared QEMU simulation; writes `sim-<id>.log`/`sim-<id>.png` |
 | `debug` | `contract` `--id <sim>` `[--elf f] [--break b] [--print e] [--out dir]` | scripted GDB session → `debug-<id>.advisory.json` (advisory) |
 | `request` | `contract` `--target t --risk low|high --change c --rationale r [--net n] [--failing-check g] [--decision-ref id] [--out dir]` | write `*.fw-request.json` v2; high risk needs a decision ref |
