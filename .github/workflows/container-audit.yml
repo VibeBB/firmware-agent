@@ -107,27 +107,26 @@ jobs:
       # `trivy_envs.txt` file the action uses to pass envs between its
       # internal steps.
       - parallel:
-          - name: Scan pinned image (Trivy SARIF)
+          - name: Scan pinned image (Trivy JSON + SARIF)
             env:
-              TRIVY_CACHE_DIR: ${{ runner.temp }}/trivy-cache-sarif
+              TRIVY_CACHE_DIR: ${{ runner.temp }}/trivy-cache-scan
             # The digest is frozen; the vulnerability DB is not — this scan
             # surfaces newly disclosed CVEs against the shipped tools image.
-            run: |
-              set -euo pipefail
-              mkdir -p "$TRIVY_CACHE_DIR"
-              cp -a "$HOME/.cache/trivy/." "$TRIVY_CACHE_DIR/"
-              trivy image --scanners vuln,secret,misconfig \
-                --severity CRITICAL,HIGH --ignore-unfixed \
-                --format sarif --output trivy-image.sarif "$PINNED_IMAGE"
-          - name: Scan pinned image (Trivy JSON, full)
-            env:
-              TRIVY_CACHE_DIR: ${{ runner.temp }}/trivy-cache-json
+            # One scan feeds both artifacts: the SARIF for code scanning is
+            # derived from the same JSON (trivy convert has no
+            # --ignore-unfixed, so unfixed vulnerabilities are dropped
+            # first and --severity applies the HIGH/CRITICAL limit).
             run: |
               set -euo pipefail
               mkdir -p "$TRIVY_CACHE_DIR"
               cp -a "$HOME/.cache/trivy/." "$TRIVY_CACHE_DIR/"
               trivy image --scanners vuln,secret,misconfig,license \
                 --format json --output trivy-image.json "$PINNED_IMAGE"
+              jq '.Results = ((.Results // []) | map(if .Vulnerabilities then
+                    .Vulnerabilities |= map(select((.FixedVersion // "") != "")) else . end))' \
+                trivy-image.json > "$RUNNER_TEMP/trivy-sarif.json"
+              trivy convert --format sarif --severity HIGH,CRITICAL \
+                --output trivy-image.sarif "$RUNNER_TEMP/trivy-sarif.json"
           - name: Run Docker CIS compliance report
             env:
               TRIVY_CACHE_DIR: ${{ runner.temp }}/trivy-cache-cis

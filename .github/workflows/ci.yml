@@ -258,7 +258,9 @@ jobs:
     needs: [changes, e2e-contracts]
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-26.04
-    timeout-minutes: 30
+    # Legs rebuild the tools image on cache miss; a slow apt window pushed
+    # desk-lamp-s3 past the old 30-min cap (main CI 2026-10-07).
+    timeout-minutes: 45
     permissions:
       contents: read
       # Writes the shared registry buildcache on push/dispatch runs; fork-PR
