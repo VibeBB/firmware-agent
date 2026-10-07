@@ -141,6 +141,17 @@ jobs:
           else
             echo "ref=ghcr.io/${IMAGE_OWNER}/firmware-tools@${BUILT_DIGEST}" >> "$GITHUB_OUTPUT"
           fi
+      - name: Resolve tools digest
+        env:
+          BUILT_DIGEST: ${{ steps.tools.outputs.digest }}
+          SCAN_IMAGE_REF: ${{ steps.scan-ref.outputs.ref }}
+        run: |
+          set -euo pipefail
+          case "$BUILT_DIGEST" in sha256:*) ;; *) echo "invalid tools digest: $BUILT_DIGEST" >&2; exit 1 ;; esac
+          # The pushed digest reference on publish; the local rehearsal tag
+          # on dry_run.
+          TOOLS_TAG="${GITHUB_SHA}-tools"
+          printf 'TOOLS_REF=%s\nTOOLS_DIGEST=%s\nTOOLS_TAG=%s\n' "$SCAN_IMAGE_REF" "$BUILT_DIGEST" "$TOOLS_TAG" >> "$GITHUB_ENV"
       - name: Scan tools image (Trivy SARIF)
         id: trivy-scan
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
@@ -157,21 +168,56 @@ jobs:
           format: sarif
           output: trivy-image.sarif
           limit-severities-for-sarif: true
-      - name: Scan tools image (Trivy JSON)
-        # Runs even when the SARIF gate above found fixable CVEs, so the
-        # full report is still emitted on a gate failure.
-        if: always() && steps.tools.outcome == 'success'
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+      # Attestation only needs the pushed digest: run it as a background
+      # step overlapping every post-gate leg and join it before the
+      # :latest promotion that consumes the attested image.
+      - name: Attest tools image provenance
+        if: inputs.dry_run != true
+        id: attest
+        background: true
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          scan-type: image
-          scan-ref: ${{ steps.scan-ref.outputs.ref }}
-          version: v0.75.0
-          scanners: vuln,secret,misconfig,license
-          ignore-unfixed: false
-          exit-code: '0'
-          format: json
-          output: trivy-image.json
-          skip-setup-trivy: true
+          subject-name: ghcr.io/${{ env.IMAGE_OWNER }}/firmware-tools
+          subject-digest: ${{ steps.tools.outputs.digest }}
+          push-to-registry: true
+      # Independent post-build legs run as a parallel group (implicit wait
+      # at the end). On a SARIF-gate failure the JSON leg still runs under
+      # its always() so the diagnostic report exists exactly when needed,
+      # while the SBOM and measure legs keep their implicit success() skip.
+      - parallel:
+          - name: Scan tools image (Trivy JSON)
+            # Runs even when the SARIF gate above found fixable CVEs, so the
+            # full report is still emitted on a gate failure.
+            if: always() && steps.tools.outcome == 'success'
+            uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+            with:
+              scan-type: image
+              scan-ref: ${{ steps.scan-ref.outputs.ref }}
+              version: v0.75.0
+              scanners: vuln,secret,misconfig,license
+              ignore-unfixed: false
+              exit-code: '0'
+              format: json
+              output: trivy-image.json
+              skip-setup-trivy: true
+          - name: Generate tools SPDX SBOM
+            uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+            env:
+              # Registry pulls on publish; a dry_run image exists only in the
+              # local docker daemon.
+              SYFT_SOURCE_IMAGE_DEFAULT_PULL_SOURCE: ${{ inputs.dry_run == true && 'docker' || 'registry' }}
+              TMPDIR: ${{ runner.temp }}
+              SYFT_FILE_METADATA_SELECTION: none
+            with:
+              image: ${{ env.TOOLS_REF }}
+              format: spdx-json
+              output-file: ${{ runner.temp }}/firmware-tools.full.spdx.json
+              upload-artifact: false
+              upload-release-assets: false
+          - name: Measure published tools
+            env:
+              TOOLS_REF: ${{ env.TOOLS_REF }}
+            run: uv run python scripts/measure_image_tools.py --image-ref "$TOOLS_REF" --out "$RUNNER_TEMP/firmware-tools.json"
       - name: Report gating CVEs
         # A SARIF gate failure otherwise surfaces only as an exit code;
         # list the fixable HIGH/CRITICAL findings that blocked the publish.
@@ -206,39 +252,6 @@ jobs:
           name: firmware-tools-trivy
           path: trivy-image.json
           retention-days: 90
-      - name: Attest tools image provenance
-        if: inputs.dry_run != true
-        id: attest
-        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
-        with:
-          subject-name: ghcr.io/${{ env.IMAGE_OWNER }}/firmware-tools
-          subject-digest: ${{ steps.tools.outputs.digest }}
-          push-to-registry: true
-      - name: Resolve tools digest
-        env:
-          BUILT_DIGEST: ${{ steps.tools.outputs.digest }}
-          SCAN_IMAGE_REF: ${{ steps.scan-ref.outputs.ref }}
-        run: |
-          set -euo pipefail
-          case "$BUILT_DIGEST" in sha256:*) ;; *) echo "invalid tools digest: $BUILT_DIGEST" >&2; exit 1 ;; esac
-          # The pushed digest reference on publish; the local rehearsal tag
-          # on dry_run.
-          TOOLS_TAG="${GITHUB_SHA}-tools"
-          printf 'TOOLS_REF=%s\nTOOLS_DIGEST=%s\nTOOLS_TAG=%s\n' "$SCAN_IMAGE_REF" "$BUILT_DIGEST" "$TOOLS_TAG" >> "$GITHUB_ENV"
-      - name: Generate tools SPDX SBOM
-        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
-        env:
-          # Registry pulls on publish; a dry_run image exists only in the
-          # local docker daemon.
-          SYFT_SOURCE_IMAGE_DEFAULT_PULL_SOURCE: ${{ inputs.dry_run == true && 'docker' || 'registry' }}
-          TMPDIR: ${{ runner.temp }}
-          SYFT_FILE_METADATA_SELECTION: none
-        with:
-          image: ${{ env.TOOLS_REF }}
-          format: spdx-json
-          output-file: ${{ runner.temp }}/firmware-tools.full.spdx.json
-          upload-artifact: false
-          upload-release-assets: false
       - name: Package tools SPDX SBOM
         run: |
           python3 scripts/package_level_sbom.py \
@@ -268,9 +281,13 @@ jobs:
           if sbom.get("spdxVersion") != "SPDX-2.3":
               raise SystemExit("tools SBOM must use SPDX-2.3")
           PY
+      # The SBOM attestation only needs the packaged SBOM: run it as a
+      # background step overlapping the upload + smoke legs and join it
+      # before the :latest promotion.
       - name: Attest tools SBOM
         if: inputs.dry_run != true
         id: attest_sbom
+        background: true
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-name: ghcr.io/${{ env.IMAGE_OWNER }}/firmware-tools
@@ -284,10 +301,6 @@ jobs:
           path: ${{ runner.temp }}/firmware-tools.full.spdx.json
           retention-days: 90
           if-no-files-found: error
-      - name: Measure published tools
-        env:
-          TOOLS_REF: ${{ env.TOOLS_REF }}
-        run: uv run python scripts/measure_image_tools.py --image-ref "$TOOLS_REF" --out "$RUNNER_TEMP/firmware-tools.json"
       - name: Verify published tools smoke
         env:
           TOOLS_REF: ${{ env.TOOLS_REF }}
@@ -364,6 +377,8 @@ jobs:
             examples/*/fw-reports/*.fw-pinmap.json
             examples/*/fw-reports/*.pinmap.md
           if-no-files-found: ignore
+      - name: Wait for attestations
+        wait: [attest, attest_sbom]
       - name: Promote :latest
         # Every gate above passed: copy the verified manifest to :latest
         # server-side (attestations and the SBOM keep binding the digest).

@@ -23,6 +23,8 @@ jobs:
   changes:
     runs-on: ubuntu-26.04
     timeout-minutes: 10
+    # No actions/cache usage: forbid restore and save entirely.
+    cache-mode: none
     outputs:
       code: ${{ steps.scope.outputs.code }}
     steps:
@@ -89,36 +91,49 @@ jobs:
         id: sync-dependencies
         continue-on-error: ${{ matrix.experimental || false }}
         run: uv sync --locked
+      # Seven independent check legs: each keeps its own id/continue-on-error
+      # for the 3.15 canary outcome report, so they run as top-level
+      # background steps (a parallel group would hide the ids from
+      # actionlint's expression check) and join at the wait below.
       - name: Shared hooks
         id: shared-hooks
         continue-on-error: ${{ matrix.experimental || false }}
+        background: true
         run: uv run python scripts/check_shared_hooks.py
       - name: Check shared workflows
         id: check-shared-workflows
         continue-on-error: ${{ matrix.experimental || false }}
+        background: true
         run: uv run python scripts/check_shared_workflows.py
       - name: Ruff
         id: ruff
         continue-on-error: ${{ matrix.experimental || false }}
+        background: true
         run: uv run ruff check . && uv run ruff format --check .
       - name: Pyright
         id: pyright
         continue-on-error: ${{ matrix.experimental || false }}
+        background: true
         run: uv run pyright
       - name: Pytest
         id: pytest
         continue-on-error: ${{ matrix.experimental || false }}
+        background: true
         run: uv run python scripts/structural_coverage.py run --json out/structural-coverage.json
       - name: Plugin load (OpenHands SDK)
         id: plugin-load-openhands-sdk
         continue-on-error: ${{ matrix.experimental || false }}
+        background: true
         env:
           OPENHANDS_SUPPRESS_BANNER: "1"
         run: uv run --group sdk-check python scripts/check_plugin_load.py
       - name: Docs
         id: docs
         continue-on-error: ${{ matrix.experimental || false }}
+        background: true
         run: uv run python scripts/verify_docs.py
+      - name: Wait for check legs
+        wait-all: true
 
       - name: Report 3.15 canary outcome
         if: matrix.experimental && (steps.setup-uv.outcome == 'failure' || steps.sync-dependencies.outcome == 'failure' || steps.shared-hooks.outcome == 'failure' || steps.check-shared-workflows.outcome == 'failure' || steps.ruff.outcome == 'failure' || steps.pyright.outcome == 'failure' || steps.pytest.outcome == 'failure' || steps.plugin-load-openhands-sdk.outcome == 'failure' || steps.docs.outcome == 'failure')
@@ -127,6 +142,8 @@ jobs:
   dockerfile-lint:
     runs-on: ubuntu-26.04
     timeout-minutes: 10
+    # No actions/cache usage: forbid restore and save entirely.
+    cache-mode: none
     steps:
       - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
@@ -136,7 +153,11 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.sha }}
           persist-credentials: false
+      # Hadolint is read-only on docker/**: overlap it with the BuildKit
+      # setup + --check and join it before the job ends.
       - name: Lint Dockerfiles with hadolint
+        id: hadolint
+        background: true
         uses: hadolint/hadolint-action@06be81baf89a55ffd0e24b8f04a4185738dd3387 # v3.5.0
         with:
           dockerfile: docker/firmware-tools.Dockerfile
@@ -144,6 +165,8 @@ jobs:
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: Run BuildKit checks
         run: docker build --check -f docker/firmware-tools.Dockerfile .
+      - name: Wait for hadolint
+        wait: hadolint
 
   e2e-contracts:
     needs: changes
@@ -246,57 +269,61 @@ jobs:
             fi
           fi
           "${args[@]}" .
-      - name: Full gates in the image (no network)
-        env:
-          FIRMWARE_TOOLS_IMAGE: firmware-tools:ci
-          FIRMWARE_SRC: ${{ github.workspace }}/src
-          OPENHANDS_PROJECT_DIR: ${{ github.workspace }}
-        run: |
-          set -euo pipefail
-          launcher=plugins/firmware/scripts/firmware_launcher.py
-          python3 "$launcher" doctor | tee doctor.json
-          # One contract per matrix leg; the loop keeps the original gate
-          # loop's shape so the workflow-path tests still recognize it.
-          for contract in ${{ matrix.contract }}; do
-            if python3 "$launcher" gates "$contract" > report.json; then
-              gate_status=0
-            else
-              gate_status=$?
-            fi
-            if [ "$gate_status" -ne 0 ]; then
-              # The gate's crash detail lives in its redirected stdout —
-              # echo it so the log explains which contract broke.
-              echo "gates exited $gate_status for $contract; captured output:"
-              cat report.json || true
-            fi
-            python3 - report.json "$gate_status" <<'PY'
-          import json, sys
-          from pathlib import Path
-          report_path = Path(sys.argv[1])
-          gate_status = int(sys.argv[2])
-          try:
-              report = json.loads(report_path.read_text(encoding="utf-8"))
-          except (OSError, ValueError) as exc:
-              if report_path.is_file():
-                  print(report_path.read_text(encoding="utf-8", errors="replace"), end="")
-              sys.exit(f"gates produced no parseable report (exit {gate_status}): {exc}")
-          for check in report["checks"]:
-              print(f"{check['id']:24} {check['status']:8} {check['detail'][:200]}")
-          sys.exit(0 if gate_status == 0 and report["verdict"] == "pass" else 1)
-          PY
-          done
-      - name: Debug trace against desk-lamp contract
-        if: matrix.name == 'desk-lamp-s3'
-        env:
-          FIRMWARE_TOOLS_IMAGE: firmware-tools:ci
-          FIRMWARE_SRC: ${{ github.workspace }}/src
-          OPENHANDS_PROJECT_DIR: ${{ github.workspace }}
-        run: |
-          set -euo pipefail
-          launcher=plugins/firmware/scripts/firmware_launcher.py
-          python3 "$launcher" debug examples/desk-lamp-s3/desk-lamp.fw.json \
-            --id lamp_selftest --break lamp_step > debug.json
-          python3 -c "import json,sys; d=json.load(open('debug.json')); print(d['verdict'], d.get('stops')); sys.exit(0 if d['verdict']=='pass' and d.get('stops') else 1)"
+      # The gate run and the debug trace launch separate containers and
+      # write disjoint files (fw-reports/* vs debug-*.advisory.json,
+      # report.json vs debug.json), so they run as a parallel group.
+      - parallel:
+          - name: Full gates in the image (no network)
+            env:
+              FIRMWARE_TOOLS_IMAGE: firmware-tools:ci
+              FIRMWARE_SRC: ${{ github.workspace }}/src
+              OPENHANDS_PROJECT_DIR: ${{ github.workspace }}
+            run: |
+              set -euo pipefail
+              launcher=plugins/firmware/scripts/firmware_launcher.py
+              python3 "$launcher" doctor | tee doctor.json
+              # One contract per matrix leg; the loop keeps the original gate
+              # loop's shape so the workflow-path tests still recognize it.
+              for contract in ${{ matrix.contract }}; do
+                if python3 "$launcher" gates "$contract" > report.json; then
+                  gate_status=0
+                else
+                  gate_status=$?
+                fi
+                if [ "$gate_status" -ne 0 ]; then
+                  # The gate's crash detail lives in its redirected stdout —
+                  # echo it so the log explains which contract broke.
+                  echo "gates exited $gate_status for $contract; captured output:"
+                  cat report.json || true
+                fi
+                python3 - report.json "$gate_status" <<'PY'
+              import json, sys
+              from pathlib import Path
+              report_path = Path(sys.argv[1])
+              gate_status = int(sys.argv[2])
+              try:
+                  report = json.loads(report_path.read_text(encoding="utf-8"))
+              except (OSError, ValueError) as exc:
+                  if report_path.is_file():
+                      print(report_path.read_text(encoding="utf-8", errors="replace"), end="")
+                  sys.exit(f"gates produced no parseable report (exit {gate_status}): {exc}")
+              for check in report["checks"]:
+                  print(f"{check['id']:24} {check['status']:8} {check['detail'][:200]}")
+              sys.exit(0 if gate_status == 0 and report["verdict"] == "pass" else 1)
+              PY
+              done
+          - name: Debug trace against desk-lamp contract
+            if: matrix.name == 'desk-lamp-s3'
+            env:
+              FIRMWARE_TOOLS_IMAGE: firmware-tools:ci
+              FIRMWARE_SRC: ${{ github.workspace }}/src
+              OPENHANDS_PROJECT_DIR: ${{ github.workspace }}
+            run: |
+              set -euo pipefail
+              launcher=plugins/firmware/scripts/firmware_launcher.py
+              python3 "$launcher" debug examples/desk-lamp-s3/desk-lamp.fw.json \
+                --id lamp_selftest --break lamp_step > debug.json
+              python3 -c "import json,sys; d=json.load(open('debug.json')); print(d['verdict'], d.get('stops')); sys.exit(0 if d['verdict']=='pass' and d.get('stops') else 1)"
       - name: Upload reports
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
