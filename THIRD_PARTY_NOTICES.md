@@ -15,7 +15,7 @@ into `firmware` (ADR-0004).
 | GNU Make, CMake, Ninja | Ubuntu Make 4.4.1, CMake 4.2.3, Ninja 1.13.2 | GPL-3.0 / BSD-3-Clause / Apache-2.0 | Build backends |
 | GDB (`gdb-multiarch`) | Ubuntu 17.1 | GPL-3.0 | ARM debugging |
 | QEMU (`qemu-system-arm`) | Ubuntu 10.2.1 | GPL-2.0 | ARM simulation |
-| Cppcheck | Ubuntu 2.19.0 | GPL-3.0 | Static analysis |
+| Cppcheck | Debian sid `cppcheck_2.22.0-1_amd64.deb`, sha256 `936dbeba9e147b2e9255c44b3c59c37f33373f118a271aac05799c85a45795c5` | GPL-3.0 | Static analysis |
 | PlatformIO Core | `6.2.0` (pip) | Apache-2.0 | ESP-IDF builds |
 | PlatformIO `espressif32` platform, ESP-IDF, Xtensa toolchain, esptool, `xtensa-esp-elf-gdb` | `espressif32@7.1.3` (ESP-IDF 6.1; toolchain 15.2.0+20251204) | Apache-2.0 (platform, ESP-IDF, esptool: GPL-2.0), GPL-3.0 (GCC, GDB) | ESP32-S3 builds and debugging |
 | Espressif QEMU (`qemu-system-xtensa`) | release `esp-develop-9.2.2-20260417`, asset `qemu-xtensa-softmmu-esp_develop_9.2.2_20260417-x86_64-linux-gnu.tar.xz`, sha256 `0eecb2a34a5586c0e59110f77b9343b7b336e82fdb0e1a30e1dc1bab8a547e35` | GPL-2.0-or-later | ESP32/ESP32-S3 simulation |
@@ -30,7 +30,11 @@ Ubuntu 26.04 base.
 
 Sources: Espressif QEMU <https://github.com/espressif/qemu>; the image
 records source, release, checksum and license in
-`/usr/share/doc/esp-qemu/SOURCE`. GPL sources for Ubuntu packages are
+`/usr/share/doc/esp-qemu/SOURCE`. Cppcheck comes from the Debian
+unstable pool via the snapshot.debian.org archive
+(`pool/main/c/cppcheck/`; sources with `apt-get source cppcheck` or the
+snapshot package page) and records provenance in
+`/usr/share/doc/cppcheck/SOURCE`. GPL sources for Ubuntu packages are
 available from the Ubuntu archive (`apt-get source <package>`).
 
 MCU profile data is transcribed from the vendor datasheets cited in each

@@ -12,7 +12,7 @@ uv run python scripts/check_dependency_updates.py \
 The report checks direct PyPI dependencies and locked transitive drift, the uv
 pin, GitHub Actions SHA pins (including subpath actions such as
 `github/codeql-action/upload-sarif`), pinned `uvx` tools, Docker ARG pins,
-the Ubuntu base tag, `git clone --branch` pins inside workflows,
+Docker `.deb` pins, the Ubuntu base tag, `git clone --branch` pins inside workflows,
 direct-download pins inside workflows (release-asset URLs, PyPI wheel
 filenames, and trivy `version:` inputs on aquasecurity actions), and
 Python-version support. Review any candidate against the upstream release notes,
@@ -29,6 +29,16 @@ before changing:
   upstream release whenever `ESP_QEMU_RELEASE` moves (asset URL and checksum
   travel with the tag).
 - The Docker `PLATFORMIO_VERSION` ARG is compared with PyPI.
+- `CPPCHECK_VERSION` is compared with the cppcheck version published in
+  Debian unstable (sid) via `sources.debian.org`. The Dockerfile fetches
+  `cppcheck_${CPPCHECK_VERSION}_amd64.deb` from a snapshot.debian.org
+  archive URL instead of the resolute apt package so the image tracks
+  upstream releases ahead of the Ubuntu cycle; sid is never added to
+  `sources.list` and its `Depends` resolve from resolute. When the
+  weekly report flags a newer sid upload, refresh the version, the
+  snapshot URL, and `CPPCHECK_DEB_SHA256` together (the snapshot URL
+  already contains the new filename, so only the version-driven parts
+  change).
 - The Ubuntu base-image digest is a security pin. Review the upstream image
   digest and supported `26.04` tag together; do not update the digest from a
   local build or an unverified mirror.

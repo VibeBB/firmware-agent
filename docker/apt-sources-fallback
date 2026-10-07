@@ -1,0 +1,34 @@
+#!/bin/bash
+# apt-get update + install with an archive-mirror fallback.
+#
+# archive.ubuntu.com's port-80 front end has repeated partial outages
+# (2026-08/09/10) where some pool IPs time out and others answer, so a TCP
+# probe is not decisive and plain retries keep hitting the same dead IPs.
+# The reliable signal is the apt state itself: when the resolute suite
+# indexes or the .deb downloads do not land, rewrite the deb822 sources to
+# Canonical's EC2 mirror and retry once.
+set -eu
+
+sources_sed() {
+    sed -i 's|http://archive.ubuntu.com/ubuntu|http://us-west-2.ec2.archive.ubuntu.com/ubuntu|g; s|http://security.ubuntu.com/ubuntu|http://us-west-2.ec2.archive.ubuntu.com/ubuntu|g' \
+        /etc/apt/sources.list.d/ubuntu.sources
+}
+
+indexes_landed() {
+    compgen -G '/var/lib/apt/lists/*_dists_resolute_InRelease' > /dev/null \
+        && compgen -G '/var/lib/apt/lists/*_dists_resolute-updates_InRelease' > /dev/null \
+        && compgen -G '/var/lib/apt/lists/*_dists_resolute-security_InRelease' > /dev/null
+}
+
+apt-get -o Acquire::Retries=5 update || true
+if ! indexes_landed; then
+    sources_sed
+    apt-get -o Acquire::Retries=5 update
+fi
+
+if apt-get -o Acquire::Retries=5 install --no-install-recommends -y "$@"; then
+    exit 0
+fi
+sources_sed
+apt-get -o Acquire::Retries=5 update
+exec apt-get -o Acquire::Retries=5 install --no-install-recommends -y "$@"

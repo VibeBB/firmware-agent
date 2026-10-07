@@ -656,6 +656,64 @@ def check_docker_args(
     return statuses
 
 
+_DOCKER_DEB_UPSTREAMS = {
+    # ARG name -> Debian source package tracked in unstable (sid). The
+    # Dockerfile pins a snapshot.debian.org .deb instead of the resolute apt
+    # version, so sid is the upstream of record for the pin.
+    "CPPCHECK_VERSION": "cppcheck",
+}
+
+
+def _debian_sid_latest(source: str, fetch_json: FetchJson) -> str:
+    payload = _dict(
+        fetch_json(f"https://sources.debian.org/api/src/{source}/"),
+        f"sources.debian.org response is invalid for {source}",
+    )
+    versions = payload.get("versions")
+    if not isinstance(versions, list):
+        raise ValueError(f"sources.debian.org response has no versions for {source}")
+    for entry in cast(list[Any], versions):
+        if not isinstance(entry, dict):
+            continue
+        entry_map = _dict(entry, f"sources.debian.org version entry is not an object for {source}")
+        suites = entry_map.get("suites")
+        version = entry_map.get("version")
+        if isinstance(suites, list) and "sid" in suites and isinstance(version, str):
+            return version
+    return ""
+
+
+def check_docker_debs(
+    repo_root: Path, *, fetch_json: FetchJson = _default_fetch_json
+) -> list[DependencyStatus]:
+    statuses: list[DependencyStatus] = []
+    values = docker_arg_pins(repo_root)
+    for arg, source in _DOCKER_DEB_UPSTREAMS.items():
+        current = values.get(arg)
+        if current is None:
+            statuses.append(
+                DependencyStatus("docker-deb", arg, "-", "?", _DOCKERFILES[0], False, "ARG missing")
+            )
+            continue
+        try:
+            latest = _debian_sid_latest(source, fetch_json)
+        except (OSError, ValueError):
+            latest = ""
+        statuses.append(
+            DependencyStatus(
+                "docker-deb",
+                arg,
+                current,
+                latest or "?",
+                _DOCKERFILES[0],
+                bool(latest) and latest != current,
+                "" if latest else "fetch failed",
+                fetch_failed=not latest,
+            )
+        )
+    return statuses
+
+
 _DOCKERHUB_TAGS = (
     "https://hub.docker.com/v2/repositories/library/{image}/tags"
     "?page_size=100&name={name}&ordering=last_updated"
@@ -910,6 +968,7 @@ def check_dependency_updates(
         *check_github_actions(repo_root, list_remote_tags=cached_tags),
         *check_workflow_downloads(repo_root, fetch_json=fetch_json, list_remote_tags=cached_tags),
         *check_docker_args(repo_root, list_remote_tags=cached_tags, fetch_json=fetch_json),
+        *check_docker_debs(repo_root, fetch_json=fetch_json),
         *check_git_clones(repo_root, list_remote_tags=cached_tags),
         *check_docker_base(repo_root, fetch_json=fetch_json),
         *check_python_versions(repo_root, list_remote_tags=cached_tags),
@@ -925,6 +984,7 @@ def render_markdown(statuses: list[DependencyStatus]) -> str:
         "github-actions": "GitHub Actions",
         "pypi-uvx": "PyPI (uvx tool pins in workflows)",
         "docker-arg": "Docker ARG",
+        "docker-deb": "Docker .deb pins",
         "docker-base": "Docker base image",
         "git-clone": "Workflow git clones",
         "direct-download": "Direct downloads (workflow-pinned artifacts)",
