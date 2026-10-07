@@ -50,6 +50,17 @@ Deferrals and their review dates are tracked in
 an owner to revisit it by the listed date; deferrals do not change source
 pins.
 
+## 2026-10-07 update (sdk 1.53.0)
+
+Bumped `openhands-sdk`/`openhands-tools` 1.52.0 -> 1.53.0 (`sdk-check`
+group, `uv.lock` regenerated — no other pins moved). Adoption decisions are
+recorded per upstream change in
+[SDK v1.53.0 feature evaluation](research/sdk-v1.53.0-feature-evaluation.md):
+everything repo-facing was adopted implicitly or not applicable; the new
+canvas-extension icon endpoint was not adopted (VibeBB plugins are
+AgentCanvas plugins, not canvas extensions). The mcp deferral was refreshed
+citing SDK 1.53.0 — `fastmcp>=3.2.0,<4` still caps `mcp<2`.
+
 ## 2026-10-05 update (sdk 1.52.0)
 
 Bumped `openhands-sdk`/`openhands-tools` 1.51.0 -> 1.52.0 (`sdk-check`
