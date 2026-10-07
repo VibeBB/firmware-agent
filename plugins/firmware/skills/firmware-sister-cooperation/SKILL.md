@@ -21,6 +21,8 @@ Cooperation is JSON files in the shared workspace — never code imports.
 | out | `<name>.fw-power.json` (`firmware_power`) | `firmware power` / `firmware_power_export` | simulation-agent PDN load `current_a: "import:firmware:<net>"` |
 | out | `<design>.<id>.fw-request.json` (`fw_request`) | `firmware request` | the target sister |
 | in | bard `cues.json` (`bard_cue_manifest`), pinned by `cues.sha256` | bard-agent cue mode (`render_cues.py`) | `firmware cues` → `fw_cues.h`; `fw.bard_cues` |
+| in | prodeng `factory-test-spec.json` (`prodeng_ftm_spec`), pinned by `ftm.sha256` | `prodeng project` | `firmware ftm` → `fw_ftm.h`; `fw.ftm` |
+| out | `<name>.fw-production.json` (`firmware_production`) | `firmware production` / `firmware_production_export` after passing full gates | prodeng `import --from firmware-production`; `firmware.programming` |
 | in/out | `<product>.production.json` workstream `firmware` | UX producer | firmware reports as evidence |
 | in | `liaison/<id>.ux-request.json` (SLP v2) | ux-creator | `firmware ux inbox` / `firmware_ux_inbox` |
 | out | `liaison/<id>.ux-response.json` (SLP v2) | `firmware ux respond` / `firmware_ux_respond` | ux-creator |

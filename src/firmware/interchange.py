@@ -166,3 +166,85 @@ class BardCueManifest(_Strict):
 
 def load_cue_manifest(path: Path) -> BardCueManifest:
     return BardCueManifest.model_validate(json.loads(path.read_text(encoding="utf-8")))
+
+
+FtmTransport = Literal["uart", "usb_cdc", "swd", "jtag", "i2c", "spi", "can", "ble", "other"]
+
+
+class FtmEntrySpec(_Strict):
+    method: str = Field(min_length=1)
+    detail: str
+    conditions: list[str]
+
+
+class FtmLockoutSpec(_Strict):
+    method: str = Field(min_length=1)
+    detail: str
+
+
+class FtmInterfaceSpec(_Strict):
+    transport: FtmTransport
+    settings: str
+    nets: list[str]
+
+
+class FtmCommandSpec(_Strict):
+    id: str = Field(pattern=r"^TC-[0-9]{2,4}$")
+    name: str = Field(min_length=1)
+    request: str = Field(min_length=1)
+    response_pattern: str = Field(min_length=1)
+    timeout_ms: int = Field(gt=0)
+    measures_nets: list[str]
+    covers: list[str]
+    destructive: bool
+
+
+class FtmProvisioningSpec(_Strict):
+    item: str = Field(min_length=1)
+    source: str
+    write_once: bool
+
+
+class ProdengFtmSpec(_Strict):
+    """production-engineering ``factory-test-spec.json`` with a declared FTM."""
+
+    declared: Literal[True]
+    entry: FtmEntrySpec
+    field_lockout: FtmLockoutSpec
+    interface: FtmInterfaceSpec
+    commands: list[FtmCommandSpec]
+    provisioning: list[FtmProvisioningSpec]
+    exit: str
+    max_duration_s: float = Field(gt=0)
+    command_timeout_budget_s: float = Field(ge=0)
+
+
+def load_ftm_spec(path: Path) -> ProdengFtmSpec:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(data, dict) and data.get("declared") is False:  # pyright: ignore[reportUnknownMemberType]
+        raise ValueError("factory test spec declares no factory_test_mode")
+    return ProdengFtmSpec.model_validate(data)
+
+
+class FirmwareProduction(_Strict):
+    """``<name>.fw-production.json``: the gated image for production-engineering.
+
+    ``elf`` is relative to this file. ``ftm_spec_sha256`` is the factory test
+    spec the image was gated against (``null`` without an ``ftm`` link).
+    """
+
+    schema_version: Literal[1] = 1
+    system: Literal["firmware"] = "firmware"
+    artifact_kind: Literal["firmware_production"] = "firmware_production"
+    design: str
+    contract_sha256: str
+    gate_report_sha256: str
+    mcu_ref: str
+    mcu_profile: str
+    part: str
+    package: str
+    elf: str
+    elf_sha256: str
+    elf_bytes: int = Field(gt=0)
+    ftm_spec_sha256: str | None
+    ftm_commands: list[str]

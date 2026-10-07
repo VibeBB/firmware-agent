@@ -75,6 +75,28 @@ drop is solved with the MCU's worst case instead of a hand-copied number.
 The import is sha256-pinned in simulation's `imports.json`; re-export
 after every power-mode change.
 
+## production-engineering interchange
+
+production-engineering owns the factory test mode (FTM) in its
+`*.prodeng.json` and generates `factory-test-spec.json`. The optional
+`ftm` block pins that file by sha256; `fw.ftm` fails when the spec
+changed without a re-pin, when the transport has no matching firmware
+peripheral (`uart`, `usb_cdc`, `i2c`, `spi`; `swd`/`jtag` use the debug
+port; `can`/`ble`/`other` cannot pass), when an interface net is not on
+an MCU pin or none reaches `ftm.peripheral`, when a `gpio_strap` entry has
+no `gpio_in` pin, or when `fw_ftm.h` is missing or stale. `firmware ftm`
+writes the header: entry/lockout/transport strings, the command table
+(`FW_FTM_COMMANDS`, `FW_FTM_CMD_<NAME>` indices, timeouts, destructive
+flags) and `FW_FTM_PROVISION_<ITEM>` flags.
+
+After a passing `firmware gates`, `firmware production` writes
+`<name>.fw-production.json`: the ELF path, sha256 and size the gate run
+built (`GateReport.elf_sha256`), the contract and report sha256, the MCU
+part/package, and the gated factory test spec hash and command ids.
+production-engineering imports it (`--from firmware-production`) and
+binds it to a `programming` operation. Firmware never flashes hardware;
+programming stays a host-only, human-confirmed step.
+
 ## Outbound requests — `fw_request` v2
 
 `firmware request` writes `<design>.<id>.fw-request.json` to `circuit`,

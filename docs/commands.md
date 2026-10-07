@@ -15,6 +15,8 @@ launcher.
 | `gates` | `contract` `[--out dir]` | all gates incl. build, memory budget, cppcheck, QEMU sims |
 | `pins` | `contract` | regenerate `build.pins_header` (`fw_pins.h`) |
 | `cues` | `contract` | regenerate `cues.header` (`fw_cues.h`) from the pinned bard `cues.json`; fails when the manifest hash differs from `cues.sha256` |
+| `ftm` | `contract` | regenerate `ftm.header` (`fw_ftm.h`) from the pinned prodeng `factory-test-spec.json`; fails when the spec hash differs from `ftm.sha256` |
+| `production` | `contract` `[--out dir]` | export `<name>.fw-production.json` (ELF sha256/size, contract/report sha256, MCU, factory test spec) from the last passing full gate run; never flashes hardware |
 | `pinmap` | `contract` `[--out dir]` | export `<name>.fw-pinmap.json` + `*.pinmap.md`/`*.pinmap.png` |
 | `power` | `contract` `[--out dir]` | export `<name>.fw-power.json` (peak/average draw on the supply net) for simulation-agent |
 | `sim` | `contract` `--id <sim>` `[--out dir]` | run one declared QEMU simulation; writes `sim-<id>.log`/`sim-<id>.png` |
