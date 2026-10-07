@@ -107,12 +107,13 @@ jobs:
         run: |
           echo "week=$(date +%G-W%V)" >> "$GITHUB_OUTPUT"
           # Shared by all Trivy invocations in this job; the actions/cache
-          # step below restores the DB saved by container-audit.
-          echo "TRIVY_CACHE_DIR=$HOME/.cache/trivy" >> "$GITHUB_ENV"
+          # step below restores the DB saved by container-audit. trivy-action
+          # legs point cache-dir at the same directory.
+          echo "TRIVY_CACHE_DIR=$RUNNER_TEMP/trivy-cache" >> "$GITHUB_ENV"
       - name: Restore Trivy vulnerability DB
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: ~/.cache/trivy
+          path: ${{ runner.temp }}/trivy-cache
           # ISO-week key: the vulnerability DB refreshes daily upstream;
           # a weekly key bounds staleness while sharing the ~120MB
           # download across scans and publish runs. lookup-only: this job
@@ -160,6 +161,13 @@ jobs:
           # Scan the exact pushed digest — the content the SBOM and
           # provenance attestations bind to (the rehearsal tag in dry_run).
           scan-ref: ${{ steps.scan-ref.outputs.ref }}
+          # Shared warm DB dir; sequential legs may share it. Never place
+          # trivy-action legs inside a `parallel:` group with a shared
+          # cache-dir — concurrent writers corrupt the DB, and the action
+          # also round-trips env vars through ./trivy_envs.txt in the job
+          # cwd, which races the same way. TRIVY_CACHE_DIR env does NOT
+          # override the action's cache-dir input.
+          cache-dir: ${{ runner.temp }}/trivy-cache
           version: v0.75.0
           scanners: vuln,secret,misconfig
           severity: CRITICAL,HIGH
@@ -193,6 +201,11 @@ jobs:
             with:
               scan-type: image
               scan-ref: ${{ steps.scan-ref.outputs.ref }}
+              # Private cache dir: this leg runs inside a parallel group,
+              # and trivy-action's default cache-dir (.cache/trivy) would
+              # share the DB with other legs and corrupt db/metadata.json
+              # on concurrent writes.
+              cache-dir: ${{ runner.temp }}/trivy-tools-json
               version: v0.75.0
               scanners: vuln,secret,misconfig,license
               ignore-unfixed: false
