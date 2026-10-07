@@ -1,0 +1,21 @@
+#!/bin/bash
+# apt-get update with an archive-mirror fallback.
+#
+# archive.ubuntu.com's port-80 front end has repeated outages (2026-08/09/10)
+# where some pool IPs time out and others answer, so a TCP probe is not
+# decisive. The reliable signal is whether the resolute suite indexes
+# actually landed in /var/lib/apt/lists: when any are missing, rewrite the
+# deb822 sources to Canonical's EC2 mirror and retry once.
+set -eu
+
+apt-get -o Acquire::Retries=5 update || true
+
+if compgen -G '/var/lib/apt/lists/*_dists_resolute_InRelease' > /dev/null \
+    && compgen -G '/var/lib/apt/lists/*_dists_resolute-updates_InRelease' > /dev/null \
+    && compgen -G '/var/lib/apt/lists/*_dists_resolute-security_InRelease' > /dev/null; then
+    exit 0
+fi
+
+sed -i 's|http://archive.ubuntu.com/ubuntu|http://us-west-2.ec2.archive.ubuntu.com/ubuntu|g; s|http://security.ubuntu.com/ubuntu|http://us-west-2.ec2.archive.ubuntu.com/ubuntu|g' \
+    /etc/apt/sources.list.d/ubuntu.sources
+exec apt-get -o Acquire::Retries=5 update

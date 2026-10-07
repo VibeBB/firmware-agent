@@ -42,17 +42,14 @@ LABEL org.opencontainers.image.source="https://github.com/VibeBB/firmware-agent"
       firmware.cppcheck.version="${CPPCHECK_VERSION}"
 
 COPY --from=uv /uv /uvx /usr/local/bin/
+COPY --chmod=0755 docker/apt-sources-fallback /usr/local/bin/
 
 # GPL-licensed tools (GCC, GDB, QEMU, Cppcheck) are installed as separate
 # executables and only ever invoked as subprocesses.
 # archive.ubuntu.com's port-80 front end has repeated outages (2026-08/09/10);
-# when it is unreachable swap the deb822 sources to Canonical's EC2 mirror —
-# the rewritten file then also serves later layers.
-RUN if ! timeout 8 bash -c '</dev/tcp/archive.ubuntu.com/80' 2>/dev/null; then \
-        sed -i 's|http://archive.ubuntu.com/ubuntu|http://us-west-2.ec2.archive.ubuntu.com/ubuntu|g; s|http://security.ubuntu.com/ubuntu|http://us-west-2.ec2.archive.ubuntu.com/ubuntu|g' \
-            /etc/apt/sources.list.d/ubuntu.sources; \
-    fi \
-    && apt-get -o Acquire::Retries=5 update \
+# apt-sources-fallback swaps the deb822 sources to Canonical's EC2 mirror
+# whenever the resolute indexes fail to land.
+RUN apt-sources-fallback \
     && apt-get -o Acquire::Retries=5 install --no-install-recommends -y \
         ca-certificates \
         curl \
@@ -118,11 +115,7 @@ RUN curl --fail --location --silent --show-error \
         --output /tmp/cppcheck.deb \
         "${CPPCHECK_DEB_URL}" \
     && echo "${CPPCHECK_DEB_SHA256}  /tmp/cppcheck.deb" | sha256sum --check \
-    && if ! timeout 8 bash -c '</dev/tcp/archive.ubuntu.com/80' 2>/dev/null; then \
-        sed -i 's|http://archive.ubuntu.com/ubuntu|http://us-west-2.ec2.archive.ubuntu.com/ubuntu|g; s|http://security.ubuntu.com/ubuntu|http://us-west-2.ec2.archive.ubuntu.com/ubuntu|g' \
-            /etc/apt/sources.list.d/ubuntu.sources; \
-    fi \
-    && apt-get -o Acquire::Retries=5 update \
+    && apt-sources-fallback \
     && apt-get -o Acquire::Retries=5 install --no-install-recommends -y /tmp/cppcheck.deb \
     && rm -rf /var/lib/apt/lists/* /tmp/cppcheck.deb \
     && mkdir -p /usr/share/doc/cppcheck \
