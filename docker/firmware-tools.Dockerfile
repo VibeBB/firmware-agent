@@ -48,9 +48,8 @@ COPY --chmod=0755 docker/apt-sources-fallback /usr/local/bin/
 # executables and only ever invoked as subprocesses.
 # archive.ubuntu.com's port-80 front end has repeated outages (2026-08/09/10);
 # apt-sources-fallback swaps the deb822 sources to Canonical's EC2 mirror
-# whenever the resolute indexes fail to land.
+# whenever the resolute indexes or package downloads fail to land.
 RUN apt-sources-fallback \
-    && apt-get -o Acquire::Retries=5 install --no-install-recommends -y \
         ca-certificates \
         curl \
         git \
@@ -115,8 +114,7 @@ RUN curl --fail --location --silent --show-error \
         --output /tmp/cppcheck.deb \
         "${CPPCHECK_DEB_URL}" \
     && echo "${CPPCHECK_DEB_SHA256}  /tmp/cppcheck.deb" | sha256sum --check \
-    && apt-sources-fallback \
-    && apt-get -o Acquire::Retries=5 install --no-install-recommends -y /tmp/cppcheck.deb \
+    && apt-sources-fallback /tmp/cppcheck.deb \
     && rm -rf /var/lib/apt/lists/* /tmp/cppcheck.deb \
     && mkdir -p /usr/share/doc/cppcheck \
     && printf '%s\n' \
