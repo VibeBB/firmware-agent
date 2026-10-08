@@ -8,6 +8,20 @@
       "reason": "openhands-sdk 1.53.0 requires fastmcp>=3.2.0,<4, which requires mcp<2.0. Defer MCP 2.x until a supported SDK/fastmcp release removes that constraint."
     },
     {
+      "surface": "python-version",
+      "name": "Python version (pyproject.toml)",
+      "latest": "3.14",
+      "review_by": "2027-01-08",
+      "reason": "3.12/3.13 remain the supported floor; 3.14+ is exercised by the canary legs."
+    },
+    {
+      "surface": "python-version",
+      "name": "Python version (ci.yml)",
+      "latest": "3.14",
+      "review_by": "2027-01-08",
+      "reason": "3.12/3.13 remain the supported floor; 3.14+ is exercised by the canary legs."
+    },
+    {
       "surface": "docker-arg",
       "name": "ESPRESSIF32_PLATFORM",
       "latest": "any",

@@ -114,4 +114,4 @@ def test_locked_image_check_validates_provenance_and_uploads_smoke_artifacts() -
     )
     assert 're.fullmatch(r"sha256:[0-9a-f]{64}", digest)' in text
     assert "gh attestation verify" in text
-    assert "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" in text
+    assert "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9" in text
