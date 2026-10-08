@@ -60,6 +60,24 @@ Deferrals and their review dates are tracked in
 an owner to revisit it by the listed date; deferrals do not change source
 pins.
 
+## 2026-10-08 update (GitHub Actions pins)
+
+Bumped `step-security/harden-runner` v2.21.1 -> v2.22.1,
+`actions/upload-artifact` v7.0.1 -> v7.0.2 and
+`actions/download-artifact` v8.0.1 -> v8.0.2 (sha+comment pins in all
+workflows; canonical-file EXPECTED hashes refreshed in
+`scripts/check_shared_workflows.py`). Changelog review: harden-runner
+v2.22.0 adds Linux ARM64 community-tier support, GHES self-hosted VM
+support and macOS/Windows deny-list entries, and v2.22.1 fixes
+security-rule initialization and connectivity on GHES self-hosted
+runners — nothing to adopt (runners are ubuntu-26.04 x86_64 GitHub-hosted
+with an audit egress policy); upload/download-artifact improve HTTP 429
+retry handling honoring Retry-After — internal improvement, no usage
+change. Added python-version deferrals for the
+3.12/3.13 floor rows (pyproject.toml + ci.yml matrix) with review_by
+2027-01-08; the mcp deferral is unchanged (SDK 1.53.0 still caps mcp<2 via
+fastmcp).
+
 ## 2026-10-07 update (sdk 1.53.0)
 
 Bumped `openhands-sdk`/`openhands-tools` 1.52.0 -> 1.53.0 (`sdk-check`
