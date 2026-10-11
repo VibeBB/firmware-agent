@@ -58,6 +58,12 @@ Rules enforced at load time (unknown keys are rejected everywhere):
   `header`, and the transducer band `min_hz` < `max_hz` from its
   datasheet. Re-pin `sha256` only after reviewing a re-rendered cue set;
   then run `firmware cues`.
+- `security` (optional, ESP-IDF) declares `secure_boot`,
+  `flash_encryption`, `ota_rollback` and `jtag_disabled` with a
+  `rationale` and the `sdkconfig` (`sdkconfig.defaults`) the build
+  applies. `fw.security` checks the real settings and partition table;
+  set the options in `sdkconfig.defaults`, never claim them in the
+  contract only.
 - `ftm` (optional) binds production-engineering's
   `factory-test-spec.json`: `spec`, pinned `sha256`, the generated
   `header`, and the `peripheral` carrying the factory transport (none for

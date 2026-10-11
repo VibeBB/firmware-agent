@@ -249,6 +249,21 @@ class FtmLink(_Strict):
     rationale: str = ""
 
 
+class Security(_Strict):
+    """Product security and field-update requirements checked against the build config.
+
+    ``sdkconfig`` is the contract-relative ESP-IDF ``sdkconfig.defaults`` the
+    build applies; the gate reads it, it never infers a setting.
+    """
+
+    sdkconfig: str = Field(min_length=1)
+    secure_boot: bool
+    flash_encryption: bool
+    ota_rollback: bool
+    jtag_disabled: bool
+    rationale: str = Field(min_length=12)
+
+
 class FirmwareContract(_Strict):
     schema_version: Literal[1] = SCHEMA_VERSION
     system: Literal["firmware"] = "firmware"
@@ -266,6 +281,7 @@ class FirmwareContract(_Strict):
     cues: CueLink | None = None
     fpga: FpgaLink | None = None
     ftm: FtmLink | None = None
+    security: Security | None = None
 
     @model_validator(mode="after")
     def _unique(self) -> FirmwareContract:

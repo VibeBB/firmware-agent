@@ -37,6 +37,16 @@ everything else is generated or exchanged.
   `sha256` (pinned spec hash), `header` (generated `fw_ftm.h`),
   `peripheral?` (the uart/usb/i2c/spi peripheral carrying the factory
   transport; omitted for swd/jtag), `rationale`
+- `security?`: `sdkconfig` (contract-relative ESP-IDF
+  `sdkconfig.defaults`), `secure_boot`, `flash_encryption`,
+  `ota_rollback`, `jtag_disabled`, `rationale`. Gate `fw.security`
+  requires `CONFIG_SECURE_BOOT`+`CONFIG_SECURE_BOOT_V2_ENABLED` and forbids
+  `CONFIG_SECURE_BOOT_INSECURE` (secure boot); requires
+  `CONFIG_SECURE_FLASH_ENC_ENABLED` + release mode and forbids development
+  mode (flash encryption); requires `CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE`
+  and partition subtypes `ota` (otadata), `ota_0` and `ota_1` from the built-in two-OTA table
+  or the custom CSV (OTA rollback); forbids the JTAG-allow options (JTAG
+  lock). An unreadable file or a missing setting fails
 - `simulations[]`: `id`, `runner` (qemu-arm needs `exit_code`, qemu-esp
   forbids it), `machine`, `fidelity` (mcu/core), `image`, `build?`,
   `expect[]`, `forbid[]`, `exit_code?`, `timeout_s` (≤600)
