@@ -1,6 +1,6 @@
 # Agents
 
-Three agents in `plugins/firmware/agents/`; all work through the launcher
+Four agents in `plugins/firmware/agents/`; all work through the launcher
 and the firmware MCP server.
 
 ## firmware-architect
@@ -29,5 +29,15 @@ Reviews the finished work: contract, gate report, rendered images
 Records: vision reviews of the images it inspects; a closing stage
 impression.
 
-All three must leave the records described in
+## firmware-blind-review
+
+Independent second (`blind`) or third (`tiebreak`) vision review of a
+`*.pinmap.png` or `*.fw-report.png` render. The `blind-guard` hook denies
+reads of `observations/`, advisories, liaison answers and bard songs so
+the earlier review cannot anchor it. Tools: terminal, file_editor, grep,
+glob, VisionInspectTool; 20 iterations, budget 1.5. Records: one
+`firmware_record_vision_review` with `reviewer: "blind"`/`"tiebreak"`;
+never reconciles and never issues a verdict.
+
+All four must leave the records described in
 [records-and-vision.md](records-and-vision.md); the Stop hook enforces it.

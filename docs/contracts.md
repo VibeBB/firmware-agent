@@ -184,8 +184,9 @@ high risk requires a snake_case job id in `rationale` (local heuristic).
 
 ## VRP records — `observations/firmware/*.jsonl`
 
-`decisions.jsonl`, `impressions.jsonl`, `vision-reviews.jsonl` —
-append-only, each event carrying an `event_id` used as
+`decisions.jsonl`, `impressions.jsonl`, `vision-reviews.jsonl`,
+`reconciles.jsonl`, `insights.jsonl`, `reads.jsonl`, `song-receipts.jsonl` —
+VRP v2, hash-chained and append-only, each event carrying an `event_id` used as
 `decision_refs`/`impression_refs`. See
 [records-protocol.md](records-protocol.md).
 

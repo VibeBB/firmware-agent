@@ -13,8 +13,9 @@ Subcommands:
   debug     scripted GDB session on a QEMU simulation (advisory)
   request   write a change request to a sister agent
   profile   print a bundled MCU profile
-  record    append a VibeBB Record Protocol record (decision, impression,
-            vision-review) or print the records status
+  record    append a VibeBB Record Protocol v2 record (decision, impression,
+            vision-review, reconcile, insight, song-receipt, read) or print
+            the records status, digest or search results
   render    render pin map / gate report / sim timeline PNGs
   ux        ux-creator liaison: `ux inbox` lists requests,
             `ux respond --json <file>` answers one
@@ -74,7 +75,21 @@ def _parser() -> argparse.ArgumentParser:
     request.add_argument("--out", type=Path)
     sub.add_parser("profile").add_argument("id")
     record = sub.add_parser("record", help="append a VibeBB Record Protocol record")
-    record.add_argument("kind", choices=["decision", "impression", "vision-review", "status"])
+    record.add_argument(
+        "kind",
+        choices=[
+            "decision",
+            "impression",
+            "vision-review",
+            "reconcile",
+            "insight",
+            "song-receipt",
+            "read",
+            "status",
+            "digest",
+            "search",
+        ],
+    )
     record.add_argument("--json", type=Path, default=None, help="record fields as a JSON file")
     render = sub.add_parser("render", help="render PNG views of the contract")
     render.add_argument("contract", type=Path)
@@ -146,8 +161,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     if command == "record":
         if args.kind == "status":
             return _emit(service.records_status_payload())
+        if args.kind == "digest":
+            return _emit(service.records_digest_payload())
+        if args.kind == "search" and args.json is None:
+            return _emit(service.records_search_payload({}))
         if args.json is None:
-            parser.error("record decision|impression|vision-review requires --json")
+            parser.error(f"record {args.kind} requires --json")
+        if args.kind == "search":
+            return _emit(service.record_file_payload("search", args.json))
         return _emit(service.record_file_payload(args.kind, args.json))
     if command == "render":
         return _emit(service.render_payload(args.contract, args.out, args.views))

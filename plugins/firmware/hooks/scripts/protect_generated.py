@@ -37,6 +37,7 @@ ARTIFACT_SUFFIXES = (
     ".fw-report.png",
     ".advisory.json",
     ".ux-response.json",
+    ".bard-song.json",
 )
 ARTIFACT_NAMES = (
     "fw_pins.h",
@@ -270,7 +271,7 @@ def main() -> int:
         print(
             "generated firmware artifacts (fw_pins.h, *.fw-pinmap.json,"
             " *.pinmap.png, *.fw-report.*, sim-*.log, sim-*.png,"
-            " debug-*.advisory.json, *.ux-response.json, observations/firmware/*,"
+            " debug-*.advisory.json, *.ux-response.json, *.bard-song.json, observations/firmware/*,"
             " intake/attachments/manifest.jsonl)"
             " are generated records or projections and must not be edited directly;"
             " regenerate deterministic projections with `firmware pins`,"

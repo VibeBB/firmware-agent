@@ -24,7 +24,8 @@ launcher.
 | `debug.py` | scripted GDB session on a QEMU run; `debug-*.advisory.json` (advisory only) |
 | `doctor.py` | toolchain probes used by `firmware doctor` |
 | `liaison.py` | SLP v2 mirror: `UxRequest`/`UxResponse`, `inbox()`, `respond()` |
-| `records.py` | VibeBB Record Protocol v1: decisions, impressions, vision reviews, status (JSONL under `observations/firmware/`) |
+| `records.py` | VibeBB Record Protocol v2 writer: decisions, impressions, vision reviews, reconciles, insights, reads, song receipts, status, digest, search (hash-chained JSONL under `observations/firmware/`) |
+| `_vrp.py` | Vendored VRP v2 core (canonical copy from wire-agent): canonical JSON, chain verification, impression rules, digest and search |
 | `requests.py` | `*.fw-request.json` v2: hashed inputs, decision refs, sister targets |
 | `service.py` | one `*_payload` function per CLI command/MCP tool; renders + `vision_review_required` meta; liaison wrappers |
 | `mcp_server.py` | MCP stdio server: `TOOLS` schemas, `dispatch`, inline `ImageContent` for image-producing tools |

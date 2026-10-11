@@ -15,7 +15,12 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PLUGIN_DIR = REPO_ROOT / "plugins" / "firmware"
 
-EXPECTED_AGENTS = {"firmware-architect", "firmware-developer", "firmware-review"}
+EXPECTED_AGENTS = {
+    "firmware-architect",
+    "firmware-blind-review",
+    "firmware-developer",
+    "firmware-review",
+}
 EXPECTED_SKILLS = {
     "firmware-contract",
     "firmware-contract-rules",

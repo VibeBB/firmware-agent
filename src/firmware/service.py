@@ -33,7 +33,7 @@ from .projections import (
     write_bytes,
     write_text,
 )
-from .records import RECORDERS, records_summary
+from .records import RECORDERS, records_digest, records_search, records_summary
 from .render import render_pinmap, render_sim_timeline
 from .requests import write_request
 from .sbom import cyclonedx
@@ -512,6 +512,17 @@ def record_file_payload(kind: str, json_path: Path) -> Json:
 
 def records_status_payload() -> Json:
     return cast(Json, records_summary())
+
+
+def records_digest_payload() -> Json:
+    return cast(Json, records_digest())
+
+
+def records_search_payload(payload: Mapping[str, object]) -> Json:
+    try:
+        return cast(Json, records_search(dict(payload)))
+    except ValueError as exc:
+        return {"verdict": FAIL, "stage": "record", "detail": str(exc)}
 
 
 def profile_payload(profile_id: str) -> Json:
