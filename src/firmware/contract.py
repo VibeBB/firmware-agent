@@ -193,6 +193,27 @@ class Simulation(_Strict):
         return self
 
 
+class UnitTests(_Strict):
+    """Host C unit tests of product code; ``sources`` are measured, ``tests`` hold main()."""
+
+    sources: list[str] = Field(min_length=1)
+    tests: list[str] = Field(min_length=1)
+    includes: list[str] = Field(default_factory=list[str])
+    defines: list[str] = Field(default_factory=list[str])
+    std: Literal["c99", "c11", "c17"] = "c11"
+    min_line_pct: float = Field(ge=0, le=100)
+    min_branch_pct: float = Field(ge=0, le=100)
+    timeout_s: int = Field(default=120, gt=0, le=1800)
+    rationale: str = Field(min_length=12)
+
+    @model_validator(mode="after")
+    def _disjoint(self) -> UnitTests:
+        both = sorted(set(self.sources) & set(self.tests))
+        if both:
+            raise ValueError(f"unit_tests: files are both sources and tests: {both}")
+        return self
+
+
 class CircuitLink(_Strict):
     connectivity: str
 
@@ -281,6 +302,7 @@ class FirmwareContract(_Strict):
     fpga: FpgaLink | None = None
     ftm: FtmLink | None = None
     components: list[Component] = Field(default_factory=list[Component])
+    unit_tests: UnitTests | None = None
 
     @model_validator(mode="after")
     def _unique(self) -> FirmwareContract:

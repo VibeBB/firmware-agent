@@ -49,6 +49,7 @@ from .projections import (
 from .render import render_pinmap, render_report
 from .sbom import component_problems
 from .sim import run_simulation
+from .unit import run_unit_tests
 
 Status = Literal["pass", "fail", "not_applicable"]
 Verdict = Literal["pass", "fail"]
@@ -624,6 +625,8 @@ def run_gates(
             )
         )
         checks.extend(_simulation_checks(contract, profile, root, out_dir))
+        if contract.unit_tests is not None:
+            checks.append(check_unit_tests(contract, root, out_dir))
     verdict: Verdict = PASS if all(c.status != "fail" for c in checks) else FAIL
     return GateReport(
         design=contract.name,
@@ -635,6 +638,19 @@ def run_gates(
         checks=checks,
         metrics=metrics,
         elf_sha256=elf_sha,
+    )
+
+
+def check_unit_tests(contract: FirmwareContract, root: Path, out_dir: Path) -> Check:
+    """Host C unit tests pass and meet the authored gcov line/branch floors."""
+    assert contract.unit_tests is not None
+    unit = contract.unit_tests
+    result = run_unit_tests(unit, root, out_dir)
+    return _check(
+        "fw.unit_coverage",
+        f"line>={unit.min_line_pct}% branch>={unit.min_branch_pct}%",
+        [] if result.ok else [result.detail],
+        result.evidence,
     )
 
 

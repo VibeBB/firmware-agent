@@ -70,4 +70,13 @@ Rules enforced at load time (unknown keys are rejected everywhere):
   missing path or on vendored code under `lib/`, `third_party/`,
   `vendor/`, `components/`, `Drivers/` … that no component covers;
   `firmware sbom` then writes `<name>.fw-sbom.cdx.json` (CycloneDX 1.5).
+- `unit_tests` (optional) unit-tests hardware-independent product logic
+  (state machines, parsers, control limits) on the host: list the measured
+  `sources`, the `tests` with `main()` (return non-zero on a failed
+  assertion), and the line (C0) and branch (C1) floors with a rationale.
+  Keep register access behind the HAL so these files build with host
+  `gcc`. Design the tests with equivalence classes and 3-value boundaries
+  (limit-1, limit, limit+1) for every threshold; `fw.unit_coverage` fails
+  below a floor, so raise uncovered branches with tests, never lower the
+  floor to pass.
 - Paths are relative to the contract file.
