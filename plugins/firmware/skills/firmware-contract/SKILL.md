@@ -63,6 +63,12 @@ Rules enforced at load time (unknown keys are rejected everywhere):
   `header`, and the `peripheral` carrying the factory transport (none for
   swd/jtag). Re-pin only after reviewing a changed spec; then run
   `firmware ftm`.
+- `faults` (optional) is the runtime fault table the device reports in
+  a status field: unique `code` (1–65535; 0 means no fault), unique
+  identifier `name`, `severity` (`info`/`warning`/`error`/`critical`) and
+  the user or service `action`. dashboard-agent decodes the field through
+  this table, so change a code only together with the firmware that
+  reports it.
 - `components` lists every third-party (or reused) library compiled into
   the image: `name`, `version`, `supplier`, SPDX `license` expression,
   VCS `source`, and the contract-relative `paths`. Copy these facts from

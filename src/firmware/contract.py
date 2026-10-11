@@ -263,6 +263,15 @@ class Component(_Strict):
     paths: list[str] = Field(min_length=1)
 
 
+class Fault(_Strict):
+    """A fault the firmware reports in its runtime status (code 0 means no fault)."""
+
+    code: int = Field(ge=1, le=65535)
+    name: str = Field(pattern=IDENT)
+    severity: Literal["info", "warning", "error", "critical"]
+    action: str = Field(min_length=1, description="what the user or service technician does")
+
+
 class FirmwareContract(_Strict):
     schema_version: Literal[1] = SCHEMA_VERSION
     system: Literal["firmware"] = "firmware"
@@ -280,6 +289,7 @@ class FirmwareContract(_Strict):
     cues: CueLink | None = None
     fpga: FpgaLink | None = None
     ftm: FtmLink | None = None
+    faults: list[Fault] = Field(default_factory=list[Fault])
     components: list[Component] = Field(default_factory=list[Component])
 
     @model_validator(mode="after")
@@ -290,6 +300,8 @@ class FirmwareContract(_Strict):
             ("peripheral id", [p.id for p in self.peripherals]),
             ("power mode id", [m.id for m in self.power.modes]),
             ("simulation id", [s.id for s in self.simulations]),
+            ("fault code", [str(f.code) for f in self.faults]),
+            ("fault name", [f.name for f in self.faults]),
             ("component", [c.name for c in self.components]),
         ):
             duplicates = sorted({v for v in values if values.count(v) > 1})

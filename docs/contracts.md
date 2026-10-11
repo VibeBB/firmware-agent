@@ -44,6 +44,12 @@ everything else is generated or exchanged.
   tree (`lib`, `libs`, `third_party`, `vendor`, `external`, `components`,
   `Drivers`, `Middlewares`; hidden, `build` and `out` directories skipped)
   is not covered by a declared component
+- `faults[]`: `code` (1–65535, unique; 0 is reserved for "no fault"),
+  `name` (identifier, unique), `severity` (`info`/`warning`/`error`/
+  `critical`), `action` (what the user or service technician does). The
+  firmware owns this table; dashboard-agent pins the contract
+  (`device.firmware_sha256`) and decodes a status field through it in a
+  `fault` widget
 - `simulations[]`: `id`, `runner` (qemu-arm needs `exit_code`, qemu-esp
   forbids it), `machine`, `fidelity` (mcu/core), `image`, `build?`,
   `expect[]`, `forbid[]`, `exit_code?`, `timeout_s` (≤600)
