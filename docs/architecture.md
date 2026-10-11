@@ -11,7 +11,7 @@ launcher.
 | --- | --- |
 | `contract.py` | `<name>.fw.json` firmware contract model (MCU, pins, peripherals, power, build, analysis, simulations) + `load_contract`, `resolve` |
 | `profiles/` | bundled MCU profiles `esp32s3`, `rp2040` (pads, functions, memory regions, package) + `load_profile` |
-| `gates.py` | deterministic gate evaluation: static (`fw.contract`, `fw.pin_functions`, `fw.netlist_match`, `fw.power_modes`, `fw.pins_header`, `fw.bard_cues`, `fw.ftm`) and toolchain (`fw.build`, `fw.memory_budget`, `fw.static_analysis`, `fw.sim.<id>`); `GateReport` + `metrics` + `elf_sha256`; `write_outputs` |
+| `gates.py` | deterministic gate evaluation: static (`fw.contract`, `fw.pin_functions`, `fw.netlist_match`, `fw.power_modes`, `fw.pins_header`, `fw.bard_cues`, `fw.ftm`, and the `*_provenance` envelope v3 checks) and toolchain (`fw.build`, `fw.memory_budget`, `fw.static_analysis`, `fw.sim.<id>`); `GateReport` + `metrics` + `elf_sha256`; `write_outputs` |
 | `production.py` | `production_export`: binds the ELF of the last passing full gate run (and the pinned factory test spec) into `*.fw-production.json` for production-engineering-agent |
 | `interchange.py` | sister-facing models: `CircuitFirmwareConnectivity` (in), `FirmwarePinmap` (out), `sha256_file` |
 | `projections.py` | generated projections: `fw_pins.h`, `*.fw-pinmap.json`, `*.fw-power.json`, `*.pinmap.md`, `*.fw-report.md`, the FTM header; `write_text`/`write_bytes` |
@@ -25,6 +25,7 @@ launcher.
 | `doctor.py` | toolchain probes used by `firmware doctor` |
 | `liaison.py` | SLP v2 mirror: `UxRequest`/`UxResponse`, `inbox()`, `respond()` |
 | `records.py` | VibeBB Record Protocol v2 writer: decisions, impressions, vision reviews, reconciles, insights, reads, song receipts, status, digest, search (hash-chained JSONL under `observations/firmware/`) |
+| `_envelope.py` | Interchange envelope v3 sidecars: `write_envelope` for exports, `check_envelope` for pinned sister artifacts |
 | `_vrp.py` | Vendored VRP v2 core (canonical copy from wire-agent): canonical JSON, chain verification, impression rules, digest and search |
 | `requests.py` | `*.fw-request.json` v2: hashed inputs, decision refs, sister targets |
 | `service.py` | one `*_payload` function per CLI command/MCP tool; renders + `vision_review_required` meta; liaison wrappers |

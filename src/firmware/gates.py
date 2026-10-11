@@ -15,6 +15,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from ._envelope import check_envelope, sidecar_path, write_envelope
 from .analysis import run_cppcheck
 from .build import run_build
 from .contract import (
@@ -51,6 +52,7 @@ from .sbom import component_problems
 from .security import security_problems
 from .sim import run_simulation
 from .unit import run_unit_tests
+from .workspace import workspace_root
 
 Status = Literal["pass", "fail", "not_applicable"]
 Verdict = Literal["pass", "fail"]
@@ -96,6 +98,23 @@ def _check(
         status="fail" if problems else "pass",
         detail="; ".join(problems),
         evidence=evidence or [],
+    )
+
+
+def check_import_provenance(
+    check_id: str, subject: str, artifact: Path, producer: str, pinned_sha256: str
+) -> Check:
+    """Interchange envelope v3 sidecar of a pinned sister artifact.
+
+    firmware gates are binary, so a missing sidecar (``unknown``) fails closed
+    with an ``unknown:`` detail.
+    """
+    status, detail = check_envelope(artifact, producer, workspace_root(), pinned_sha256)
+    return Check(
+        id=check_id,
+        subject=subject,
+        status="pass" if status == "pass" else "fail",
+        detail=f"unknown: {detail}" if status == "unknown" else detail,
     )
 
 
@@ -580,10 +599,40 @@ def run_gates(
     checks.append(check_pins_header(contract, profile, contract_path))
     if contract.cues is not None:
         checks.append(check_bard_cues(contract, contract_path))
+        cues = contract.cues
+        checks.append(
+            check_import_provenance(
+                "fw.bard_cues_provenance",
+                cues.manifest,
+                resolve(contract_path, cues.manifest),
+                "bard",
+                cues.sha256,
+            )
+        )
     if contract.fpga is not None:
         checks.append(check_fpga_regmap(contract, contract_path))
+        fpga = contract.fpga
+        checks.append(
+            check_import_provenance(
+                "fw.fpga_regmap_provenance",
+                fpga.regmap,
+                resolve(contract_path, fpga.regmap),
+                "fpga",
+                fpga.sha256,
+            )
+        )
     if contract.ftm is not None:
         checks.append(check_ftm(contract, contract_path))
+        ftm = contract.ftm
+        checks.append(
+            check_import_provenance(
+                "fw.ftm_provenance",
+                ftm.spec,
+                resolve(contract_path, ftm.spec),
+                "prodeng",
+                ftm.sha256,
+            )
+        )
     if contract.security is not None:
         problems, evidence = security_problems(contract, contract_path)
         checks.append(_check("fw.security", contract.name, problems, evidence))
@@ -749,12 +798,15 @@ def write_outputs(
     except (OSError, ValueError, ValidationError):
         return written
     pinmap = pinmap_export(contract, profile, sha256_file(contract_path))
-    written.append(
-        write_text(
-            out_dir / f"{contract.name}.fw-pinmap.json",
-            json.dumps(pinmap.model_dump(mode="json"), indent=2, ensure_ascii=False) + "\n",
-        )
+    pinmap_path = write_text(
+        out_dir / f"{contract.name}.fw-pinmap.json",
+        json.dumps(pinmap.model_dump(mode="json"), indent=2, ensure_ascii=False) + "\n",
     )
+    written.append(pinmap_path)
+    try:
+        write_envelope(pinmap_path, "firmware", [contract_path], workspace_root())
+    except ValueError:  # broken firmware decision log: no sidecar, consumers fail closed
+        sidecar_path(pinmap_path).unlink(missing_ok=True)
     written.append(write_text(out_dir / f"{contract.name}.pinmap.md", pinmap_markdown(pinmap)))
     try:
         written.append(

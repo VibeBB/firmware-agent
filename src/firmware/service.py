@@ -11,6 +11,7 @@ from typing import cast
 from pydantic import ValidationError
 
 from . import doctor, liaison
+from ._envelope import sidecar_path, write_envelope
 from .contract import Simulation, load_contract, resolve
 from .debug import run_debug
 from .gates import FAIL, PASS, run_gates, write_outputs
@@ -38,6 +39,7 @@ from .render import render_pinmap, render_sim_timeline
 from .requests import write_request
 from .sbom import cyclonedx
 from .sim import SimResult, run_simulation
+from .workspace import workspace_root
 
 type Json = dict[str, object]
 
@@ -58,6 +60,16 @@ def _attach_image_meta(payload: Json) -> Json:
         payload["vision_review_required"] = cast(object, pngs)
         payload["vision_hint"] = VISION_HINT
     return payload
+
+
+def _envelope_v3(artifact: Path, sources: list[Path], stage: str) -> Json | None:
+    """Write the envelope v3 sidecar; a refusal becomes the stage's fail payload."""
+    try:
+        write_envelope(artifact, "firmware", sources, workspace_root())
+    except ValueError as exc:
+        sidecar_path(artifact).unlink(missing_ok=True)
+        return {"verdict": FAIL, "stage": stage, "detail": f"provenance refused: {exc}"}
+    return None
 
 
 def _default_out(contract_path: Path) -> Path:
@@ -210,6 +222,9 @@ def production_payload(contract_path: Path, out_dir: Path | None) -> Json:
         out / f"{export.design}.fw-production.json",
         json.dumps(export.model_dump(mode="json"), indent=2, ensure_ascii=False) + "\n",
     )
+    refused = _envelope_v3(path, [contract_path], "production")
+    if refused is not None:
+        return refused
     return {
         "verdict": PASS,
         "stage": "production",
@@ -231,6 +246,9 @@ def sbom_payload(contract_path: Path, out_dir: Path | None) -> Json:
         out / f"{contract.name}.fw-sbom.cdx.json",
         json.dumps(bom, indent=2, ensure_ascii=False) + "\n",
     )
+    refused = _envelope_v3(path, [contract_path], "sbom")
+    if refused is not None:
+        return refused
     return {"verdict": PASS, "path": str(path), "components": len(bom["components"])}
 
 
@@ -246,6 +264,9 @@ def pinmap_payload(contract_path: Path, out_dir: Path | None) -> Json:
         out / f"{contract.name}.fw-pinmap.json",
         json.dumps(pinmap.model_dump(mode="json"), indent=2, ensure_ascii=False) + "\n",
     )
+    refused = _envelope_v3(json_path, [contract_path], "pinmap")
+    if refused is not None:
+        return refused
     md_path = write_text(out / f"{contract.name}.pinmap.md", pinmap_markdown(pinmap))
     written = [str(json_path), str(md_path)]
     render_errors: list[str] = []
@@ -278,6 +299,9 @@ def power_payload(contract_path: Path, out_dir: Path | None) -> Json:
         out / f"{contract.name}.fw-power.json",
         json.dumps(export.model_dump(mode="json"), indent=2, ensure_ascii=False) + "\n",
     )
+    refused = _envelope_v3(path, [contract_path], "power")
+    if refused is not None:
+        return refused
     return {
         "verdict": PASS,
         "stage": "power",
