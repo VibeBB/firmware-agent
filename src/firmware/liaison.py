@@ -95,6 +95,7 @@ class UxResponse(BaseModel):
     decision_refs: list[str] = Field(default_factory=list[str])
     impression_refs: list[str] = Field(default_factory=list[str])
     questions_for_user: list[str] = Field(default_factory=list[str])
+    records_heads: dict[str, str] = Field(default_factory=dict[str, str])
     responded_at: AwareDatetime
 
     @model_validator(mode="after")
@@ -334,6 +335,19 @@ def _merge_report_checks(
     return verdicts, artifacts, None
 
 
+def _records_heads(root: Path) -> tuple[dict[str, str], list[str]]:
+    """Chain head per intact VRP log, plus the kinds whose chain is broken."""
+    heads: dict[str, str] = {}
+    broken: list[str] = []
+    for kind, filename in _vrp.LOG_FILES.items():
+        records, problems = _vrp.verify_log(records_dir(root) / filename, kind)
+        if problems:
+            broken.append(kind)
+        else:
+            heads[kind] = _vrp.chain_head(records)
+    return heads, broken
+
+
 def respond(
     workspace: Path | None,
     request_id: str,
@@ -438,6 +452,9 @@ def respond(
             "stage": "ux_respond",
             "detail": "status done needs at least one decision ref and one impression ref",
         }
+    heads, broken_logs = _records_heads(root)
+    if status == "done" and broken_logs:
+        raise ValueError(f"refusing 'done': VRP logs fail integrity ({', '.join(broken_logs)})")
     try:
         response = UxResponse.model_validate(
             {
@@ -454,6 +471,7 @@ def respond(
                 "decision_refs": decision_refs or [],
                 "impression_refs": impression_refs or [],
                 "questions_for_user": questions_for_user or [],
+                "records_heads": heads,
                 "responded_at": datetime.now(UTC).isoformat(),
             }
         )
