@@ -42,6 +42,11 @@ that exact export (`circuit_sha256` in the gate report). Firmware hands
 after every circuit change — a pin map checked against a stale export
 fails there.
 
+`fw.circuit_provenance` also checks circuit's envelope v3 sidecar
+(`<design>.firmware.provenance.json`): a tampered or foreign sidecar,
+a changed source or a ref missing from an intact circuit log fails, and a
+missing sidecar fails closed with an `unknown:` detail.
+
 ## bard cue interchange
 
 bard-agent renders a cue set to `cues/<slug>/cues.json`

@@ -36,6 +36,7 @@ def test_static_gates_pass(example: str, request: pytest.FixtureRequest) -> None
         "fw.contract",
         "fw.pin_functions",
         "fw.netlist_match",
+        "fw.circuit_provenance",
         "fw.power_modes",
         "fw.pins_header",
         "fw.sbom",
@@ -220,3 +221,16 @@ def test_request_artifact(kettle: Path, tmp_path: Path) -> None:
     written = list(tmp_path.glob("*.fw-request.json"))
     assert len(written) == 1
     assert read_json(written[0])["target"] == "circuit"
+
+
+def test_circuit_provenance_missing_or_foreign_fails_closed(kettle: Path) -> None:
+    sidecar = next(kettle.parent.rglob("*.firmware.provenance.json"))
+    body = read_json(sidecar)
+    write_json(sidecar, body | {"producer": "mech"})
+    report = _static(kettle)
+    assert _status(report)["fw.circuit_provenance"] == "fail"
+    assert report.verdict == "fail"
+    sidecar.unlink()
+    report = _static(kettle)
+    assert _status(report)["fw.circuit_provenance"] == "fail"
+    assert _detail(report, "fw.circuit_provenance").startswith("unknown:")
