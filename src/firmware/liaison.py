@@ -15,10 +15,11 @@ import os
 import re
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Annotated, Any, Literal, cast
+from typing import Annotated, Literal, cast
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, ValidationError, model_validator
 
+from . import _vrp
 from .records import records_dir
 from .workspace import workspace_path, workspace_root
 
@@ -155,20 +156,24 @@ def _load_response(
     return response, None
 
 
+_LOG_KINDS = {
+    "decisions.jsonl": "decision",
+    "impressions.jsonl": "stage_impression",
+    "vision-reviews.jsonl": "vision_review",
+}
+
+
+def _intact_event_ids(log: Path) -> set[str]:
+    """Event ids from an intact VRP v2 log; a broken chain refuses every ref."""
+    kind = _LOG_KINDS[log.name]
+    records, problems = _vrp.verify_log(log, kind)
+    if problems:
+        raise ValueError(f"VRP {kind} log fails integrity: {problems[0]}")
+    return {str(record.get("event_id")) for record in records}
+
+
 def _event_ids(kind: str, root: Path) -> set[str]:
-    path = records_dir(root) / f"{kind}.jsonl"
-    ids: set[str] = set()
-    if path.is_file():
-        for line in path.read_text(encoding="utf-8").splitlines():
-            try:
-                event: object = json.loads(line)
-            except ValueError:
-                continue
-            if isinstance(event, dict):
-                event_id = cast(dict[str, Any], event).get("event_id")
-                if isinstance(event_id, str):
-                    ids.add(event_id)
-    return ids
+    return _intact_event_ids(records_dir(root) / f"{kind}.jsonl")
 
 
 def _record_refs(root: Path) -> tuple[set[str], set[str]]:
