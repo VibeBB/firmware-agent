@@ -1,0 +1,10 @@
+{
+  "artifact": {
+    "name": "cues.json",
+    "sha256": "b34773f9e0af18dc37fea604d3fdd7315fd29450920df52990de2ab180f3eadd"
+  },
+  "decision_refs": [],
+  "envelope_version": 3,
+  "producer": "bard",
+  "sources": []
+}

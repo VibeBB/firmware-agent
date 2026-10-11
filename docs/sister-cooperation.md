@@ -115,6 +115,25 @@ production-engineering imports it (`--from firmware-production`) and
 binds it to a `programming` operation. Firmware never flashes hardware;
 programming stays a host-only, human-confirmed step.
 
+## Interchange envelope v3
+
+`firmware pinmap`, `power`, `production` and `sbom` (and the pinmap that
+`firmware gates` writes) put `<artifact>.provenance.json` beside each
+artifact: `envelope_version: 3`, `producer: firmware`, the artifact name and
+sha256, the contract path and sha256 as `sources`, and `decision_refs`
+(firmware decision ids whose evidence cites the contract at that sha256).
+A broken `observations/firmware/decisions.jsonl` chain refuses the export
+and removes any stale sidecar. Artifact bodies are unchanged.
+
+On import, firmware checks the sidecar beside each pinned sister artifact:
+`fw.bard_cues_provenance` (bard `cues.json`), `fw.fpga_regmap_provenance`
+(fpga register map) and `fw.ftm_provenance` (prodeng factory test spec).
+Each fails when the sidecar is malformed, names another producer, describes
+other bytes than the pinned sha256, lists a source that changed, or cites a
+decision missing from the producer's intact log. firmware gates are binary,
+so a missing sidecar or an unreadable source fails with an `unknown:`
+detail.
+
 ## Outbound requests — `fw_request` v2
 
 `firmware request` writes `<design>.<id>.fw-request.json` to `circuit`,
