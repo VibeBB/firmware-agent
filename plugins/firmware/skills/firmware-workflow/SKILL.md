@@ -63,6 +63,7 @@ projections of it and are write-protected by the `protect-generated` hook.
 | `fw.build` | the build backend exits 0 and the ELF exists |
 | `fw.memory_budget` | flash and RAM usage from the ELF sections are within `build.budget` of the MCU capacity |
 | `fw.static_analysis` | cppcheck reports no finding at a `fail_on` severity outside justified suppressions |
+| `fw.unit_coverage` | (only with a `unit_tests` block) the host gcc test binary exits 0 and gcov line/branch coverage of `sources` meets `min_line_pct`/`min_branch_pct` |
 | `fw.sim.<id>` | QEMU prints every `expect` line in order, no `forbid` line, and (ARM) exits with `exit_code` before the timeout |
 
 Missing tools, missing files and unparseable output are failures, never

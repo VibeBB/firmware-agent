@@ -19,6 +19,7 @@ launcher.
 | `build.py` | make/CMake/PlatformIO build subprocesses |
 | `elf.py` | ELF segment accounting for the memory budget gate |
 | `analysis.py` | cppcheck runner and finding parser |
+| `unit.py` | host gcc `--coverage` unit-test runner and gcov JSON line/branch counter, `UnitResult` |
 | `sim.py` | QEMU runner (`qemu-arm` / `qemu-esp`), expect/forbid matching, `SimResult` |
 | `debug.py` | scripted GDB session on a QEMU run; `debug-*.advisory.json` (advisory only) |
 | `doctor.py` | toolchain probes used by `firmware doctor` |

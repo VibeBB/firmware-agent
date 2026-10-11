@@ -13,6 +13,7 @@ into `firmware` (ADR-0004).
 | CPython | 3.14.x via uv | PSF-2.0 | Runtime |
 | GNU Arm Embedded GCC, binutils, newlib | Ubuntu GCC 14.2.1 (`15:14.2.rel1-1`), binutils `2.45.50.20251209-1ubuntu1+23build1`, newlib `4.6.0.20260123-1` | GPL-3.0 with GCC Runtime Library Exception; newlib: BSD-style | ARM builds |
 | GNU Make, CMake, Ninja | Ubuntu Make 4.4.1, CMake 4.2.3, Ninja 1.13.2 | GPL-3.0 / BSD-3-Clause / Apache-2.0 | Build backends |
+| GCC, gcov, glibc headers (`gcc`, `libc6-dev`) | Ubuntu 26.04 packages | GPL-3.0 with GCC Runtime Library Exception / LGPL-2.1 | Host unit tests and coverage (`fw.unit_coverage`) |
 | GDB (`gdb-multiarch`) | Ubuntu 17.1 | GPL-3.0 | ARM debugging |
 | QEMU (`qemu-system-arm`) | Ubuntu 10.2.1 | GPL-2.0 | ARM simulation |
 | Cppcheck | Debian sid `cppcheck_2.22.0-1_amd64.deb`, sha256 `936dbeba9e147b2e9255c44b3c59c37f33373f118a271aac05799c85a45795c5` | GPL-3.0 | Static analysis |
