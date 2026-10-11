@@ -48,6 +48,7 @@ from .projections import (
 )
 from .render import render_pinmap, render_report
 from .sbom import component_problems
+from .security import security_problems
 from .sim import run_simulation
 
 Status = Literal["pass", "fail", "not_applicable"]
@@ -582,6 +583,9 @@ def run_gates(
         checks.append(check_fpga_regmap(contract, contract_path))
     if contract.ftm is not None:
         checks.append(check_ftm(contract, contract_path))
+    if contract.security is not None:
+        problems, evidence = security_problems(contract, contract_path)
+        checks.append(_check("fw.security", contract.name, problems, evidence))
     checks.append(check_sbom(contract, contract_path))
     metrics: dict[str, float] = {
         "average_ua": sum(mode.current_ua * mode.duty for mode in contract.power.modes),
