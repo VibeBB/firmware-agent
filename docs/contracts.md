@@ -37,6 +37,13 @@ everything else is generated or exchanged.
   `sha256` (pinned spec hash), `header` (generated `fw_ftm.h`),
   `peripheral?` (the uart/usb/i2c/spi peripheral carrying the factory
   transport; omitted for swd/jtag), `rationale`
+- `components[]`: `name` (unique), `version`, `supplier`, `license`
+  (SPDX expression), `source` (VCS URL), `paths[]` (contract-relative files
+  or directories compiled into the image). Gate `fw.sbom` fails when a path
+  is missing or when a file under a vendored-code directory of the build
+  tree (`lib`, `libs`, `third_party`, `vendor`, `external`, `components`,
+  `Drivers`, `Middlewares`; hidden, `build` and `out` directories skipped)
+  is not covered by a declared component
 - `simulations[]`: `id`, `runner` (qemu-arm needs `exit_code`, qemu-esp
   forbids it), `machine`, `fidelity` (mcu/core), `image`, `build?`,
   `expect[]`, `forbid[]`, `exit_code?`, `timeout_s` (≤600)
@@ -110,6 +117,15 @@ programming operations: `design`, `contract_sha256`,
 (`null` without an `ftm` link), `ftm_commands[]`. Written only when the
 last gate report is a passing full run for the current contract and the
 ELF still hashes to the report's `elf_sha256`.
+
+## CycloneDX SBOM — `<name>.fw-sbom.cdx.json`
+
+`sbom.py::cyclonedx`: CycloneDX 1.5 JSON without timestamp or serial
+number, so it is byte-stable. `metadata.component` is the firmware
+(`contract` SHA-256, MCU profile); `components[]` are the declared
+components sorted by name with `licenses[].expression`, `supplier`,
+`externalReferences` (vcs) and one SHA-256 per path — a file hash, or for
+a directory the hash of its sorted `relative-path NUL file-sha256` lines.
 
 ## `fw_request` v2 — `<design>.<id>.fw-request.json` (schema 2)
 

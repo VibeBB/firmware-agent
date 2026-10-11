@@ -38,6 +38,7 @@ def test_static_gates_pass(example: str, request: pytest.FixtureRequest) -> None
         "fw.netlist_match",
         "fw.power_modes",
         "fw.pins_header",
+        "fw.sbom",
         *cue_gate,
     }
 

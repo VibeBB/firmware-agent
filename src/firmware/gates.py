@@ -47,6 +47,7 @@ from .projections import (
     write_text,
 )
 from .render import render_pinmap, render_report
+from .sbom import component_problems
 from .sim import run_simulation
 
 Status = Literal["pass", "fail", "not_applicable"]
@@ -467,6 +468,11 @@ def check_ftm(contract: FirmwareContract, contract_path: Path) -> Check:
     return _check("fw.ftm", link.spec, problems, evidence)
 
 
+def check_sbom(contract: FirmwareContract, contract_path: Path) -> Check:
+    problems, evidence = component_problems(contract, contract_path)
+    return _check("fw.sbom", contract.name, problems, evidence)
+
+
 def _memory_check(
     contract: FirmwareContract, profile: McuProfile, elf_path: Path
 ) -> tuple[Check, dict[str, float]]:
@@ -576,6 +582,7 @@ def run_gates(
         checks.append(check_fpga_regmap(contract, contract_path))
     if contract.ftm is not None:
         checks.append(check_ftm(contract, contract_path))
+    checks.append(check_sbom(contract, contract_path))
     metrics: dict[str, float] = {
         "average_ua": sum(mode.current_ua * mode.duty for mode in contract.power.modes),
     }
