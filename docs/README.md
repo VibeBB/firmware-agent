@@ -33,6 +33,7 @@
 - [ADR-0009](adr/ADR-0009-records-liaison-vision-refactor.md) — VRP v1, SLP v2, renders, Docker-only launcher, sister rename, docs rebuild
 - [ADR-0010](adr/ADR-0010-structural-coverage.md) — structural coverage gate (C0, C1, C2, MC/DC, boundaries)
 - [ADR-0011](adr/ADR-0011-product-unit-coverage.md) — product unit tests with host gcc and gcov (`fw.unit_coverage`)
+- [ADR-0012](adr/ADR-0012-vrp-v2-records.md) — VRP v2 records, blind render review, bard song receipts
 
 ## Research
 

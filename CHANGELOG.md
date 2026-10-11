@@ -2,6 +2,13 @@
 
 ## 0.1.0 — unreleased
 
+- Records move to VRP v2 (ADR-0012): hash-chained logs, grounded
+  impressions with facets and claims, near-duplicate and dispute re-raise
+  refusal, read receipts, insight lifecycle, blind review of
+  `*.pinmap.png` / `*.fw-report.png` by the new `firmware-blind-review`
+  sub-agent with reconcile/tiebreak, bard song receipts, and
+  `digest`/`search`.
+
 - Firmware contract (`<name>.fw.json`) with MCU, pin map, peripherals,
   power modes, build, static analysis and QEMU simulations.
 - MCU profiles: RP2040, ESP32-S3.

@@ -49,6 +49,12 @@ def test_mcp_tools_registered() -> None:
         "firmware_record_impression",
         "firmware_record_vision_review",
         "firmware_records_status",
+        "firmware_record_reconcile",
+        "firmware_record_insight",
+        "firmware_record_song_receipt",
+        "firmware_record_read",
+        "firmware_records_digest",
+        "firmware_records_search",
         "firmware_ux_inbox",
         "firmware_ux_respond",
     }

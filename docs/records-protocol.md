@@ -1,5 +1,10 @@
 # VibeBB Record Protocol (VRP) v1
 
+> firmware-agent writes VRP v2 (hash-chained, grounded impressions, blind
+> review, reads, insights, song receipts); see
+> [records-and-vision.md](records-and-vision.md) and ADR-0012. The v1 rules
+> below still hold for the base decision/impression/vision fields.
+
 Every VibeBB plugin leaves the same three kinds of records in the
 workspace, so the reasoning behind a product survives the session that
 produced it and every sister plugin (and the UX producer) can read it the same

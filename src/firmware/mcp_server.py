@@ -21,7 +21,15 @@ from mcp.server.models import InitializationOptions
 from mcp.server.stdio import stdio_server
 
 from . import __version__, service
-from .records import DecisionInput, StageImpressionInput, VisionReviewInput
+from .records import (
+    DecisionInput,
+    InsightStatusInput,
+    ReadInput,
+    ReconcileInput,
+    SongReceiptInput,
+    StageImpressionInput,
+    VisionReviewInput,
+)
 from .workspace import workspace_path
 
 server: Server = Server(f"firmware-mcp/{__version__}")
@@ -236,6 +244,53 @@ TOOLS: dict[str, tuple[str, dict[str, object], bool]] = {
         _schema({}, []),
         True,
     ),
+    "firmware_record_reconcile": (
+        "Compare independent reviews of one image: [primary, blind] (round 1) or "
+        "[primary, blind, tiebreak] (round 2, the last); a round-2 split stays unknown.",
+        ReconcileInput.model_json_schema(),
+        False,
+    ),
+    "firmware_record_insight": (
+        "Move an impression insight through tried/adopted/rejected/deferred/superseded; "
+        "a rejected insight returns only with revisits and new evidence.",
+        InsightStatusInput.model_json_schema(),
+        False,
+    ),
+    "firmware_record_song_receipt": (
+        "Receive a bard song addressed to firmware; a receipt never feeds a gate and "
+        "never asks bard for another song.",
+        SongReceiptInput.model_json_schema(),
+        False,
+    ),
+    "firmware_record_read": (
+        "Record that a sister artifact was taken in; resolves the impressions bound to it.",
+        ReadInput.model_json_schema(),
+        False,
+    ),
+    "firmware_records_digest": (
+        "Family-wide impression digest: integrity per plugin, open concerns, disputes, "
+        "unanswered reads, insights, split reviews and undelivered songs.",
+        _schema({}, []),
+        True,
+    ),
+    "firmware_records_search": (
+        "Search every plugin's impressions by text, plugin, stage, artifact, severity or "
+        "open concerns; logs with broken integrity are listed separately.",
+        _schema(
+            {
+                "query": {"type": "string"},
+                "system": {"type": "string"},
+                "kind": {"type": "string", "enum": ["stage_impression", "vision_review"]},
+                "stage": {"type": "string"},
+                "artifact": {"type": "string"},
+                "severity": {"type": "string", "enum": ["info", "warning", "error"]},
+                "open_only": {"type": "boolean"},
+                "limit": {"type": "integer", "minimum": 1, "maximum": 200},
+            },
+            [],
+        ),
+        True,
+    ),
 }
 
 
@@ -353,6 +408,14 @@ def dispatch(name: str, arguments: dict[str, object]) -> service.Json:
             "vision-review", arguments
         ),
         "firmware_records_status": service.records_status_payload,
+        "firmware_record_reconcile": lambda: service.record_write_payload("reconcile", arguments),
+        "firmware_record_insight": lambda: service.record_write_payload("insight", arguments),
+        "firmware_record_song_receipt": lambda: service.record_write_payload(
+            "song-receipt", arguments
+        ),
+        "firmware_record_read": lambda: service.record_write_payload("read", arguments),
+        "firmware_records_digest": service.records_digest_payload,
+        "firmware_records_search": lambda: service.records_search_payload(arguments),
         "firmware_ux_inbox": lambda: service.ux_inbox_payload(_opt_path(arguments, "workspace")),
         "firmware_ux_respond": lambda: service.ux_respond_payload(
             _opt_path(arguments, "workspace"), arguments

@@ -32,7 +32,13 @@ return `{"verdict": "fail", "detail": ...}` with `isError` set.
 | `firmware_ux_respond` | `request`, `status`, `reason`, `artifacts[]`, `gate_verdicts[{gate,verdict}]` (pass/fail/unknown), `decision_refs[]`, `impression_refs[]`, `questions_for_user[]`, `report_paths[]`, `workspace` (opt) | validates and atomically writes `liaison/<id>.ux-response.json`; `replaced` on re-answer | no |
 | `firmware_record_decision` | VRP decision fields | appends to `observations/firmware/decisions.jsonl` | no |
 | `firmware_record_impression` | VRP impression fields (≥400 chars, ≥3 sentences) | appends to `impressions.jsonl` | no |
-| `firmware_record_vision_review` | VRP vision fields (`image_path` or `source_event_id`) | appends to `vision-reviews.jsonl` | no |
+| `firmware_record_vision_review` | VRP vision fields (`image_path` or `source_event_id`, `reviewer`) | appends to `vision-reviews.jsonl` | no |
+| `firmware_record_reconcile` | image, round, review event ids | appends to `reconciles.jsonl`; round-2 split stays `unknown` | no |
+| `firmware_record_insight` | insight ref, status, reason | appends to `insights.jsonl` | no |
+| `firmware_record_song_receipt` | `liaison/<id>.bard-song.json` path | appends to `song-receipts.jsonl` (once per song) | no |
+| `firmware_record_read` | sister artifact, producer | appends to `reads.jsonl` | no |
+| `firmware_records_digest` | none | family impression digest | yes |
+| `firmware_records_search` | query, system, kind, stage, artifact, severity, open_only, limit | matching impressions | yes |
 | `firmware_records_status` | — | `records-status.json` summary: artifacts, records present, what is owed | yes |
 
 `--warn`-style advisory paths do not exist on the MCP side: every tool

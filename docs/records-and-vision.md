@@ -1,6 +1,6 @@
 # Records and vision
 
-firmware-agent follows the VibeBB Record Protocol v1 (VRP); the generic
+firmware-agent follows the VibeBB Record Protocol v2 (VRP); the generic
 rules live in [records-protocol.md](records-protocol.md). This page lists
 the firmware duties; `plugins/firmware/hooks/records-policy.json` defines
 the artifact globs and `require_records.py` enforces them at Stop.
@@ -42,6 +42,43 @@ touched (`file_editor`, `firmware_render`, `firmware_gates`,
 `firmware_check`, `firmware_pinmap_export`, `firmware_sim`), and
 image-producing payloads mark `vision_review_required` + `vision_hint`
 so nothing rendered escapes review.
+
+## VRP v2 logs
+
+`observations/firmware/` holds `decisions.jsonl`, `impressions.jsonl`,
+`vision-reviews.jsonl`, `reconciles.jsonl`, `insights.jsonl`, `reads.jsonl`
+and `song-receipts.jsonl`. Every line carries `schema_version` 2, `sequence`,
+`prev_event_id`, `writer` and `event_id` (the SHA-256 of the canonical
+record). The writer verifies the chain before appending and refuses a log
+that was edited, truncated or reordered; readers report such a log under
+`integrity_problems` and never resolve references into it. A log written
+entirely by VRP v1 is renamed to `<name>.v1.jsonl` on the first v2 write.
+
+Impressions carry facets (`observed`, `works`, `concerns`, maker/user
+`feelings`, `next_actions`), two or more claims quoting exact tokens from the
+bound artifacts, and a confidence; a near copy of an earlier impression, or
+a concern a sister already disputed, is refused. Taking in a sister artifact
+needs a `firmware_record_read` receipt and an `upstream` entry.
+
+## Blind review
+
+`*.pinmap.png` and `*.fw-report.png` are dual-review images
+(`dual_review_globs` in `records-policy.json`). After the primary review,
+`firmware-blind-review` reviews the same image without seeing it
+(`reviewer: "blind"`), and the caller records `firmware_record_reconcile`
+over `[primary, blind]`. A split goes to one tiebreak round
+(`[primary, blind, tiebreak]`); a split after the tiebreak stays `unknown`
+and never becomes pass.
+
+## Insights, songs, digest
+
+`firmware_record_insight` moves an insight through
+tried/adopted/rejected/deferred/superseded. firmware only receives bard
+songs: `firmware_record_song_receipt` records one receipt per
+`liaison/<id>.bard-song.json` (sha256-pinned, never a gate input, never a
+request for another song; the song file is protected from edits).
+`firmware_records_digest` and `firmware_records_search` read every plugin's
+impressions in the workspace.
 
 ## Inline images
 
