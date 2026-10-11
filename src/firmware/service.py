@@ -36,6 +36,7 @@ from .projections import (
 from .records import RECORDERS, records_summary
 from .render import render_pinmap, render_sim_timeline
 from .requests import write_request
+from .sbom import cyclonedx
 from .sim import SimResult, run_simulation
 
 type Json = dict[str, object]
@@ -216,6 +217,21 @@ def production_payload(contract_path: Path, out_dir: Path | None) -> Json:
         "ftm_spec_sha256": export.ftm_spec_sha256,
         "written": [str(path)],
     }
+
+
+def sbom_payload(contract_path: Path, out_dir: Path | None) -> Json:
+    """Export ``<name>.fw-sbom.cdx.json`` (CycloneDX 1.5) of the declared components."""
+    out = out_dir or _default_out(contract_path)
+    try:
+        contract = load_contract(contract_path)
+        bom = cyclonedx(contract, contract_path.resolve())
+    except (OSError, ValueError, ValidationError) as exc:
+        return {"verdict": FAIL, "stage": "sbom", "detail": str(exc)}
+    path = write_text(
+        out / f"{contract.name}.fw-sbom.cdx.json",
+        json.dumps(bom, indent=2, ensure_ascii=False) + "\n",
+    )
+    return {"verdict": PASS, "path": str(path), "components": len(bom["components"])}
 
 
 def pinmap_payload(contract_path: Path, out_dir: Path | None) -> Json:

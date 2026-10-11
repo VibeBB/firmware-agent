@@ -249,6 +249,20 @@ class FtmLink(_Strict):
     rationale: str = ""
 
 
+class Component(_Strict):
+    """Third-party (or reused first-party) code compiled into the image."""
+
+    name: str = Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9_.+\-]*$")
+    version: str = Field(min_length=1)
+    supplier: str = Field(min_length=1)
+    license: str = Field(
+        pattern=r"^[A-Za-z0-9.+\-]+( (AND|OR|WITH) [A-Za-z0-9.+\-]+)*$",
+        description="SPDX license expression",
+    )
+    source: str = Field(min_length=1)
+    paths: list[str] = Field(min_length=1)
+
+
 class FirmwareContract(_Strict):
     schema_version: Literal[1] = SCHEMA_VERSION
     system: Literal["firmware"] = "firmware"
@@ -266,6 +280,7 @@ class FirmwareContract(_Strict):
     cues: CueLink | None = None
     fpga: FpgaLink | None = None
     ftm: FtmLink | None = None
+    components: list[Component] = Field(default_factory=list[Component])
 
     @model_validator(mode="after")
     def _unique(self) -> FirmwareContract:
@@ -275,6 +290,7 @@ class FirmwareContract(_Strict):
             ("peripheral id", [p.id for p in self.peripherals]),
             ("power mode id", [m.id for m in self.power.modes]),
             ("simulation id", [s.id for s in self.simulations]),
+            ("component", [c.name for c in self.components]),
         ):
             duplicates = sorted({v for v in values if values.count(v) > 1})
             if duplicates:

@@ -63,4 +63,11 @@ Rules enforced at load time (unknown keys are rejected everywhere):
   `header`, and the `peripheral` carrying the factory transport (none for
   swd/jtag). Re-pin only after reviewing a changed spec; then run
   `firmware ftm`.
+- `components` lists every third-party (or reused) library compiled into
+  the image: `name`, `version`, `supplier`, SPDX `license` expression,
+  VCS `source`, and the contract-relative `paths`. Copy these facts from
+  the library's own release/LICENSE, never guess. `fw.sbom` fails on a
+  missing path or on vendored code under `lib/`, `third_party/`,
+  `vendor/`, `components/`, `Drivers/` … that no component covers;
+  `firmware sbom` then writes `<name>.fw-sbom.cdx.json` (CycloneDX 1.5).
 - Paths are relative to the contract file.
