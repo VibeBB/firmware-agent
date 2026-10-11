@@ -55,3 +55,32 @@ def test_qemu_esp_rejects_exit_code(lamp: Path) -> None:
     data["simulations"][0]["exit_code"] = 0
     with pytest.raises(ValidationError):
         _validate(data)
+
+
+def _fault(code: int, name: str) -> dict[str, Any]:
+    return {"code": code, "name": name, "severity": "error", "action": "Descale the kettle"}
+
+
+@pytest.mark.parametrize(("code", "valid"), [(0, False), (1, True), (65535, True), (65536, False)])
+def test_fault_code_range(kettle: Path, code: int, valid: bool) -> None:
+    data = read_json(kettle)
+    data["faults"] = [_fault(code, "dry_boil")]
+    if valid:
+        assert _validate(data).faults[0].code == code
+    else:
+        with pytest.raises(ValidationError):
+            _validate(data)
+
+
+@pytest.mark.parametrize(
+    "faults",
+    [
+        [_fault(1, "dry_boil"), _fault(1, "overheat")],
+        [_fault(1, "dry_boil"), _fault(2, "dry_boil")],
+    ],
+)
+def test_duplicate_faults_rejected(kettle: Path, faults: list[dict[str, Any]]) -> None:
+    data = read_json(kettle)
+    data["faults"] = faults
+    with pytest.raises(ValidationError, match="duplicate fault"):
+        _validate(data)

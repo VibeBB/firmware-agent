@@ -54,6 +54,12 @@ everything else is generated or exchanged.
   tree (`lib`, `libs`, `third_party`, `vendor`, `external`, `components`,
   `Drivers`, `Middlewares`; hidden, `build` and `out` directories skipped)
   is not covered by a declared component
+- `faults[]`: `code` (1–65535, unique; 0 is reserved for "no fault"),
+  `name` (identifier, unique), `severity` (`info`/`warning`/`error`/
+  `critical`), `action` (what the user or service technician does). The
+  firmware owns this table; dashboard-agent pins the contract
+  (`device.firmware_sha256`) and decodes a status field through it in a
+  `fault` widget
 - `unit_tests?`: host C unit tests of product code — `sources[]` (measured
   product files), `tests[]` (test files holding `main()`, disjoint from
   `sources`), `includes[]`, `defines[]`, `std` (c99/c11/c17),
