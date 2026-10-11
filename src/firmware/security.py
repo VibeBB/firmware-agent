@@ -55,7 +55,7 @@ def ota_partitions(sdkconfig: dict[str, str], base: Path) -> tuple[set[str], str
     subtypes = {
         row[2].strip()
         for row in rows
-        if len(row) >= 3 and row[0].strip() and not row[0].lstrip().startswith("#")
+        if row[2:3] and row[0].strip() and not row[0].lstrip().startswith("#")
     }
     return subtypes, name
 
