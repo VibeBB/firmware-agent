@@ -122,6 +122,9 @@ programming stays a host-only, human-confirmed step.
 `dashboard`. Inputs are hashed (contract always, connectivity when
 resolvable, workspace-relative POSIX paths) so the receiver detects a
 stale ask; high risk requires a `decision_refs` entry.
+Refs resolve only against an intact VRP v2 chain: a log that fails
+`verify_log` (forged, edited or truncated lines) refuses every ref into it,
+for requests and liaison responses alike.
 
 ## Other sisters
 

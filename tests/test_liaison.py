@@ -11,6 +11,8 @@ import pytest
 
 from firmware import liaison
 
+from ._vrp_refs import chained_refs
+
 REPO = Path(__file__).resolve().parent.parent
 
 
@@ -49,17 +51,7 @@ def _write_request(workspace: Path, body: dict[str, Any], name: str | None = Non
 
 def _records(workspace: Path) -> tuple[str, str]:
     """Write one decision and one impression; return their event_ids."""
-    records = workspace / "observations" / "firmware"
-    records.mkdir(parents=True, exist_ok=True)
-    decision = "d" * 64
-    impression = "i" * 64
-    (records / "decisions.jsonl").write_text(
-        json.dumps({"event_id": decision}) + "\n", encoding="utf-8"
-    )
-    (records / "impressions.jsonl").write_text(
-        json.dumps({"event_id": impression}) + "\n", encoding="utf-8"
-    )
-    return decision, impression
+    return chained_refs(workspace)
 
 
 def _states(payload: dict[str, Any]) -> dict[str, str]:
@@ -323,3 +315,14 @@ def test_responder_mismatch_is_malformed(tmp_path: Path) -> None:
 def test_family_request_id_with_dot_and_underscore_is_accepted(tmp_path: Path) -> None:
     _write_request(tmp_path, _request("kettle.lid_button-2"))
     assert _states(liaison.inbox(tmp_path)) == {"kettle.lid_button-2": "new"}
+
+
+def test_refs_into_broken_chain_refused(tmp_path: Path) -> None:
+    _write_request(tmp_path, _request("broken-chain"))
+    decision, _impression = _records(tmp_path)
+    log = tmp_path / "observations" / "firmware" / "decisions.jsonl"
+    last = json.loads(log.read_text(encoding="utf-8").splitlines()[-1])
+    with log.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(last | {"event_id": "f" * 64}) + "\n")
+    with pytest.raises(ValueError, match="fails integrity"):
+        liaison.respond(tmp_path, "broken-chain", status="in_progress", decision_refs=[decision])

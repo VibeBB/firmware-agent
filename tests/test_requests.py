@@ -11,19 +11,15 @@ import pytest
 from firmware import service
 from firmware.requests import write_request
 
+from ._vrp_refs import chained_refs
+
 REPO = Path(__file__).resolve().parent.parent
 KETTLE = REPO / "examples" / "smart-kettle" / "smart-kettle.fw.json"
 
 
 def _decision(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> str:
-    event_id = "e" * 64
-    records = tmp_path / "observations" / "firmware"
-    records.mkdir(parents=True)
-    (records / "decisions.jsonl").write_text(
-        json.dumps({"event_id": event_id}) + "\n", encoding="utf-8"
-    )
     monkeypatch.setenv("OPENHANDS_PROJECT_DIR", str(tmp_path))
-    return event_id
+    return chained_refs(tmp_path)[0]
 
 
 def test_schema_v2_and_inputs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
