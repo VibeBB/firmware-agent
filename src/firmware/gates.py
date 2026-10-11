@@ -595,6 +595,16 @@ def run_gates(
         checks.append(_check("fw.netlist_match", contract.mcu.ref, ["no circuit connectivity"]))
     else:
         checks.append(check_netlist_match(contract, profile, circuit))
+        assert circuit_sha is not None
+        checks.append(
+            check_import_provenance(
+                "fw.circuit_provenance",
+                contract.circuit.connectivity,
+                resolve(contract_path, contract.circuit.connectivity),
+                "circuit",
+                circuit_sha,
+            )
+        )
     checks.append(check_power_modes(contract, profile))
     checks.append(check_pins_header(contract, profile, contract_path))
     if contract.cues is not None:

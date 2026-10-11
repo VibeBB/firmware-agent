@@ -1,0 +1,10 @@
+{
+  "artifact": {
+    "name": "smart-kettle.firmware.json",
+    "sha256": "b5951845d232f6f344bf05fdf2af5e13ef7c9894e759c85dd62670125e2bdea6"
+  },
+  "decision_refs": [],
+  "envelope_version": 3,
+  "producer": "circuit",
+  "sources": []
+}

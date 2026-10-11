@@ -1,0 +1,10 @@
+{
+  "artifact": {
+    "name": "desk-lamp.firmware.json",
+    "sha256": "ae6e9249d92d30e8878c0f9c69d2bad0dff71bdef1b61533382ac4b12006eb58"
+  },
+  "decision_refs": [],
+  "envelope_version": 3,
+  "producer": "circuit",
+  "sources": []
+}
