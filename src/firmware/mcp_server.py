@@ -88,6 +88,11 @@ TOOLS: dict[str, tuple[str, dict[str, object], bool]] = {
         _schema({**_CONTRACT, **_OUT}, ["contract_path"]),
         False,
     ),
+    "firmware_sbom_export": (
+        "Export <name>.fw-sbom.cdx.json (CycloneDX 1.5) of the declared firmware components",
+        _schema({**_CONTRACT, **_OUT}, ["contract_path"]),
+        False,
+    ),
     "firmware_pinmap_export": (
         "Export <name>.fw-pinmap.json for electrical-circuit-agent",
         _schema({**_CONTRACT, **_OUT}, ["contract_path"]),
@@ -309,6 +314,9 @@ def dispatch(name: str, arguments: dict[str, object]) -> service.Json:
         ),
         "firmware_ftm": lambda: service.ftm_payload(_path(arguments, "contract_path")),
         "firmware_production_export": lambda: service.production_payload(
+            _path(arguments, "contract_path"), _opt_path(arguments, "out_dir")
+        ),
+        "firmware_sbom_export": lambda: service.sbom_payload(
             _path(arguments, "contract_path"), _opt_path(arguments, "out_dir")
         ),
         "firmware_pinmap_export": lambda: service.pinmap_payload(
