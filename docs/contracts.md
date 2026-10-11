@@ -60,6 +60,15 @@ everything else is generated or exchanged.
   firmware owns this table; dashboard-agent pins the contract
   (`device.firmware_sha256`) and decodes a status field through it in a
   `fault` widget
+- `unit_tests?`: host C unit tests of product code — `sources[]` (measured
+  product files), `tests[]` (test files holding `main()`, disjoint from
+  `sources`), `includes[]`, `defines[]`, `std` (c99/c11/c17),
+  `min_line_pct`, `min_branch_pct` (0–100), `timeout_s` (≤1800),
+  `rationale`. Gate `fw.unit_coverage` compiles every file with host
+  `gcc --coverage -O0`, links and runs the binary (non-zero exit fails),
+  then reads `gcov --json-format` line (C0) and branch (C1) coverage of
+  `sources` only; a floor miss, compile/link error, timeout or unreadable
+  gcov output fails. Logs go to `<out>/unit-tests.log`
 - `simulations[]`: `id`, `runner` (qemu-arm needs `exit_code`, qemu-esp
   forbids it), `machine`, `fidelity` (mcu/core), `image`, `build?`,
   `expect[]`, `forbid[]`, `exit_code?`, `timeout_s` (≤600)

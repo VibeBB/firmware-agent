@@ -57,6 +57,8 @@ RUN apt-sources-fallback \
         cmake \
         ninja-build \
         xz-utils \
+        gcc \
+        libc6-dev \
         gcc-arm-none-eabi \
         libnewlib-arm-none-eabi \
         binutils-arm-none-eabi \
@@ -124,6 +126,8 @@ RUN curl --fail --location --silent --show-error \
         > /usr/share/doc/cppcheck/SOURCE
 
 RUN arm-none-eabi-gcc --version | head -1 \
+    && gcc --version | head -1 \
+    && gcov --version | head -1 \
     && cppcheck --version \
     && qemu-system-arm --version | head -1 \
     && qemu-system-xtensa --version | head -1 \
