@@ -21,6 +21,11 @@ OPTIONAL: tuple[tuple[str, list[str]], ...] = (
     ("qemu-system-xtensa", ["qemu-system-xtensa", "--version"]),
     ("gdb-multiarch", ["gdb-multiarch", "--version"]),
     ("xtensa-esp32s3-elf-gdb", ["xtensa-esp32s3-elf-gdb", "--version"]),
+    ("mrbc", ["mrbc", "-v"]),
+    ("avr-gcc", ["avr-gcc", "--version"]),
+    ("emcc", ["emcc", "--version"]),
+    ("node", ["node", "--version"]),
+    ("dtc", ["dtc", "--version"]),
 )
 
 

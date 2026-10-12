@@ -23,6 +23,17 @@ into `firmware` (ADR-0004).
 | pydantic | `>=2` via `uv.lock` | MIT | Contract models |
 | mcp | `>=1.29,<2` via `uv.lock` | MIT | MCP server |
 | openhands-sdk / openhands-tools | `1.53.0` (sdk-check group) | MIT | Plugin-load verification |
+| mruby | `4.0.0`, sha256 `e2ea271dbed14e9f2b33df773ae447b747dbc242ce2675022c0a57efea85a7b4` | MIT | `mrbc` bytecode compiler (build-time tool) |
+| mruby/c | master `2dec4802b09be1fc12f388d3c9267ffd9dc6c404`, sha256 `0860de6a2b4e8adf682e14f3e0f1df7114abdb8749be23ea39cf0133f5b16b84` | BSD-3-Clause | VM + HAL sources compiled into products (`/opt/mrubyc/REF`) |
+| Zephyr RTOS (Canonical 26.04 LTS) | `zephyr-manifest@26.04.0`, zephyr fork commit `2e4ba3e7c1823597ae82edf9f9406a6cdf262873` (Launchpad, git-clone verified) | Apache-2.0 | Non-Nordic `west` builds (`/opt/zephyr`) |
+| Zephyr modules | `cmsis`/`cmsis_6`/`picolibc`/`segger` + HAL modules `stm32`, `atmel`, `microchip`, `nxp`, `renesas`, `rpi_pico`, `silabs`, `ti`, `espressif` — revisions and sha256 in `docker/third_party.manifest` | Apache-2.0 and module licenses | Board support for non-Nordic Zephyr builds |
+| nRF Connect SDK | `v3.4.1` (LTS) `sdk-nrf` sha256 `cc280a045b3941d10867577f02875cac52204b0494f6ccfe71490c75efa739ee` + `sdk-zephyr`/`nrfxlib`/`sdk-hal_nordic` pinned in `docker/third_party.manifest` | Nordic 5-clause / Apache-2.0 | Nordic `west` builds (`/opt/nrf`) |
+| Raspberry Pi Pico SDK | `2.2.0`, sha256 `dbd8db79015aced4ef35cbaa88051b0d451775010d20202e1c7d2bee69c25b35` | BSD-3-Clause | `hal rp2040` cmake builds (`PICO_SDK_PATH`) |
+| Emscripten SDK | `emscripten/emsdk:6.0.10@sha256:e077d54e2b8970575ebc4f185ac1de0b95c05f2b266134d4ba27449af7aebf65` | MIT / LLVM | `hal emscripten` WASM legs + `node` runner |
+| AVR GCC + avr-libc | Ubuntu 26.04 packages | GPL-3.0 / BSD-3-Clause | `hal avr` builds |
+| RISC-V GCC (`gcc-riscv64-unknown-elf`) | Ubuntu 26.04 packages | GPL-3.0 | `cross-compile` Zephyr legs (HiFive1, ESP32-C3, Nios V, Mi-V, MicroBlaze) |
+| Ruby | Ubuntu 26.04 package | Ruby license / BSD-2-Clause | mruby `minirake` build driver |
+| Node.js, device-tree-compiler, Zephyr Python deps | Ubuntu 26.04 packages | MIT / GPL-2.0 / various | `node` sim runner; Zephyr devicetree/kconfig tooling |
 | pytest-cov | `7.1.0` (dev group) | MIT | Test coverage reporting |
 
 Ubuntu package versions above are those measured in the 2026-10-01 image

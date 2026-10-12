@@ -1,0 +1,14 @@
+{
+  "artifact_kind": "fw_ruby_manifest",
+  "contract": "mruby-ux",
+  "files": [
+    {
+      "bytecode": "fw/generated/ux_app_bytecode.c",
+      "file": "ux/app.rb",
+      "sha256": "79f6cf0be3a42538248c7ec7fc2561d9d213d8893a3f791b0c6ea5a61d21ba4d",
+      "symbol": "ux_app"
+    }
+  ],
+  "mrubyc_ref": "2dec4802b09be1fc12f388d3c9267ffd9dc6c404",
+  "schema_version": 1
+}

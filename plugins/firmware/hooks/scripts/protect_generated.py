@@ -34,6 +34,8 @@ ARTIFACT_SUFFIXES = (
     ".pinmap.png",
     ".fw-report.json",
     ".fw-report.md",
+    "_bytecode.c",
+    "fw_ruby_manifest.json",
     ".fw-report.png",
     ".advisory.json",
     ".ux-response.json",
@@ -45,6 +47,7 @@ ARTIFACT_SUFFIXES = (
 )
 ARTIFACT_NAMES = (
     "fw_pins.h",
+    "fw_mruby.h",
     "decisions.jsonl",
     "impressions.jsonl",
     "vision-reviews.jsonl",

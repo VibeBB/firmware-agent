@@ -91,7 +91,46 @@ class McuProfile(_Strict):
         return next((p for p in self.pads if p.pin == pin), None)
 
 
-BUILTIN: tuple[str, ...] = ("esp32s3", "rp2040")
+BUILTIN: tuple[str, ...] = (
+    "adp_xc7k_ae350",
+    "atmega2560",
+    "atmega328p",
+    "avr128db48",
+    "cc26x2r1",
+    "ek_ra8m1",
+    "esp32",
+    "esp32c3",
+    "esp32c6",
+    "esp32s3",
+    "frdm_k64f",
+    "frdm_rw612",
+    "hifive1",
+    "kv260_r5",
+    "longan_nano",
+    "m2gl025_miv",
+    "mimxrt1050",
+    "mps2_an385",
+    "neorv32",
+    "niosv_g",
+    "nrf52832",
+    "nrf52840",
+    "nrf5340",
+    "nrf54l15",
+    "nrf54lm20",
+    "nrf9151",
+    "pic24fj256gb110",
+    "rp2040",
+    "rp2350",
+    "stm32f103c8",
+    "stm32f103rb",
+    "stm32f401re",
+    "stm32f411re",
+    "stm32f746zg",
+    "stm32g071rb",
+    "stm32h753zi",
+    "stm32wb55rg",
+    "teensy4",
+)
 
 
 def load_profile(profile: str, search: list[Path] | None = None) -> McuProfile:

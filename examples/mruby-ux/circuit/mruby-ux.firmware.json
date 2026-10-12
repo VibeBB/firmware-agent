@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "system": "circuit",
+  "artifact_kind": "circuit_firmware_connectivity",
+  "design": "mruby-ux",
+  "source": "brief",
+  "mcus": [
+    {
+      "ref": "U1",
+      "lib_id": "Module:nRF52840-DK",
+      "value": "nRF52840",
+      "footprint": "Module:nRF52840-DK",
+      "pins": [
+        {
+          "pin": "12",
+          "function": "P0.11",
+          "net": "BTN_MODE",
+          "signal_class": "input",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "14",
+          "function": "P0.13",
+          "net": "LED1",
+          "signal_class": "output",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "7",
+          "function": "P0.06",
+          "net": "DBG_TX",
+          "signal_class": "output",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "1",
+          "function": "3V3",
+          "net": "+3V3",
+          "signal_class": "power",
+          "voltage_v": 3.3
+        },
+        {
+          "pin": "2",
+          "function": "GND",
+          "net": "GND",
+          "signal_class": "ground",
+          "voltage_v": 0.0
+        }
+      ]
+    }
+  ],
+  "brief_sha256": "b46a6445ff85ec8f5e46586f442ea2ef834e9dddd146296bcb7200f79a7c251c"
+}

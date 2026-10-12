@@ -31,6 +31,7 @@ EXPECTED_SKILLS = {
     "firmware-qemu",
     "firmware-sister-cooperation",
     "firmware-workflow",
+    "fw-mruby",
 }
 EXPECTED_COMMANDS = {
     "debug",

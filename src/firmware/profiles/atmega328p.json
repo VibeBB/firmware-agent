@@ -1,0 +1,246 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "mcu_profile",
+  "id": "atmega328p",
+  "vendor": "Microchip (Atmel)",
+  "part": "ATmega328P",
+  "core": "avr 8-bit",
+  "package": "PDIP-28",
+  "source": "ATmega48A/PA/88A/PA/168A/PA/328/P Datasheet DS40002061 (Microchip) PDIP-28 pinout, alternate function map",
+  "io_voltage_max_v": 5.5,
+  "flash_kb": 32,
+  "ram_kb": 2,
+  "memory_regions": [
+    {
+      "name": "flash",
+      "kind": "flash",
+      "origin": 0,
+      "length_kb": 32,
+      "image_backed": true
+    },
+    {
+      "name": "sram",
+      "kind": "ram",
+      "origin": 256,
+      "length_kb": 2
+    }
+  ],
+  "peripherals": {
+    "i2c": [
+      0
+    ],
+    "spi": [
+      0
+    ],
+    "uart": [
+      0
+    ],
+    "pwm": [
+      0,
+      1,
+      2
+    ],
+    "adc": [
+      0
+    ]
+  },
+  "sim_machine": null,
+  "pads": [
+    {
+      "name": "PD0",
+      "pin": "2",
+      "functions": [
+        "gpio",
+        "uart0.rx"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PD1",
+      "pin": "3",
+      "functions": [
+        "gpio",
+        "uart0.tx"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PD2",
+      "pin": "4",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PD3",
+      "pin": "5",
+      "functions": [
+        "gpio",
+        "pwm0.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PD4",
+      "pin": "6",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PB6",
+      "pin": "9",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PB7",
+      "pin": "10",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PD5",
+      "pin": "11",
+      "functions": [
+        "gpio",
+        "pwm0.a"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PD6",
+      "pin": "12",
+      "functions": [
+        "gpio",
+        "pwm1.a"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PD7",
+      "pin": "13",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PB0",
+      "pin": "14",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PB1",
+      "pin": "15",
+      "functions": [
+        "gpio",
+        "pwm1.a"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PB2",
+      "pin": "16",
+      "functions": [
+        "gpio",
+        "pwm1.b",
+        "spi0.cs"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PB3",
+      "pin": "17",
+      "functions": [
+        "gpio",
+        "pwm2.a",
+        "spi0.mosi"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PB4",
+      "pin": "18",
+      "functions": [
+        "gpio",
+        "spi0.miso"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PB5",
+      "pin": "19",
+      "functions": [
+        "gpio",
+        "spi0.sck"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PC0",
+      "pin": "23",
+      "functions": [
+        "gpio",
+        "adc0.ch0"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PC1",
+      "pin": "24",
+      "functions": [
+        "gpio",
+        "adc0.ch1"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PC2",
+      "pin": "25",
+      "functions": [
+        "gpio",
+        "adc0.ch2"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PC3",
+      "pin": "26",
+      "functions": [
+        "gpio",
+        "adc0.ch3"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PC4",
+      "pin": "27",
+      "functions": [
+        "gpio",
+        "adc0.ch4",
+        "i2c0.sda"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PC5",
+      "pin": "28",
+      "functions": [
+        "gpio",
+        "adc0.ch5",
+        "i2c0.scl"
+      ],
+      "wake_deep_sleep": true
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "system": "firmware",
+  "artifact_kind": "firmware_contract",
+  "name": "mruby-ux",
+  "description": "mruby/c UX controller: nRF Connect (nRF52840 DK) product build plus an Emscripten/node leg that runs the same .rb UX logic in CI.",
+  "mcu": {
+    "profile": "nrf52840",
+    "ref": "U1",
+    "clock_mhz": 64
+  },
+  "circuit": {
+    "connectivity": "circuit/mruby-ux.firmware.json"
+  },
+  "pins": [
+    {
+      "signal": "mode_button",
+      "pad": "P011",
+      "net": "BTN_MODE",
+      "function": "gpio_in",
+      "pull": "up",
+      "active": "low",
+      "rationale": "DK button 1 input; cycles UX states."
+    },
+    {
+      "signal": "status_led",
+      "pad": "P013",
+      "net": "LED1",
+      "function": "gpio_out",
+      "rationale": "DK LED 1 driven by the mruby UX state machine."
+    },
+    {
+      "signal": "debug_tx",
+      "pad": "P006",
+      "net": "DBG_TX",
+      "function": "uart_tx",
+      "peripheral": "console"
+    }
+  ],
+  "peripherals": [
+    {
+      "id": "console",
+      "kind": "uart",
+      "instance": 0,
+      "baud": 115200,
+      "rationale": "printk/console UART for UX state tracing."
+    }
+  ],
+  "power": {
+    "supply_net": "+3V3",
+    "average_budget_ua": 15000,
+    "modes": [
+      {
+        "id": "run",
+        "kind": "run",
+        "current_ua": 15000,
+        "duty": 1.0,
+        "peripherals_on": ["console"]
+      }
+    ]
+  },
+  "build": {
+    "backend": "west",
+    "dir": "fw",
+    "board": "nrf52840dk/nrf52840",
+    "sdk": "nrf-connect",
+    "elf": "fw/build/zephyr/zephyr.elf",
+    "pins_header": "fw/include/fw_pins.h",
+    "budget": {
+      "flash_pct": 60,
+      "ram_pct": 60
+    },
+    "timeout_s": 900
+  },
+  "mrubyc": {
+    "ref": "2dec4802b09be1fc12f388d3c9267ffd9dc6c404",
+    "hal": "zephyr",
+    "memory_size": 40960,
+    "tick_unit_ms": 10,
+    "use_float": 2,
+    "use_math": false,
+    "use_string": true,
+    "max_vm_count": 2,
+    "sources": [
+      {
+        "file": "ux/app.rb",
+        "bytecode": "fw/generated/ux_app_bytecode.c",
+        "symbol": "ux_app"
+      }
+    ],
+    "generated_dir": "fw/generated",
+    "config_header": "fw/include/fw_mruby.h"
+  },
+  "analysis": {
+    "tool": "cppcheck",
+    "sources": ["fw/src/main.c", "fw/generated/ux_app_bytecode.c"],
+    "includes": ["fw/include", "fw/generated"],
+    "defines": ["CONFIG_SERIAL=1"]
+  },
+  "simulations": [
+    {
+      "id": "ux_wasm",
+      "runner": "node",
+      "fidelity": "core",
+      "image": "wasm/build/ux.js",
+      "build": {
+        "backend": "make",
+        "dir": "wasm",
+        "target": "all",
+        "elf": "wasm/build/ux.js",
+        "timeout_s": 600
+      },
+      "args": [],
+      "expect": [
+        "STATE OFF",
+        "STATE DIM",
+        "STATE BRIGHT",
+        "SIM PASS"
+      ],
+      "forbid": [
+        "SIM FAIL"
+      ],
+      "exit_code": 0,
+      "timeout_s": 30
+    }
+  ]
+}

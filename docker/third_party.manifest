@@ -1,0 +1,34 @@
+# name|url|sha256|dest — checksum-pinned source archives
+# mruby/mrubyc: bytecode compiler and C runtime
+mruby-4.0.0|https://github.com/mruby/mruby/archive/refs/tags/4.0.0.tar.gz|e2ea271dbed14e9f2b33df773ae447b747dbc242ce2675022c0a57efea85a7b4|/opt/mruby-src
+mrubyc|https://github.com/mrubyc/mrubyc/archive/2dec4802b09be1fc12f388d3c9267ffd9dc6c404.tar.gz|0860de6a2b4e8adf682e14f3e0f1df7114abdb8749be23ea39cf0133f5b16b84|/opt/mrubyc
+# Canonical Zephyr 26.04 LTS (non-Nordic builds): the zephyr tree is the
+# Canonical-maintained fork pinned by zephyr-manifest@26.04.0
+# (git.launchpad.net/~arctic-tern/zephyr-rtos). The Zephyr module rows
+# below use upstream tarballs whose commit SHAs are identical to the
+# revisions pinned in the Canonical manifest, so the trees are
+# byte-identical to the LTS distribution.
+git:zephyr-lts|https://git.launchpad.net/~arctic-tern/zephyr-rtos/+git/zephyr|2e4ba3e7c1823597ae82edf9f9406a6cdf262873|/opt/zephyr/zephyr
+z-cmsis|https://github.com/zephyrproject-rtos/cmsis/archive/512cc7e895e8491696b61f7ba8066b4a182569b8.tar.gz|425f802d1a4e7c962738572cd193fb41dfa1e83e1b75469f8f3f2158a7168e2b|/opt/zephyr/modules/hal/cmsis
+z-cmsis6|https://github.com/zephyrproject-rtos/CMSIS_6/archive/30a859f44ef8ab4dc8f84b03ed586fd16ccf9d74.tar.gz|2abdac3b892f0c9786bd15fc18728aa05463d919df726f9a837ed51457975bd3|/opt/zephyr/modules/hal/cmsis_6
+z-hal_stm32|https://github.com/zephyrproject-rtos/hal_stm32/archive/fc11896dd39cfca37bf9b4aeaaa2df8861b81875.tar.gz|4ace7bcaf71b9fcec779e2c1af9ac250295e59d14c67ff98a7370228d4d3b504|/opt/zephyr/modules/hal/stm32
+z-hal_atmel|https://github.com/zephyrproject-rtos/hal_atmel/archive/8cd575049f04131e333558072484bfc6334c19c4.tar.gz|6547f9de5047c534cf998101d5d11a152e765ef98883c9b74d55fb7be1472ce1|/opt/zephyr/modules/hal/atmel
+z-hal_microchip|https://github.com/zephyrproject-rtos/hal_microchip/archive/86f3ea6b389d860332bd81ae8b97543def619395.tar.gz|d28be2e5958cc02e2f78ee99342cbc6fb147bdccf55f6b2de0a6072207ad4c39|/opt/zephyr/modules/hal/microchip
+z-hal_nxp|https://github.com/zephyrproject-rtos/hal_nxp/archive/7554bc0f6f6c284972eba7b2c17b16fbb9cc0ad0.tar.gz|6a48fda6af179c3c8584290f5f7d7c4e2508fb8093e2d03c734b3b2a11de405c|/opt/zephyr/modules/hal/nxp
+z-hal_renesas|https://github.com/zephyrproject-rtos/hal_renesas/archive/06282060fa20cbd21d4ebbc7d46a1fc9533fd24e.tar.gz|9221962a33a2b45ffd77f103cb29446d6fc8152dd3e36a4e7199d6c2425b270a|/opt/zephyr/modules/hal/renesas
+z-hal_rpi_pico|https://github.com/zephyrproject-rtos/hal_rpi_pico/archive/562b41e10a1d8b1a761b253b107c5c6a84cf4535.tar.gz|0c0d03085021329cd10501238d1cce7f26cdc37d5bac486a793a60bf41287799|/opt/zephyr/modules/hal/rpi_pico
+z-hal_silabs|https://github.com/zephyrproject-rtos/hal_silabs/archive/f5201210afa1319ed8dd8dbe21682bcb63b25771.tar.gz|829286f2cce93643d4200da121b2c7932112bd0019be4d205b0d1657b639c3a2|/opt/zephyr/modules/hal/silabs
+z-hal_ti|https://github.com/zephyrproject-rtos/hal_ti/archive/afbcfffd393be03ca2c9b41f9ce8d94a4c2f2fbd.tar.gz|8bc989f48aa2dcdff45a1930e0a1e79fbc31aed3ec506de0ec1726b4e5611a92|/opt/zephyr/modules/hal/ti
+z-hal_espressif|https://github.com/zephyrproject-rtos/hal_espressif/archive/f07465053c0f24aa254d9fdfd559f06879221073.tar.gz|21962ff7942cd3140067d87576abbeae45bbe101537843449b68fbb6b40dc88c|/opt/zephyr/modules/hal/espressif
+z-picolibc|https://github.com/zephyrproject-rtos/picolibc/archive/01254932e8e81085817ed61fd858648584ffe37c.tar.gz|894468ec46d62f23cff955eb7452557aef972a59f68bc3316f02118279b6b309|/opt/zephyr/modules/lib/picolibc
+z-segger|https://github.com/zephyrproject-rtos/segger/archive/50892fdbcf2f570e67baa72b8894a66b16946f72.tar.gz|c33603042787c3564695f0a922309e7d49f3afdc1501c838c46c9318a0dba5d7|/opt/zephyr/modules/debug/segger
+# nRF Connect SDK v3.4.1 (LTS) minimal module set
+ncs-nrf|https://github.com/nrfconnect/sdk-nrf/archive/refs/tags/v3.4.1.tar.gz|cc280a045b3941d10867577f02875cac52204b0494f6ccfe71490c75efa739ee|/opt/nrf/nrf
+ncs-zephyr|https://github.com/nrfconnect/sdk-zephyr/archive/refs/tags/ncs-v3.4.1.tar.gz|5f24ece607aa615ea1c80df7eed9e3b50886bc4faf541c7dfa2b06e1bd125c5a|/opt/nrf/zephyr
+ncs-nrfxlib|https://github.com/nrfconnect/sdk-nrfxlib/archive/refs/tags/v3.4.1.tar.gz|a1cf63cf12b12edac08acda87d2f1a7a5fe48bc34be8e98d9fb0f456fe78cef7|/opt/nrf/nrfxlib
+ncs-hal_nordic|https://github.com/nrfconnect/sdk-hal_nordic/archive/69865c20dc4afbdd27060ad1e81af1b62d31f7af.tar.gz|813bceb6191733acba6318efa54c6aef075fbef3a5942b8c31febd1517a527b2|/opt/nrf/modules/hal/nordic
+ncs-cmsis|https://github.com/zephyrproject-rtos/cmsis/archive/512cc7e895e8491696b61f7ba8066b4a182569b8.tar.gz|425f802d1a4e7c962738572cd193fb41dfa1e83e1b75469f8f3f2158a7168e2b|/opt/nrf/modules/hal/cmsis
+ncs-cmsis6|https://github.com/zephyrproject-rtos/CMSIS_6/archive/30a859f44ef8ab4dc8f84b03ed586fd16ccf9d74.tar.gz|2abdac3b892f0c9786bd15fc18728aa05463d919df726f9a837ed51457975bd3|/opt/nrf/modules/hal/cmsis_6
+ncs-picolibc|https://github.com/zephyrproject-rtos/picolibc/archive/01254932e8e81085817ed61fd858648584ffe37c.tar.gz|894468ec46d62f23cff955eb7452557aef972a59f68bc3316f02118279b6b309|/opt/nrf/modules/lib/picolibc
+# Raspberry Pi Pico SDK for the mrubyc rp2040 HAL
+pico-sdk-2.2.0|https://github.com/raspberrypi/pico-sdk/archive/refs/tags/2.2.0.tar.gz|dbd8db79015aced4ef35cbaa88051b0d451775010d20202e1c7d2bee69c25b35|/opt/pico-sdk

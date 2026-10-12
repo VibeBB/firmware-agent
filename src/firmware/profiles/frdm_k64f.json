@@ -1,0 +1,365 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "mcu_profile",
+  "id": "frdm_k64f",
+  "vendor": "NXP",
+  "part": "MK64FN1M0VLL12 (FRDM-K64F)",
+  "core": "cortex-m4f",
+  "package": "LQFP-100",
+  "source": "NXP K64 Sub-Family Reference Manual and FRDM-K64F User Guide; PTA/PTE pad subset (pin numbers omitted)",
+  "io_voltage_max_v": 3.6,
+  "flash_kb": 1024,
+  "ram_kb": 256,
+  "memory_regions": [
+    {
+      "name": "flash",
+      "kind": "flash",
+      "origin": 0,
+      "length_kb": 1024,
+      "image_backed": true
+    },
+    {
+      "name": "sram",
+      "kind": "ram",
+      "origin": 536870912,
+      "length_kb": 256
+    }
+  ],
+  "peripherals": {
+    "i2c": [
+      0,
+      1,
+      2
+    ],
+    "spi": [
+      0,
+      1,
+      2
+    ],
+    "uart": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "pwm": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "adc": [
+      0,
+      1
+    ]
+  },
+  "sim_machine": null,
+  "pads": [
+    {
+      "name": "GPIO0",
+      "gpio": 0,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "uart*.tx",
+        "uart*.rx",
+        "spi*.sck",
+        "spi*.mosi",
+        "spi*.miso",
+        "spi*.cs",
+        "i2c*.sda",
+        "i2c*.scl",
+        "pwm*.a",
+        "pwm*.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO1",
+      "gpio": 1,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "uart*.tx",
+        "uart*.rx",
+        "spi*.sck",
+        "spi*.mosi",
+        "spi*.miso",
+        "spi*.cs",
+        "i2c*.sda",
+        "i2c*.scl",
+        "pwm*.a",
+        "pwm*.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO2",
+      "gpio": 2,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "uart*.tx",
+        "uart*.rx",
+        "spi*.sck",
+        "spi*.mosi",
+        "spi*.miso",
+        "spi*.cs",
+        "i2c*.sda",
+        "i2c*.scl",
+        "pwm*.a",
+        "pwm*.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO3",
+      "gpio": 3,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "uart*.tx",
+        "uart*.rx",
+        "spi*.sck",
+        "spi*.mosi",
+        "spi*.miso",
+        "spi*.cs",
+        "i2c*.sda",
+        "i2c*.scl",
+        "pwm*.a",
+        "pwm*.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO4",
+      "gpio": 4,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "uart*.tx",
+        "uart*.rx",
+        "spi*.sck",
+        "spi*.mosi",
+        "spi*.miso",
+        "spi*.cs",
+        "i2c*.sda",
+        "i2c*.scl",
+        "pwm*.a",
+        "pwm*.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO5",
+      "gpio": 5,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "uart*.tx",
+        "uart*.rx",
+        "spi*.sck",
+        "spi*.mosi",
+        "spi*.miso",
+        "spi*.cs",
+        "i2c*.sda",
+        "i2c*.scl",
+        "pwm*.a",
+        "pwm*.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO6",
+      "gpio": 6,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "uart*.tx",
+        "uart*.rx",
+        "spi*.sck",
+        "spi*.mosi",
+        "spi*.miso",
+        "spi*.cs",
+        "i2c*.sda",
+        "i2c*.scl",
+        "pwm*.a",
+        "pwm*.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO7",
+      "gpio": 7,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "uart*.tx",
+        "uart*.rx",
+        "spi*.sck",
+        "spi*.mosi",
+        "spi*.miso",
+        "spi*.cs",
+        "i2c*.sda",
+        "i2c*.scl",
+        "pwm*.a",
+        "pwm*.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO8",
+      "gpio": 8,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "uart*.tx",
+        "uart*.rx",
+        "spi*.sck",
+        "spi*.mosi",
+        "spi*.miso",
+        "spi*.cs",
+        "i2c*.sda",
+        "i2c*.scl",
+        "pwm*.a",
+        "pwm*.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO9",
+      "gpio": 9,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "uart*.tx",
+        "uart*.rx",
+        "spi*.sck",
+        "spi*.mosi",
+        "spi*.miso",
+        "spi*.cs",
+        "i2c*.sda",
+        "i2c*.scl",
+        "pwm*.a",
+        "pwm*.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO10",
+      "gpio": 10,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "uart*.tx",
+        "uart*.rx",
+        "spi*.sck",
+        "spi*.mosi",
+        "spi*.miso",
+        "spi*.cs",
+        "i2c*.sda",
+        "i2c*.scl",
+        "pwm*.a",
+        "pwm*.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO11",
+      "gpio": 11,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "uart*.tx",
+        "uart*.rx",
+        "spi*.sck",
+        "spi*.mosi",
+        "spi*.miso",
+        "spi*.cs",
+        "i2c*.sda",
+        "i2c*.scl",
+        "pwm*.a",
+        "pwm*.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO12",
+      "gpio": 12,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "uart*.tx",
+        "uart*.rx",
+        "spi*.sck",
+        "spi*.mosi",
+        "spi*.miso",
+        "spi*.cs",
+        "i2c*.sda",
+        "i2c*.scl",
+        "pwm*.a",
+        "pwm*.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO13",
+      "gpio": 13,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "uart*.tx",
+        "uart*.rx",
+        "spi*.sck",
+        "spi*.mosi",
+        "spi*.miso",
+        "spi*.cs",
+        "i2c*.sda",
+        "i2c*.scl",
+        "pwm*.a",
+        "pwm*.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO14",
+      "gpio": 14,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "uart*.tx",
+        "uart*.rx",
+        "spi*.sck",
+        "spi*.mosi",
+        "spi*.miso",
+        "spi*.cs",
+        "i2c*.sda",
+        "i2c*.scl",
+        "pwm*.a",
+        "pwm*.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO15",
+      "gpio": 15,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "uart*.tx",
+        "uart*.rx",
+        "spi*.sck",
+        "spi*.mosi",
+        "spi*.miso",
+        "spi*.cs",
+        "i2c*.sda",
+        "i2c*.scl",
+        "pwm*.a",
+        "pwm*.b"
+      ],
+      "wake_deep_sleep": true
+    }
+  ]
+}

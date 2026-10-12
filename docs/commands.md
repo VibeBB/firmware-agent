@@ -15,6 +15,7 @@ launcher.
 | `gates` | `contract` `[--out dir]` | all gates incl. build, memory budget, cppcheck, QEMU sims |
 | `pins` | `contract` | regenerate `build.pins_header` (`fw_pins.h`) |
 | `cues` | `contract` | regenerate `cues.header` (`fw_cues.h`) from the pinned bard `cues.json`; fails when the manifest hash differs from `cues.sha256` |
+| `mrubyc` | `contract` | regenerate `mrubyc.config_header` (`fw_mruby.h`), one `*_bytecode.c` per `mrubyc.sources` entry via `mrbc -B`, and `generated_dir/fw_ruby_manifest.json`; fails when `mrbc` is absent or a source errors |
 | `fpga-regs` | `contract` | regenerate `fpga.header` (`fw_fpga_regs.h`) from the pinned fpga `*.fpga-regmap.json`; fails when the map hash differs from `fpga.sha256` |
 | `ftm` | `contract` | regenerate `ftm.header` (`fw_ftm.h`) from the pinned prodeng `factory-test-spec.json`; fails when the spec hash differs from `ftm.sha256` |
 | `sbom` | `contract` `[--out dir]` | export `<name>.fw-sbom.cdx.json` (deterministic CycloneDX 1.5: declared `components` with SPDX license expression, supplier, VCS source and SHA-256 tree hashes); fails when `fw.sbom` would |

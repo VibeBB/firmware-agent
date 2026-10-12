@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "mcu_profile",
+  "id": "niosv_g",
+  "vendor": "Altera (Intel)",
+  "part": "Nios V/g RISC-V softcore",
+  "core": "rv32im",
+  "package": "FPGA fabric (pad nets assigned in FPGA constraints)",
+  "source": "Intel Nios V documentation; pads are FPGA top-level ports \u2014 gpio only by default",
+  "io_voltage_max_v": 3.6,
+  "flash_kb": 256,
+  "ram_kb": 128,
+  "memory_regions": [
+    {
+      "name": "flash",
+      "kind": "flash",
+      "origin": 268435456,
+      "length_kb": 256,
+      "image_backed": true
+    },
+    {
+      "name": "sram",
+      "kind": "ram",
+      "origin": 0,
+      "length_kb": 128
+    }
+  ],
+  "peripherals": {
+    "i2c": [
+      0
+    ],
+    "spi": [
+      0
+    ],
+    "uart": [
+      0
+    ],
+    "pwm": [
+      0
+    ]
+  },
+  "sim_machine": null,
+  "pads": [
+    {
+      "name": "GPIO0",
+      "gpio": 0,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO1",
+      "gpio": 1,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO2",
+      "gpio": 2,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO3",
+      "gpio": 3,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO4",
+      "gpio": 4,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO5",
+      "gpio": 5,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO6",
+      "gpio": 6,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO7",
+      "gpio": 7,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO8",
+      "gpio": 8,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO9",
+      "gpio": 9,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO10",
+      "gpio": 10,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO11",
+      "gpio": 11,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO12",
+      "gpio": 12,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO13",
+      "gpio": 13,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO14",
+      "gpio": 14,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO15",
+      "gpio": 15,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    }
+  ]
+}
