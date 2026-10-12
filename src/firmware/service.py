@@ -21,6 +21,7 @@ from .interchange import (
     load_ftm_spec,
     sha256_file,
 )
+from .mrubyc import generate as generate_mrubyc
 from .production import production_export
 from .profiles import load_profile
 from .projections import (
@@ -149,6 +150,25 @@ def cues_payload(contract_path: Path) -> Json:
         cues_header(contract, manifest, manifest_sha),
     )
     return {"verdict": PASS, "stage": "cues", "written": [str(header)], "cues": len(manifest.cues)}
+
+
+def mrubyc_payload(contract_path: Path) -> Json:
+    """Regenerate the mruby/c config header, bytecode C sources and manifest."""
+    try:
+        contract = load_contract(contract_path)
+        if contract.mrubyc is None:
+            return {"verdict": FAIL, "stage": "mrubyc", "detail": "contract declares no mrubyc"}
+        written, problems = generate_mrubyc(contract, contract_path)
+    except (OSError, ValueError, ValidationError) as exc:
+        return {"verdict": FAIL, "stage": "mrubyc", "detail": str(exc)}
+    if problems:
+        return {"verdict": FAIL, "stage": "mrubyc", "detail": "; ".join(problems)}
+    return {
+        "verdict": PASS,
+        "stage": "mrubyc",
+        "written": [str(p) for p in written],
+        "sources": len(contract.mrubyc.sources),
+    }
 
 
 def fpga_regs_payload(contract_path: Path) -> Json:

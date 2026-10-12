@@ -1,0 +1,391 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "mcu_profile",
+  "id": "cc26x2r1",
+  "vendor": "Texas Instruments",
+  "part": "CC2652R1 (LaunchXL CC26X2R1)",
+  "core": "cortex-m4f",
+  "package": "RGZ-48",
+  "source": "TI CC2652R Datasheet and LaunchXL CC26X2R1 User Guide; DIO pads are board-level names (package pin numbers omitted)",
+  "io_voltage_max_v": 3.8,
+  "flash_kb": 352,
+  "ram_kb": 80,
+  "memory_regions": [
+    {
+      "name": "flash",
+      "kind": "flash",
+      "origin": 0,
+      "length_kb": 352,
+      "image_backed": true
+    },
+    {
+      "name": "sram",
+      "kind": "ram",
+      "origin": 536870912,
+      "length_kb": 80
+    }
+  ],
+  "peripherals": {
+    "i2c": [
+      0
+    ],
+    "spi": [
+      0,
+      1
+    ],
+    "uart": [
+      0,
+      1
+    ],
+    "pwm": [
+      0,
+      1
+    ],
+    "adc": [
+      0
+    ]
+  },
+  "sim_machine": null,
+  "pads": [
+    {
+      "name": "DIO0",
+      "gpio": 0,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "pwm*.a",
+        "adc0.ch0"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO1",
+      "gpio": 1,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "pwm*.a",
+        "adc0.ch1"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO2",
+      "gpio": 2,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "uart0.rx",
+        "pwm*.a",
+        "adc0.ch2"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO3",
+      "gpio": 3,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "uart0.tx",
+        "pwm*.a",
+        "adc0.ch3"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO4",
+      "gpio": 4,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "i2c0.sda",
+        "pwm*.a",
+        "adc0.ch4"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO5",
+      "gpio": 5,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "i2c0.scl",
+        "pwm*.a",
+        "adc0.ch5"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO6",
+      "gpio": 6,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "pwm*.a",
+        "adc0.ch6"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO7",
+      "gpio": 7,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "pwm*.a",
+        "adc0.ch7"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO8",
+      "gpio": 8,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "pwm*.a",
+        "adc0.ch0"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO9",
+      "gpio": 9,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "pwm*.a",
+        "adc0.ch1"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO10",
+      "gpio": 10,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "pwm*.a",
+        "adc0.ch2"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO11",
+      "gpio": 11,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "pwm*.a",
+        "adc0.ch3"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO12",
+      "gpio": 12,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "pwm*.a",
+        "adc0.ch4"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO13",
+      "gpio": 13,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "pwm*.a",
+        "adc0.ch5"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO14",
+      "gpio": 14,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "pwm*.a",
+        "adc0.ch6"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO15",
+      "gpio": 15,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "pwm*.a",
+        "adc0.ch7"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO16",
+      "gpio": 16,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "pwm*.a",
+        "adc0.ch0"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO17",
+      "gpio": 17,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "pwm*.a",
+        "adc0.ch1"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO18",
+      "gpio": 18,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "pwm*.a",
+        "adc0.ch2"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO19",
+      "gpio": 19,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "pwm*.a",
+        "adc0.ch3"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO20",
+      "gpio": 20,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "pwm*.a",
+        "adc0.ch4"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO21",
+      "gpio": 21,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "pwm*.a",
+        "adc0.ch5"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO22",
+      "gpio": 22,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "pwm*.a",
+        "adc0.ch6"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO23",
+      "gpio": 23,
+      "pin": null,
+      "functions": [
+        "gpio",
+        "pwm*.a",
+        "adc0.ch7"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO24",
+      "gpio": 24,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO25",
+      "gpio": 25,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO26",
+      "gpio": 26,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO27",
+      "gpio": 27,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO28",
+      "gpio": 28,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO29",
+      "gpio": 29,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO30",
+      "gpio": 30,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "DIO31",
+      "gpio": 31,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    }
+  ]
+}

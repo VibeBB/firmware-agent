@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "mcu_profile",
+  "id": "mps2_an385",
+  "vendor": "ARM",
+  "part": "Cortex-M3 on MPS2+ (QEMU an385)",
+  "core": "cortex-m3",
+  "package": "MPS2 FPGA image (virtual pads)",
+  "source": "ARM V2M-MPS2 documentation; pads model the MPS2 GPIO banks \u2014 gpio only",
+  "io_voltage_max_v": 3.6,
+  "flash_kb": 4096,
+  "ram_kb": 4096,
+  "memory_regions": [
+    {
+      "name": "flash",
+      "kind": "flash",
+      "origin": 0,
+      "length_kb": 4096,
+      "image_backed": true
+    },
+    {
+      "name": "sram",
+      "kind": "ram",
+      "origin": 536870912,
+      "length_kb": 4096
+    }
+  ],
+  "peripherals": {
+    "i2c": [
+      0
+    ],
+    "spi": [
+      0
+    ],
+    "uart": [
+      0,
+      1,
+      2
+    ],
+    "pwm": [
+      0
+    ]
+  },
+  "sim_machine": "mps2_an385",
+  "pads": [
+    {
+      "name": "GPIO0",
+      "gpio": 0,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO1",
+      "gpio": 1,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO2",
+      "gpio": 2,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO3",
+      "gpio": 3,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO4",
+      "gpio": 4,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO5",
+      "gpio": 5,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO6",
+      "gpio": 6,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO7",
+      "gpio": 7,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO8",
+      "gpio": 8,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO9",
+      "gpio": 9,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO10",
+      "gpio": 10,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO11",
+      "gpio": 11,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO12",
+      "gpio": 12,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO13",
+      "gpio": 13,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO14",
+      "gpio": 14,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "GPIO15",
+      "gpio": 15,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    }
+  ]
+}

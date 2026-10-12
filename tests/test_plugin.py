@@ -34,6 +34,7 @@ def test_mcp_tools_registered() -> None:
         "firmware_gates",
         "firmware_pins",
         "firmware_cues",
+        "firmware_mrubyc",
         "firmware_fpga_regs",
         "firmware_ftm",
         "firmware_production_export",

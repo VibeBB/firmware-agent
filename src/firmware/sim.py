@@ -35,7 +35,11 @@ class SimResult:
 
 
 def qemu_argv(sim: Simulation, image: Path, gdb_port: int | None = None) -> list[str]:
-    binary = BINARIES[sim.runner]
+    binary = BINARIES.get(sim.runner, "node")
+    if sim.runner == "node":
+        # ``image`` is a .mjs bundle; args pass e.g. the bytecode to run.
+        return [binary, image.as_posix(), *sim.args]
+    assert sim.machine is not None  # contract requires machine for qemu runners
     if sim.runner == "qemu-arm":
         argv = [
             binary,
@@ -79,6 +83,8 @@ def _progress(lines: list[str], expect: list[str]) -> int:
 
 def run_simulation(sim: Simulation, image: Path, transcript: Path) -> SimResult:
     argv = qemu_argv(sim, image)
+    if sim.runner == "node":
+        argv = ["node", image.as_posix(), *sim.args]
     if shutil.which(argv[0]) is None:
         return SimResult(False, f"{argv[0]} not found on PATH", argv)
     if not image.is_file():

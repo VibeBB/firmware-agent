@@ -1,0 +1,438 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "mcu_profile",
+  "id": "avr128db48",
+  "vendor": "Microchip",
+  "part": "AVR128DB48",
+  "core": "avr-dx",
+  "package": "TQFP-48",
+  "source": "AVR128DB48 Datasheet DS40002301 (Microchip), PORTA-F alternate functions",
+  "io_voltage_max_v": 5.5,
+  "flash_kb": 128,
+  "ram_kb": 16,
+  "memory_regions": [
+    {
+      "name": "flash",
+      "kind": "flash",
+      "origin": 0,
+      "length_kb": 128,
+      "image_backed": true
+    },
+    {
+      "name": "sram",
+      "kind": "ram",
+      "origin": 16384,
+      "length_kb": 16
+    }
+  ],
+  "peripherals": {
+    "i2c": [
+      0,
+      1
+    ],
+    "spi": [
+      0,
+      1
+    ],
+    "uart": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "pwm": [
+      0,
+      1
+    ],
+    "adc": [
+      0
+    ]
+  },
+  "sim_machine": null,
+  "pads": [
+    {
+      "name": "PA0",
+      "pin": "1",
+      "functions": [
+        "gpio",
+        "uart0.tx",
+        "adc0.ch0"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PA1",
+      "pin": "2",
+      "functions": [
+        "gpio",
+        "uart0.rx",
+        "adc0.ch1"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PA2",
+      "pin": "3",
+      "functions": [
+        "gpio",
+        "i2c0.sda",
+        "adc0.ch2"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PA3",
+      "pin": "4",
+      "functions": [
+        "gpio",
+        "i2c0.scl",
+        "adc0.ch3"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PA4",
+      "pin": "5",
+      "functions": [
+        "gpio",
+        "spi0.mosi",
+        "adc0.ch4"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PA5",
+      "pin": "6",
+      "functions": [
+        "gpio",
+        "spi0.miso",
+        "adc0.ch5"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PA6",
+      "pin": "7",
+      "functions": [
+        "gpio",
+        "spi0.sck",
+        "adc0.ch6"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PA7",
+      "pin": "8",
+      "functions": [
+        "gpio",
+        "spi0.cs",
+        "adc0.ch7"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PB0",
+      "pin": "9",
+      "functions": [
+        "gpio",
+        "uart1.tx",
+        "adc0.ch8"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PB1",
+      "pin": "10",
+      "functions": [
+        "gpio",
+        "uart1.rx",
+        "adc0.ch9"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PB2",
+      "pin": "11",
+      "functions": [
+        "gpio",
+        "adc0.ch10"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PB3",
+      "pin": "12",
+      "functions": [
+        "gpio",
+        "adc0.ch11"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PB4",
+      "pin": "13",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PB5",
+      "pin": "14",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PB6",
+      "pin": "15",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PB7",
+      "pin": "16",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PC0",
+      "pin": "17",
+      "functions": [
+        "gpio",
+        "uart2.tx",
+        "pwm0.a"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PC1",
+      "pin": "18",
+      "functions": [
+        "gpio",
+        "uart2.rx",
+        "pwm0.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PC2",
+      "pin": "19",
+      "functions": [
+        "gpio",
+        "pwm0.c"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PC3",
+      "pin": "20",
+      "functions": [
+        "gpio",
+        "pwm0.d"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PC4",
+      "pin": "21",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PC5",
+      "pin": "22",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PC6",
+      "pin": "23",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PC7",
+      "pin": "24",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PD0",
+      "pin": "25",
+      "functions": [
+        "gpio",
+        "i2c0.sda",
+        "pwm1.a"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PD1",
+      "pin": "26",
+      "functions": [
+        "gpio",
+        "i2c0.scl",
+        "pwm1.b"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PD2",
+      "pin": "27",
+      "functions": [
+        "gpio",
+        "pwm1.c"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PD3",
+      "pin": "28",
+      "functions": [
+        "gpio",
+        "pwm1.d"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PD4",
+      "pin": "29",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PD5",
+      "pin": "30",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PD6",
+      "pin": "31",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PD7",
+      "pin": "32",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PE0",
+      "pin": "33",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PE1",
+      "pin": "34",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PE2",
+      "pin": "35",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PE3",
+      "pin": "36",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PF0",
+      "pin": "37",
+      "functions": [
+        "gpio",
+        "uart4.tx"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PF1",
+      "pin": "38",
+      "functions": [
+        "gpio",
+        "uart4.rx"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PF2",
+      "pin": "39",
+      "functions": [
+        "gpio",
+        "i2c1.sda"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PF3",
+      "pin": "40",
+      "functions": [
+        "gpio",
+        "i2c1.scl"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PF4",
+      "pin": "41",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PF5",
+      "pin": "42",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "PF6",
+      "pin": "43",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    }
+  ]
+}

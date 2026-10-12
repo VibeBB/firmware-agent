@@ -15,6 +15,13 @@ from .contract import BuildStep
 
 _PINNED_PLATFORM = re.compile(r"^[A-Za-z0-9_./-]+@\d+\.\d+\.\d+$")
 
+# Zephyr-family SDK roots inside the tools image; environment variables allow
+# host-side verification runs to point at a local checkout instead.
+SDK_ROOTS: dict[str, str] = {
+    "zephyr": os.environ.get("FIRMWARE_ZEPHYR_ROOT", "/opt/zephyr"),
+    "nrf-connect": os.environ.get("FIRMWARE_NCS_ROOT", "/opt/nrf"),
+}
+
 
 @dataclass
 class BuildResult:
@@ -46,6 +53,47 @@ def platformio_pin_error(project_dir: Path, env: str) -> str | None:
     return None
 
 
+def _west_argv(step: BuildStep, directory: str) -> list[list[str]]:
+    """Zephyr-family build driven by cmake directly (west CLI is a wrapper).
+
+    ``sdk`` selects the SDK root: upstream Zephyr LTS under ``/opt/zephyr`` or
+    the nRF Connect SDK workspace under ``/opt/nrf``. ``sysbuild`` adds
+    ``-DSYSBUILD=ON`` for boards whose boot firmware is a sibling image.
+    """
+    assert step.board is not None
+    sdk_root = SDK_ROOTS[step.sdk or "zephyr"]
+    build_dir = (Path(directory) / "build").as_posix()
+    configure = [
+        "cmake",
+        "-S",
+        directory,
+        "-B",
+        build_dir,
+        "-G",
+        "Ninja",
+        f"-DBOARD={step.board}",
+        f"-DZEPHYR_BASE={sdk_root}/zephyr",
+        "-DZEPHYR_TOOLCHAIN_VARIANT=gnuarmemb",
+        "-DGNUARMEMB_TOOLCHAIN_PATH=/usr",
+    ]
+    if step.sysbuild:
+        configure.append("-DSYSBUILD=ON")
+    if step.toolchain == "cross-compile":
+        assert step.cross_prefix is not None
+        configure += [
+            "-DZEPHYR_TOOLCHAIN_VARIANT=cross-compile",
+            f"-DCROSS_COMPILE={step.cross_prefix}",
+        ]
+        # gnuarmemb flags conflict with the cross-compile variant.
+        configure = [
+            f
+            for f in configure
+            if not f.startswith("-DZEPHYR_TOOLCHAIN_VARIANT=gnuarmemb")
+            and not f.startswith("-DGNUARMEMB_TOOLCHAIN_PATH")
+        ]
+    return [configure, ["cmake", "--build", build_dir]]
+
+
 def build_argv(step: BuildStep, root: Path) -> list[list[str]]:
     directory = (root / step.dir).as_posix()
     if step.backend == "make":
@@ -56,6 +104,8 @@ def build_argv(step: BuildStep, root: Path) -> list[list[str]]:
             ["cmake", "-S", directory, "-B", build_dir, "-G", "Ninja"],
             ["cmake", "--build", build_dir, *(["--target", step.target] if step.target else [])],
         ]
+    if step.backend == "west":
+        return _west_argv(step, directory)
     assert step.env is not None
     return [["pio", "run", "-d", directory, "-e", step.env]]
 

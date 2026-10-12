@@ -2,7 +2,8 @@
 an agent's word.
 
 Static gates (no toolchain): ``fw.contract``, ``fw.pin_functions``,
-``fw.netlist_match``, ``fw.power_modes``, ``fw.pins_header``, ``fw.ftm``.
+``fw.netlist_match``, ``fw.power_modes``, ``fw.pins_header``, ``fw.ftm``,
+``fw.mrubyc`` (needs mrbc on PATH for the freshness checks).
 Toolchain gates: ``fw.build``, ``fw.memory_budget``, ``fw.static_analysis``,
 ``fw.sim.<id>``.
 """
@@ -36,6 +37,7 @@ from .interchange import (
     pad_of,
     sha256_file,
 )
+from .mrubyc import mrubyc_problems
 from .profiles import McuProfile, load_profile
 from .projections import (
     cues_header,
@@ -646,6 +648,9 @@ def run_gates(
     if contract.security is not None:
         problems, evidence = security_problems(contract, contract_path)
         checks.append(_check("fw.security", contract.name, problems, evidence))
+    if contract.mrubyc is not None:
+        problems, evidence = mrubyc_problems(contract, profile, contract_path)
+        checks.append(_check("fw.mrubyc", contract.mrubyc.hal, problems, evidence))
     checks.append(check_sbom(contract, contract_path))
     metrics: dict[str, float] = {
         "average_ua": sum(mode.current_ua * mode.duty for mode in contract.power.modes),

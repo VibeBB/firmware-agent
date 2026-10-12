@@ -13,6 +13,8 @@ firmware sister in the VibeBB OpenHands plugin family.
   `*.fw-pinmap.json`, `*.pinmap.md`, `*.fw-report.*`, `sim-*.log`,
   `debug-*.advisory.json`, `observations/firmware/*.jsonl` and
   `intake/attachments/manifest.jsonl` are generated; never edit them by hand.
+  `fw_mruby.h`, `*_bytecode.c` and `fw_ruby_manifest.json` are generated
+  by `firmware mrubyc`; never edit them by hand.
 - The plugin is Docker-only: `firmware_launcher.py` fails closed when no
   pinned `firmware-tools` image resolves; there is no host-interpreter
   fallback.
@@ -21,6 +23,13 @@ firmware sister in the VibeBB OpenHands plugin family.
 - Sister cooperation is JSON artifacts in the workspace; never import a
   sister's code and never edit a sister's inputs (write a
   `fw_request`).
+- SDK pins: Nordic targets always build through the nRF Connect SDK
+  **LTS** line (`sdk: "nrf-connect"`, v3.4.1 today). Non-Nordic Zephyr
+  targets build through **Canonical's Zephyr 26.04 LTS** distribution
+  (`sdk: "zephyr"` — the Canonical-maintained fork of upstream Zephyr
+  4.4 pinned by `zephyr-manifest@26.04.0` on Launchpad); when the first
+  upstream 4.x LTS (planned Zephyr 4.6, April 2027) ships, the pin
+  moves to that LTS — see ADR-0029.
 - External tools run as subprocesses. Do not import GPL/AGPL code.
   Downloaded tools are pinned by version and sha256 and listed in
   `THIRD_PARTY_NOTICES.md`.

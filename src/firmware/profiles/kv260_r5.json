@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "mcu_profile",
+  "id": "kv260_r5",
+  "vendor": "AMD (Xilinx)",
+  "part": "Zynq UltraScale+ R5F (KV260 carrier)",
+  "core": "cortex-r5f",
+  "package": "FBGA (MIO bank, subset)",
+  "source": "Xilinx Kria KV260 documentation; MIO pads 0-15 representative subset routed to the carrier",
+  "io_voltage_max_v": 3.6,
+  "flash_kb": 512,
+  "ram_kb": 1024,
+  "memory_regions": [
+    {
+      "name": "flash",
+      "kind": "flash",
+      "origin": 268435456,
+      "length_kb": 512,
+      "image_backed": true
+    },
+    {
+      "name": "sram",
+      "kind": "ram",
+      "origin": 0,
+      "length_kb": 1024
+    }
+  ],
+  "peripherals": {
+    "i2c": [
+      0
+    ],
+    "spi": [
+      0,
+      1
+    ],
+    "uart": [
+      0,
+      1
+    ],
+    "pwm": [
+      0
+    ]
+  },
+  "sim_machine": null,
+  "pads": [
+    {
+      "name": "MIO0",
+      "gpio": 0,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "MIO1",
+      "gpio": 1,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "MIO2",
+      "gpio": 2,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "MIO3",
+      "gpio": 3,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "MIO4",
+      "gpio": 4,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "MIO5",
+      "gpio": 5,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "MIO6",
+      "gpio": 6,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "MIO7",
+      "gpio": 7,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "MIO8",
+      "gpio": 8,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "MIO9",
+      "gpio": 9,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "MIO10",
+      "gpio": 10,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "MIO11",
+      "gpio": 11,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "MIO12",
+      "gpio": 12,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "MIO13",
+      "gpio": 13,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "MIO14",
+      "gpio": 14,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "MIO15",
+      "gpio": 15,
+      "pin": null,
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    }
+  ]
+}
