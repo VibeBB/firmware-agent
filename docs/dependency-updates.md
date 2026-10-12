@@ -75,19 +75,19 @@ with an audit egress policy); upload/download-artifact improve HTTP 429
 retry handling honoring Retry-After — internal improvement, no usage
 change. Added python-version deferrals for the
 3.12/3.13 floor rows (pyproject.toml + ci.yml matrix) with review_by
-2027-01-08; the mcp deferral is unchanged (SDK 1.53.0 still caps mcp<2 via
+2027-01-08; the mcp deferral is unchanged (SDK 1.54.0 still caps mcp<2 via
 fastmcp).
 
-## 2026-10-07 update (sdk 1.53.0)
+## 2026-10-07 update (sdk 1.54.0)
 
-Bumped `openhands-sdk`/`openhands-tools` 1.52.0 -> 1.53.0 (`sdk-check`
+Bumped `openhands-sdk`/`openhands-tools` 1.52.0 -> 1.54.0 (`sdk-check`
 group, `uv.lock` regenerated — no other pins moved). Adoption decisions are
 recorded per upstream change in
-[SDK v1.53.0 feature evaluation](research/sdk-v1.53.0-feature-evaluation.md):
+[SDK v1.54.0 feature evaluation](research/sdk-v1.54.0-feature-evaluation.md):
 everything repo-facing was adopted implicitly or not applicable; the new
 canvas-extension icon endpoint was not adopted (VibeBB plugins are
 AgentCanvas plugins, not canvas extensions). The mcp deferral was refreshed
-citing SDK 1.53.0 — `fastmcp>=3.2.0,<4` still caps `mcp<2`.
+citing SDK 1.54.0 — `fastmcp>=3.2.0,<4` still caps `mcp<2`.
 
 ## 2026-10-05 update (sdk 1.52.0)
 
@@ -118,7 +118,7 @@ Adopted now:
 
 | Component | From | To | Evaluation |
 |-----------|------|----|------------|
-| uv | 0.12.22 | 0.12.23 | Point release; dependency resolution and managed-Python fixes. No workflow changes required. |
+| uv | 0.12.22 | 0.13.0 | Point release; dependency resolution and managed-Python fixes. No workflow changes required. |
 | Python pins | 3.12 | 3.14 | `uv python install` / `uv venv --python` / `python3.x` / `.python-version` now resolve 3.14; ci.yml matrix gains a 3.14 leg. |
 | Python 3.15 | - | canary leg | Experimental matrix leg runs each step with `continue-on-error`; a `::warning::` annotation records forward-compat failures without failing the check. |
 
@@ -126,4 +126,4 @@ Deferred:
 
 | Candidate | Reason | Re-check |
 |-----------|--------|----------|
-| Python 3.15 as default | `openhands-sdk` -> `fastuuid==0.14.0` -> PyO3 0.26 caps supported interpreters at 3.14; `uv sync` fails on 3.15 today. The canary leg detects when upstream wheels land. | After 3.15 GA (2026-10-09) and a PyO3 0.27-wheel fastuuid release. |
+| Python 3.15 as default | `openhands-sdk` -> `litellm` -> `fastuuid==0.14.0` ships only an sdist whose bundled PyO3 fails to build on 3.15 (`uv sync` fails at maturin, verified 2026-10-12). `pydantic-core>=2.50` ships cp315 wheels, so fastuuid is the sole blocker. The canary leg detects when a 3.15-capable fastuuid lands. | After 3.15 GA (2026-10-09) and a PyO3 0.27-wheel fastuuid release. |

@@ -5,21 +5,7 @@
       "name": "mcp",
       "latest": "2.3.0",
       "review_by": "2027-04-01",
-      "reason": "openhands-sdk 1.53.0 requires fastmcp>=3.2.0,<4, which requires mcp<2.0. Defer MCP 2.x until a supported SDK/fastmcp release removes that constraint."
-    },
-    {
-      "surface": "python-version",
-      "name": "Python version (pyproject.toml)",
-      "latest": "3.14",
-      "review_by": "2027-01-08",
-      "reason": "3.12/3.13 remain the supported floor; 3.14+ is exercised by the canary legs."
-    },
-    {
-      "surface": "python-version",
-      "name": "Python version (ci.yml)",
-      "latest": "3.14",
-      "review_by": "2027-01-08",
-      "reason": "3.12/3.13 remain the supported floor; 3.14+ is exercised by the canary legs."
+      "reason": "openhands-sdk 1.54.0 requires fastmcp>=3.2.0,<4, which requires mcp<2.0. Defer MCP 2.x until a supported SDK/fastmcp release removes that constraint."
     },
     {
       "surface": "docker-arg",
@@ -27,6 +13,13 @@
       "latest": "any",
       "review_by": "2027-01-03",
       "reason": "The firmware-tools image carries ~15 Trivy findings (cryptography 46.0.7 in tool-esptoolpy/_contrib and penv/.espidf-6.1.0, urllib3 1.26.20 in penv/.espidf-6.1.0, DS-0002/DS-0029 on vendored example Dockerfiles, private-key on vendored mbedtls/openthread test keys) currently covered by expiring .trivyignore waivers. Versions track the pinned espressif32@7.1.3 platform and ESP-IDF 6.1.0, which gates invoke at runtime \u2014 do not strip. Re-scan and drop cleared waivers at the next ESPRESSIF32_PLATFORM / ESP-IDF bump."
+    },
+    {
+      "surface": "python-version",
+      "name": "*",
+      "latest": "3.15",
+      "review_by": "2027-01-08",
+      "reason": "Latest stable is 3.15, but the sdk-check group's openhands-sdk->litellm->fastuuid chain pins fastuuid 0.14.0 (sdist only, no cp315 wheel) and its bundled PyO3 fails to build on 3.15. pydantic-core has shipped cp315 wheels as of 2.50.1, so fastuuid is the sole blocker - re-check when fastuuid publishes a 3.15-capable release."
     }
   ]
 }
