@@ -75,6 +75,26 @@ with boards such as `nucleo_f411re`, `rpi_pico`, `mimxrt1050_evk`,
 Canonical's Workshop environment (snap + LXD) is not usable inside
 Docker; only the source set is consumed.
 
+## M5Stack coverage
+
+Every ESP32-based M5Stack product maps onto a bundled profile through
+its silicon:
+
+| M5Stack series | example products | profile |
+| --- | --- | --- |
+| ESP32 | Core, Core2, StickC, StickC-Plus, Fire | `esp32` |
+| ESP32-S3 | CoreS3, Atom S3/AtomS3R/Atom Echo, Stamp-S3, Cardputer, M5Dial, Paper S3, StickC-Plus2 | `esp32s3` |
+| ESP32-C3 | Stamp-C3, Atom (C3 var.) | `esp32c3` |
+| ESP32-C6 | NanoC6, Stamp-C6 | `esp32c6` |
+
+Build them via the mrubyc `hal: "esp32"` leg (upstream mruby/c
+`hal/esp32`, PlatformIO/ESP-IDF) or via Zephyr with `sdk: "zephyr"`
+boards such as `esp32s3_devkitc`. M5-specific pin labels (Grove ports,
+LCD/backlight GPIOs) belong in the circuit netlist and contract pads;
+the profiles describe the silicon. CoreMP135 (STM32MP135) and Tab5
+(ESP32-P4) are out of scope: one is a Linux MPU, the other is not in
+Zephyr 4.4.
+
 ## ux-creator handshake
 
 UX-creator emits `ux/<product>.mruby-manifest.json` listing every `.rb`

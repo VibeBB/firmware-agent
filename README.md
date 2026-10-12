@@ -33,8 +33,10 @@ datasheets of your board. You get back:
 - mruby/c UX logic: `mrubyc` compiles ux-creator `.rb` sources with the
   pinned `mrbc`, emits `fw_mruby.h` + `*_bytecode.c` + a source manifest,
   and verifies them under Zephyr (NCS LTS for Nordic, Canonical's
-  Zephyr 26.04 LTS otherwise), AVR, ESP32, RP2040 and Emscripten
-  (`node` leg)
+  Zephyr 26.04 LTS otherwise), AVR (ATmega328P/2560/AVR128DB48), PIC24,
+  ESP32 (incl. M5Stack Core/Atom/Stamp/Cardputer/M5Dial), RP2040/RP2350
+  and Emscripten (`node` leg); 38 bundled MCU profiles cover Nordic,
+  STM32, NXP, Renesas, TI, SiFive/GigaDevice RISC-V and FPGA soft cores
 - a record of every decision, stage impression and image review
 - answers to UX-creator requests (`liaison/*.ux-response.json`)
 
@@ -105,7 +107,7 @@ VibeBB プラグインファミリーの firmware 姉妹プラグインです
 - 生産技術プラグインの工場試験仕様から作る工場試験ヘッダ `fw_ftm.h` と、ゲートに合格した ELF を工場へ渡すための `*.fw-production.json`
 - チップのピンマップ PNG とゲートレポート（JSON/Markdown/PNG）
 - QEMU シミュレーションのログとタイムライン PNG
-- mruby/c によるUXロジック: `mrubyc` が ux-creator の `.rb` をピン留め `mrbc` でコンパイルし、`fw_mruby.h`・`*_bytecode.c`・ソースマニフェストを生成。Zephyr（NordicはNCS LTS、それ以外はCanonical Zephyr 26.04 LTS）・AVR・ESP32・RP2040・Emscripten（`node` 実行脚）で検証
+- mruby/c によるUXロジック: `mrubyc` が ux-creator の `.rb` をピン留め `mrbc` でコンパイルし、`fw_mruby.h`・`*_bytecode.c`・ソースマニフェストを生成。Zephyr（NordicはNCS LTS、それ以外はCanonical Zephyr 26.04 LTS）・AVR・PIC24・ESP32（M5Stack各シリーズを含む）・RP2040/RP2350・Emscripten（`node` 実行脚）で検証
 - すべての決定・ステージ感想・画像レビューの記録
 - UX-creator 依頼への回答（`liaison/*.ux-response.json`）
 

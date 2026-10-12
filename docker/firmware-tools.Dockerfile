@@ -1,11 +1,11 @@
 ARG UV_VERSION=0.12.23
 ARG UV_DIGEST=sha256:61d393e44e249f2e4b526b6c7ddcecce245946826e608e11c93ad4f5bba55b21
-FROM ghcr.io/astral-sh/uv:${UV_VERSION}@${UV_DIGEST} AS uv
-
 # Emscripten SDK stage: digest-pinned, shared with the dashboard tools image
-# so the .mrb/WASM legs use one proven toolchain.
+# so the .mrb/WASM legs use one proven toolchain. ARGs used in FROM must be
+# declared before the first FROM.
 ARG EMSDK_VERSION=6.0.10
 ARG EMSDK_DIGEST=sha256:e077d54e2b8970575ebc4f185ac1de0b95c05f2b266134d4ba27449af7aebf65
+FROM ghcr.io/astral-sh/uv:${UV_VERSION}@${UV_DIGEST} AS uv
 FROM emscripten/emsdk:${EMSDK_VERSION}@${EMSDK_DIGEST} AS emscripten
 
 # ubuntu:26.04 (resolute)
@@ -149,11 +149,12 @@ RUN pio pkg install -g --platform "${ESPRESSIF32_PLATFORM}" \
 # nRF Connect SDK, mruby/c, and Pico SDK roots. BSD/MIT licensed sources.
 COPY docker/fetch-pins.sh docker/third_party.manifest /tmp/pins/
 RUN bash /tmp/pins/fetch-pins.sh /tmp/pins/third_party.manifest \
-    && cd /opt/mruby-src \
-    && ruby ./minirake -j"$(nproc)" \
-    && mkdir -p /opt/mruby/bin \
-    && cp build/host/bin/mrbc /opt/mruby/bin/mrbc \
-    && rm -rf /opt/mruby-src /tmp/pins \
+    && mkdir -p /opt/mruby/bin
+WORKDIR /opt/mruby-src
+RUN ruby ./minirake -j"$(nproc)" \
+    && cp build/host/bin/mrbc /opt/mruby/bin/mrbc
+WORKDIR /
+RUN rm -rf /opt/mruby-src /tmp/pins \
     && printf '%s\n' "${MRUBYC_REF}" > /opt/mrubyc/REF \
     && printf '%s\n' "${ZEPHYR_VERSION}" > /opt/zephyr/ZEPHYR_VERSION \
     && printf '%s\n' "${NCS_VERSION}" > /opt/nrf/NCS_VERSION
