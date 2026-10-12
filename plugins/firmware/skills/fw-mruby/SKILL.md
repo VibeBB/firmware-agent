@@ -75,6 +75,32 @@ with boards such as `nucleo_f411re`, `rpi_pico`, `mimxrt1050_evk`,
 Canonical's Workshop environment (snap + LXD) is not usable inside
 Docker; only the source set is consumed.
 
+Canonical's supported-platform set (SoC-level support, HIL-validated on
+anchor kits — ubuntu.com/zephyr/docs/26.04/reference/supported-boards):
+`nrf52840dk/nrf52840`, `nucleo_h753zi`, `frdm_rw612`, `ek_ra8m1`,
+`esp32c3_devkitm`, `esp32s3_devkitc`. All six have bundled profiles
+(`nrf52840`, `stm32h753zi`, `frdm_rw612`, `ek_ra8m1`, `esp32c3`,
+`esp32s3`); the set is reviewed each April and October, so re-check
+when the distribution publishes a new cohort. Every other Zephyr 4.4
+target is community-level and still usable through `sdk: "zephyr"`.
+
+## HALs that need an external toolchain
+
+The upstream mruby/c tree ships `hal/` for every entry below, and the
+gate accepts them all, but three legs require proprietary toolchains
+the image does not bundle — declare them only when the product
+environment supplies the toolchain:
+
+| `hal` | build leg | external toolchain |
+| --- | --- | --- |
+| `pic24` | `make` | Microchip XC16 (license-restricted) |
+| `psoc5lp` | `make` | Infineon PSoC Creator toolchain |
+| `stm32` | `make`/`cmake`/`west` | bare-metal legs need a user-supplied ST HAL/Cube tree; prefer `hal: "zephyr"` instead |
+
+Xilinx MicroBlaze is not a Zephyr 4.4 board/SoC; Xilinx coverage runs
+through `kv260_r5` (Cortex-R5) or the RISC-V soft-core profiles
+(`neorv32`, `adp_xc7k_ae350`, `hifive1`, `longan_nano`).
+
 ## M5Stack coverage
 
 Every ESP32-based M5Stack product maps onto a bundled profile through
