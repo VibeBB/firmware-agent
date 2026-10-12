@@ -99,7 +99,10 @@ environment supplies the toolchain:
 
 Xilinx MicroBlaze is not a Zephyr 4.4 board/SoC; Xilinx coverage runs
 through `kv260_r5` (Cortex-R5) or the RISC-V soft-core profiles
-(`neorv32`, `adp_xc7k_ae350`, `hifive1`, `longan_nano`).
+(`neorv32`, `adp_xc7k_ae350`, `hifive1`, `longan_nano`). Re-evaluate
+MicroBlaze support once it lands in an upstream Zephyr LTS release —
+the pin policy moves to each new LTS, so support arrives automatically
+when the LTS baseline includes it.
 
 ## M5Stack coverage
 
