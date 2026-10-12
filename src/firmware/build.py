@@ -53,6 +53,28 @@ def platformio_pin_error(project_dir: Path, env: str) -> str | None:
     return None
 
 
+def _zephyr_module_dirs(sdk_root: str) -> list[str]:
+    """Module roots under an SDK workspace (dirs holding zephyr/module.yml).
+
+    Tarball-pinned SDK trees have no ``.west`` workspace, so ``west list``
+    finds nothing and cmake would leave every module out (e.g. hal_nordic
+    under nRF Connect). Enumerating module.yml files and passing them via
+    ``-DZEPHYR_MODULES`` makes module discovery deterministic.
+    """
+    root = Path(sdk_root)
+    if not root.is_dir():
+        return []
+    candidates: list[Path] = []
+    for depth in range(1, 5):
+        pattern = "/".join(["*"] * depth + ["zephyr", "module.yml"])
+        candidates.extend(root.glob(pattern))
+    return sorted(
+        yml.parent.parent.as_posix()
+        for yml in candidates
+        if yml.parent.parent != root / "zephyr"
+    )
+
+
 def _west_argv(step: BuildStep, directory: str) -> list[list[str]]:
     """Zephyr-family build driven by cmake directly (west CLI is a wrapper).
 
@@ -63,6 +85,7 @@ def _west_argv(step: BuildStep, directory: str) -> list[list[str]]:
     assert step.board is not None
     sdk_root = SDK_ROOTS[step.sdk or "zephyr"]
     build_dir = (Path(directory) / "build").as_posix()
+    module_dirs = _zephyr_module_dirs(sdk_root)
     configure = [
         "cmake",
         "-S",
@@ -77,6 +100,8 @@ def _west_argv(step: BuildStep, directory: str) -> list[list[str]]:
         "-DZEPHYR_TOOLCHAIN_VARIANT=gnuarmemb",
         "-DGNUARMEMB_TOOLCHAIN_PATH=/usr",
     ]
+    if module_dirs:
+        configure.append(f"-DZEPHYR_MODULES={';'.join(module_dirs)}")
     if step.sysbuild:
         configure.append("-DSYSBUILD=ON")
     if step.toolchain == "cross-compile":
