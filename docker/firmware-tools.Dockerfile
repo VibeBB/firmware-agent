@@ -160,6 +160,14 @@ RUN rm -rf /opt/mruby-src /tmp/pins \
     && printf '%s\n' "${ZEPHYR_VERSION}" > /opt/zephyr/ZEPHYR_VERSION \
     && printf '%s\n' "${NCS_VERSION}" > /opt/nrf/NCS_VERSION
 
+# NCS's version.cmake rules declare ninja DEPENDS on <repo>/.git/index for
+# ncs_commit.h / zephyr_commit.h. Tarball trees have no .git, so the dep
+# collapses to the literal path "/index" and ninja fails. Bare `git init`
+# gives the dependency a real file; `git rev-parse HEAD` simply prints a
+# status line and the generated header carries an empty commit.
+RUN git init /opt/nrf/nrf && touch /opt/nrf/nrf/.git/index \
+    && git init /opt/nrf/zephyr && touch /opt/nrf/zephyr/.git/index
+
 # Zephyr build system needs pyyaml (list_boards), pyelftools (gen_isr_tables)
 # and packaging on whichever interpreter CMake resolves — the project venv is
 # first on PATH. west pulls pyyaml/pykwalify/colorama transitively.
