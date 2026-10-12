@@ -121,7 +121,7 @@ jobs:
               mkdir -p "$TRIVY_CACHE_DIR"
               cp -a "$HOME/.cache/trivy/." "$TRIVY_CACHE_DIR/"
               trivy image --scanners vuln,secret,misconfig,license \
-                --format json --output trivy-image.json "$PINNED_IMAGE"
+                --timeout 20m --format json --output trivy-image.json "$PINNED_IMAGE"
               jq '.Results = ((.Results // []) | map(if .Vulnerabilities then
                     .Vulnerabilities |= map(select((.FixedVersion // "") != "")) else . end))' \
                 trivy-image.json > "$RUNNER_TEMP/trivy-sarif.json"
@@ -138,7 +138,7 @@ jobs:
               # payload, so the retry keys on content, not the exit code.
               for attempt in 1 2 3; do
                 trivy image --compliance docker-cis-1.6.0 --include-non-failures --report all \
-                  --ignorefile /dev/null --format json \
+                  --timeout 20m --ignorefile /dev/null --format json \
                   --output "$RUNNER_TEMP/trivy-cis.json" "${PINNED_IMAGE}"
                 if jq -e '[.. | objects | .MisconfSummary? // empty | (.Successes // 0) + (.Failures // 0)] | add > 0' \
                   "$RUNNER_TEMP/trivy-cis.json" >/dev/null; then

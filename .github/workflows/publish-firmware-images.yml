@@ -169,6 +169,10 @@ jobs:
           # override the action's cache-dir input.
           cache-dir: ${{ runner.temp }}/trivy-cache
           version: v0.75.0
+          # The tools image carries multi-hundred-MB toolchain archives
+          # (platformio/xtensa); Trivy's default 5m analysis deadline is
+          # not enough and aborts the scan.
+          timeout: '20m'
           scanners: vuln,secret,misconfig
           severity: CRITICAL,HIGH
           ignore-unfixed: true
@@ -207,6 +211,7 @@ jobs:
               # on concurrent writes.
               cache-dir: ${{ runner.temp }}/trivy-tools-json
               version: v0.75.0
+              timeout: '20m'
               scanners: vuln,secret,misconfig,license
               ignore-unfixed: false
               exit-code: '0'
