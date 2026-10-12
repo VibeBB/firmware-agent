@@ -191,7 +191,7 @@ RUN arm-none-eabi-gcc --version | head -1 \
     && qemu-system-xtensa --version | head -1 \
     && avr-gcc --version | head -1 \
     && riscv64-unknown-elf-gcc --version | head -1 \
-    && mruby -v | head -1 \
+    && (mrbc -v | head -1 || true) \
     && gdb-multiarch --version | head -1 \
     && xtensa-esp32s3-elf-gdb --version | head -1 \
     && pio --version \
