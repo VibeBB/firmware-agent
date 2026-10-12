@@ -149,11 +149,11 @@ RUN pio pkg install -g --platform "${ESPRESSIF32_PLATFORM}" \
 # nRF Connect SDK, mruby/c, and Pico SDK roots. BSD/MIT licensed sources.
 COPY docker/fetch-pins.sh docker/third_party.manifest /tmp/pins/
 RUN bash /tmp/pins/fetch-pins.sh /tmp/pins/third_party.manifest \
-    && make -C /opt/mrubyc autogen \
     && mkdir -p /opt/mruby/bin
 WORKDIR /opt/mruby-src
 RUN ruby ./minirake -j"$(nproc)" \
-    && cp build/host/bin/mrbc /opt/mruby/bin/mrbc
+    && cp build/host/bin/mrbc /opt/mruby/bin/mrbc \
+    && PATH=/opt/mruby/bin:$PATH make -C /opt/mrubyc
 WORKDIR /
 RUN rm -rf /opt/mruby-src /tmp/pins \
     && printf '%s\n' "${MRUBYC_REF}" > /opt/mrubyc/REF \
