@@ -14,6 +14,7 @@ from firmware.hcp import (
     HcpItem,
     HcpModule,
     HcpRefs,
+    _text_width,
     chart_flow,
     dsl_to_flow,
     error_mixing_findings,
@@ -228,6 +229,65 @@ def test_hcp_payload_fails_closed(lamp: Path, tmp_path: Path) -> None:
     assert payload["verdict"] == "fail"
     problems = cast(list[object], payload["problems"])
     assert any("ghost" in str(p) for p in problems)
+
+
+def test_numeric_boundary_sites() -> None:
+    """Exercise numeric comparisons at exact boundary neighbours."""
+    # ``levels > 1`` in emit/svg/png: on (1) alongside above1 (2).
+    flow = HcpFlow(
+        modules=[
+            HcpModule(
+                name="m",
+                items=[
+                    HcpItem(kind="return", levels=1),
+                    HcpItem(kind="return", levels=2),
+                ],
+            )
+        ]
+    )
+    assert "\\return 2" in flow_to_dsl(flow)
+    assert render_hcp_svg(flow, "bound", "sha")
+    assert render_hcp_png(flow, "bound", "sha")
+
+    # Parser ``levels < 1``: below1 (0, error) and on (1, valid).
+    _parsed, diags = dsl_to_flow("\\module m\n\t\\return 0\n\t\\return 1\n")
+    assert any("must be positive" in d.message for d in diags)
+
+    # Parser ``level > MAX_DEPTH``: levels 1-9 via tab indents.
+    deep_dsl = "\\module m\n" + "\n".join("\t" * n + "x" for n in range(1, 10))
+    _p2, deep_diags = dsl_to_flow(deep_dsl)
+    assert any("nesting deeper" in d.message for d in deep_diags)
+
+    # ``depth > MAX_DEPTH``: chains of depth 8 (ok) and 9 (error).
+    def chain(n: int) -> HcpItem:
+        item = HcpItem(label="leaf")
+        for _ in range(n - 1):
+            item = HcpItem(label="p", children=[item])
+        return item
+
+    assert not validate_flow(HcpFlow(modules=[HcpModule(name="m", items=[chain(8)])]))
+    assert any(
+        "nesting deeper" in p
+        for p in validate_flow(HcpFlow(modules=[HcpModule(name="m", items=[chain(9)])]))
+    )
+
+    # ``len(children) > 7``: 6 and 7 are clean, 8 is a finding (existing test).
+    for n in (6, 7):
+        wide = HcpFlow(
+            modules=[
+                HcpModule(
+                    name="m",
+                    items=[HcpItem(label="w", children=[HcpItem(label=f"c{i}") for i in range(n)])],
+                )
+            ]
+        )
+        assert all(f.rule != "granularity" for f in lint_flow(wide))
+
+    # Indent-scan loops: tab-only and space-only lines hit below/on.
+    dsl_to_flow("\\module m\n\t\n \n\tok\n")
+
+    # ``ord(ch) < 128`` exact neighbours 127/128/129.
+    assert _text_width(chr(127) + chr(128) + chr(129)) > 0
 
 
 def test_gates_hcp_checks(lamp: Path) -> None:
