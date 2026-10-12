@@ -95,8 +95,9 @@ def _west_argv(step: BuildStep, directory: str) -> list[list[str]]:
         f"-DBOARD={step.board}",
         f"-DZephyr_DIR={sdk_root}/zephyr/share/zephyr-package/cmake",
         f"-DZEPHYR_BASE={sdk_root}/zephyr",
-        # Root-owned /opt SDK trees cannot host Zephyr's toolchain cache.
-        f"-DZEPHYR_CACHE_DIR={build_dir}/zephyr-cache",
+        # Root-owned /opt SDK trees cannot host Zephyr's toolchain cache,
+        # and HOME/XDG may be unset or read-only inside the container.
+        f"-DUSER_CACHE_DIR={build_dir}/zephyr-cache",
         "-DZEPHYR_TOOLCHAIN_VARIANT=gnuarmemb",
         "-DGNUARMEMB_TOOLCHAIN_PATH=/usr",
     ]
