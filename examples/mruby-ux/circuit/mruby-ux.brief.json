@@ -1,0 +1,13 @@
+{
+  "name": "mruby-ux",
+  "description": "nRF52840-DK board hosting the mruby/c UX state machine: a single button input, one LED output, and the debug UART.",
+  "parts": [
+    {
+      "reference": "U1",
+      "lib_id": "Module:nRF52840-DK",
+      "footprint": "Module:nRF52840-DK",
+      "value": "nRF52840",
+      "mcu": true
+    }
+  ]
+}

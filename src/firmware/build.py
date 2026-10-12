@@ -72,6 +72,7 @@ def _west_argv(step: BuildStep, directory: str) -> list[list[str]]:
         "-G",
         "Ninja",
         f"-DBOARD={step.board}",
+        f"-DZephyr_DIR={sdk_root}/zephyr/share/zephyr-package/cmake",
         f"-DZEPHYR_BASE={sdk_root}/zephyr",
         "-DZEPHYR_TOOLCHAIN_VARIANT=gnuarmemb",
         "-DGNUARMEMB_TOOLCHAIN_PATH=/usr",

@@ -3,18 +3,16 @@
 # verification leg, so CI checks the exact UX logic that ships.
 
 class Ux
-  STATES = ["OFF", "DIM", "BRIGHT"].freeze
-
   def initialize
     @index = 0
   end
 
   def state
-    STATES[@index]
+    ["OFF", "DIM", "BRIGHT"][@index]
   end
 
   def advance
-    @index = (@index + 1) % STATES.size
+    @index = (@index + 1) % 3
     state
   end
 end
