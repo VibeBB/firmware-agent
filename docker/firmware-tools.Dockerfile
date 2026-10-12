@@ -166,7 +166,8 @@ RUN rm -rf /opt/mruby-src /tmp/pins \
 # gives the dependency a real file; `git rev-parse HEAD` simply prints a
 # status line and the generated header carries an empty commit.
 RUN git init /opt/nrf/nrf && touch /opt/nrf/nrf/.git/index \
-    && git init /opt/nrf/zephyr && touch /opt/nrf/zephyr/.git/index
+    && git init /opt/nrf/zephyr && touch /opt/nrf/zephyr/.git/index \
+    && git config --system --add safe.directory '*'
 
 # Zephyr build system needs pyyaml (list_boards), pyelftools (gen_isr_tables)
 # and packaging on whichever interpreter CMake resolves — the project venv is
