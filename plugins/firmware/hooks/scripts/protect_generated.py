@@ -38,6 +38,10 @@ ARTIFACT_SUFFIXES = (
     ".advisory.json",
     ".ux-response.json",
     ".bard-song.json",
+    ".hcp",
+    ".hcp.svg",
+    ".hcp.png",
+    ".hcp-lint.json",
 )
 ARTIFACT_NAMES = (
     "fw_pins.h",

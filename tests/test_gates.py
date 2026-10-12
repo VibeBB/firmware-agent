@@ -32,6 +32,7 @@ def test_static_gates_pass(example: str, request: pytest.FixtureRequest) -> None
     report = _static(contract)
     assert report.verdict == "pass", report.model_dump_json(indent=2)
     cue_gate = {"fw.bard_cues", "fw.bard_cues_provenance"} if example == "kettle" else set[str]()
+    hcp_gate = {"fw.hcp", "fw.hcp_lint"} if example == "lamp" else set[str]()
     assert set(_status(report)) == {
         "fw.contract",
         "fw.pin_functions",
@@ -41,6 +42,7 @@ def test_static_gates_pass(example: str, request: pytest.FixtureRequest) -> None
         "fw.pins_header",
         "fw.sbom",
         *cue_gate,
+        *hcp_gate,
     }
 
 

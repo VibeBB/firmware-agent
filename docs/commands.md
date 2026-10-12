@@ -26,7 +26,8 @@ launcher.
 | `request` | `contract` `--target t --risk low|high --change c --rationale r [--net n] [--failing-check g] [--decision-ref id] [--out dir]` | write `*.fw-request.json` v2; high risk needs a decision ref |
 | `profile` | `id` | print a bundled MCU profile (`esp32s3`, `rp2040`) |
 | `record` | `decision|impression|vision-review|status` `--json <file>` | append a VRP record or print records status |
-| `render` | `contract` `[--out dir] [--view pinmap|report|sim]` | render PNGs; `report` reruns static gates, `sim` re-evaluates `sim-*.log` and never runs QEMU |
+| `render` | `contract` `[--out dir] [--view pinmap|report|sim|hcp]` | render PNGs; `report` reruns static gates, `sim` re-evaluates `sim-*.log` and never runs QEMU; `hcp` needs a `flow` section |
+| `hcp` | `chart` `[--out dir]` | validate a contract `flow` section or standalone `*.hcp.json`; writes `<name>.hcp`, `.hcp.svg`, `.hcp.png`, `.hcp-lint.json` |
 | `ux` | `inbox|respond` `[--workspace dir] [--json <file>]` | SLP v2: inbox lists requests; respond writes `<id>.ux-response.json` (fields in the JSON file) |
 
 ## Plugin commands (`/firmware:*`)
@@ -40,4 +41,5 @@ launcher.
 - `simulate.md` — `/firmware:simulate`, one QEMU sim.
 - `debug.md` — `/firmware:debug`, advisory GDB.
 - `render.md` — `/firmware:render`, PNG views + vision review hint.
+- `hcp.md` — `/firmware:hcp`, HCP chart validation + projections.
 - `liaison.md` — `/firmware:liaison`, ux-creator inbox/respond.

@@ -72,6 +72,22 @@ everything else is generated or exchanged.
 - `simulations[]`: `id`, `runner` (qemu-arm needs `exit_code`, qemu-esp
   forbids it), `machine`, `fidelity` (mcu/core), `image`, `build?`,
   `expect[]`, `forbid[]`, `exit_code?`, `timeout_s` (≤600)
+- `flow?`: the program structure as an HCP chart (`hcp.py::HcpFlow`,
+  ADR-0013) — `header` (`title`/`author`/`date`/`version`) and
+  `modules[]` (`name`, `data[]`, `items[]` with `kind`
+  process/repeat/fork/branch/true/false/return/ec/ex/mod, `label`,
+  `data_in[]`/`data_out[]`, `levels` for `return`, `refs`
+  (pins/peripherals/power_modes/simulations), nested `children[]`).
+  Gates `fw.hcp` (structure + `refs` resolution + DSL round-trip) and
+  `fw.hcp_lint` (notation quality) run when the section exists;
+  projections `<name>.hcp`, `.hcp.svg`, `.hcp.png`, `.hcp-lint.json`.
+
+## `hcp_chart` — `<name>.hcp.json` (schema_version 1)
+
+`hcp.py::HcpChart`: standalone HCP chart sharing the flow model
+(`name`, `description`, `header`, `modules[]`) for charts not bound to
+a firmware contract. `firmware hcp <chart>` validates it; without a
+contract there are no `refs` to resolve.
 
 ## `mcu_profile` — `src/firmware/profiles/<id>.json`
 

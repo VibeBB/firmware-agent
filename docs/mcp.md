@@ -3,7 +3,7 @@
 `firmware-mcp/<version>` serves `src/firmware/mcp_server.py` over stdio.
 Every tool returns a JSON payload as `TextContent`; the image-producing
 tools (`firmware_gates`, `firmware_check`, `firmware_pinmap_export`,
-`firmware_sim`, `firmware_render`) additionally attach written PNGs as
+`firmware_sim`, `firmware_render`, `firmware_hcp`) additionally attach written PNGs as
 inline `ImageContent` (max 4 images, each ≤ 4 MiB; the rest are listed
 under `images_skipped`) and mark the payload with
 `vision_review_required` + `vision_hint`. Unknown tools and exceptions
@@ -27,7 +27,8 @@ return `{"verdict": "fail", "detail": ...}` with `isError` set.
 | `firmware_debug` | `contract_path`, `out_dir`, `simulation`, `elf`, `breaks`, `prints` | `debug-*.advisory.json` (never changes a verdict) | no |
 | `firmware_request` | `contract_path`, `out_dir`, `target`, `risk`, `change`, `rationale`, `nets`, `failing_checks`, `decision_refs` | `<design>.<id>.fw-request.json` v2 (hashed inputs; high risk needs a decision ref) | no |
 | `firmware_profile` | `profile` | bundled MCU profile JSON | yes |
-| `firmware_render` | `contract_path`, `out_dir`, `views[]` (`pinmap`, `report`, `sim`) | renders selected views; report reruns static gates, sim re-evaluates `sim-*.log` (never runs QEMU); `render_errors` on failure | no |
+| `firmware_render` | `contract_path`, `out_dir`, `views[]` (`pinmap`, `report`, `sim`, `hcp`) | renders selected views; report reruns static gates, sim re-evaluates `sim-*.log` (never runs QEMU); `render_errors` on failure | no |
+| `firmware_hcp` | `chart_path`, `out_dir` | validate `flow` / `*.hcp.json`; writes `<name>.hcp`, `.hcp.svg`, `.hcp.png`, `.hcp-lint.json`; `lint_findings` in payload | no |
 | `firmware_ux_inbox` | `workspace` (opt) | SLP v2 inbox: requests classified `new`/`stale`/`blocked`/`answered`, `malformed[]`, `other_targets`, `open` | yes |
 | `firmware_ux_respond` | `request`, `status`, `reason`, `artifacts[]`, `gate_verdicts[{gate,verdict}]` (pass/fail/unknown), `decision_refs[]`, `impression_refs[]`, `questions_for_user[]`, `report_paths[]`, `workspace` (opt) | validates and atomically writes `liaison/<id>.ux-response.json`; `replaced` on re-answer | no |
 | `firmware_record_decision` | VRP decision fields | appends to `observations/firmware/decisions.jsonl` | no |

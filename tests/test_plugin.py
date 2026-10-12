@@ -40,6 +40,7 @@ def test_mcp_tools_registered() -> None:
         "firmware_sbom_export",
         "firmware_pinmap_export",
         "firmware_power_export",
+        "firmware_hcp",
         "firmware_sim",
         "firmware_debug",
         "firmware_request",

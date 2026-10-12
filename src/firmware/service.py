@@ -15,6 +15,14 @@ from ._envelope import sidecar_path, write_envelope
 from .contract import Simulation, load_contract, resolve
 from .debug import run_debug
 from .gates import FAIL, PASS, run_gates, write_outputs
+from .hcp import (
+    chart_flow,
+    lint_report_json,
+    load_hcp_chart,
+    validate_flow,
+    validate_refs,
+    write_hcp_artifacts,
+)
 from .interchange import (
     load_cue_manifest,
     load_fpga_regmap,
@@ -455,7 +463,65 @@ def ux_respond_payload(workspace: Path | None, fields: Mapping[str, object]) -> 
         return {"verdict": FAIL, "stage": "ux_respond", "detail": str(exc)}
 
 
-RENDER_VIEWS = ("pinmap", "report", "sim")
+RENDER_VIEWS = ("pinmap", "report", "sim", "hcp")
+
+
+def hcp_payload(chart_path: Path, out_dir: Path | None) -> Json:
+    """Validate a flow / standalone HCP chart and write its projections.
+
+    Accepts a ``*.fw.json`` contract (reads its optional ``flow`` section) or
+    a standalone ``*.hcp.json`` chart. ``refs`` resolve only against a
+    contract; a standalone chart has no contract context.
+    """
+    contract = None
+    try:
+        if chart_path.name.endswith(".hcp.json"):
+            chart = load_hcp_chart(chart_path)
+            flow = chart_flow(chart)
+            name = chart.name
+        else:
+            contract = load_contract(chart_path)
+            name = contract.name
+            flow = contract.flow
+    except (OSError, ValueError, ValidationError) as exc:
+        return {"verdict": FAIL, "stage": "hcp", "detail": str(exc)}
+    if flow is None:
+        return {
+            "verdict": FAIL,
+            "stage": "hcp",
+            "detail": "contract has no flow section",
+        }
+    problems = validate_flow(flow)
+    if contract is not None:
+        problems += validate_refs(
+            flow,
+            pins=tuple(p.signal for p in contract.pins),
+            peripherals=tuple(p.id for p in contract.peripherals),
+            power_modes=tuple(m.id for m in contract.power.modes),
+            simulations=tuple(s.id for s in contract.simulations),
+        )
+    if problems:
+        return {
+            "verdict": FAIL,
+            "stage": "hcp",
+            "detail": "; ".join(problems[:5]),
+            "problems": problems,
+        }
+    out = out_dir or _default_out(chart_path)
+    render_errors: list[str] = []
+    written = write_hcp_artifacts(flow, name, out, sha256_file(chart_path), render_errors)
+    report = lint_report_json(flow, name)
+    payload: Json = {
+        "verdict": PASS,
+        "stage": "hcp",
+        "design": name,
+        "lint_verdict": report["verdict"],
+        "lint_findings": report["findings"],
+        "written": [str(p) for p in written],
+    }
+    if render_errors:
+        payload["render_errors"] = render_errors
+    return _attach_image_meta(payload)
 
 
 def render_payload(contract_path: Path, out_dir: Path | None, views: list[str] | None) -> Json:
@@ -487,6 +553,13 @@ def render_payload(contract_path: Path, out_dir: Path | None, views: list[str] |
     if "report" in selected:
         report = run_gates(contract_path, out, full=False)
         written += write_outputs(contract_path, report, out, render_errors)
+    if "hcp" in selected:
+        if contract.flow is None:
+            render_errors.append("hcp: contract has no flow section")
+        else:
+            written += write_hcp_artifacts(
+                contract.flow, contract.name, out, contract_sha, render_errors
+            )
     if "sim" in selected:
         for sim in contract.simulations:
             log = out / f"sim-{sim.id}.log"

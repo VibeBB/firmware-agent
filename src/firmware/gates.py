@@ -26,6 +26,16 @@ from .contract import (
     resolve,
 )
 from .elf import ElfError, account, read_elf
+from .hcp import (
+    dsl_to_flow,
+    error_mixing_findings,
+    flow_to_dsl,
+    iter_items,
+    lint_flow,
+    validate_flow,
+    validate_refs,
+    write_hcp_artifacts,
+)
 from .interchange import (
     CircuitFirmwareConnectivity,
     CircuitMcuPin,
@@ -489,6 +499,40 @@ def check_ftm(contract: FirmwareContract, contract_path: Path) -> Check:
     return _check("fw.ftm", link.spec, problems, evidence)
 
 
+def check_hcp(contract: FirmwareContract) -> Check:
+    """Validate ``flow``: structure, DSL round-trip and contract refs."""
+    flow = contract.flow
+    if flow is None:  # only invoked when the section exists
+        return _check("fw.hcp", contract.name, ["no flow section"])
+    problems = validate_flow(flow)
+    problems += validate_refs(
+        flow,
+        pins=tuple(p.signal for p in contract.pins),
+        peripherals=tuple(p.id for p in contract.peripherals),
+        power_modes=tuple(m.id for m in contract.power.modes),
+        simulations=tuple(s.id for s in contract.simulations),
+    )
+    _parsed, diagnostics = dsl_to_flow(flow_to_dsl(flow))
+    problems += [
+        f"dsl projection: {d.message} (line {d.line})" for d in diagnostics if d.severity == "error"
+    ]
+    evidence = [
+        f"modules={len(flow.modules)}",
+        f"items={sum(1 for _ in iter_items(flow))}",
+    ]
+    return _check("fw.hcp", contract.name, problems, evidence)
+
+
+def check_hcp_lint(contract: FirmwareContract) -> Check:
+    """Notation-quality lint: purpose/means order, error mixing, repeats."""
+    flow = contract.flow
+    if flow is None:
+        return _check("fw.hcp_lint", contract.name, ["no flow section"])
+    findings = lint_flow(flow) + error_mixing_findings(flow)
+    problems = [f"{f.rule}: {f.subject} — {f.detail}" for f in findings]
+    return _check("fw.hcp_lint", contract.name, problems, [f"findings={len(findings)}"])
+
+
 def check_sbom(contract: FirmwareContract, contract_path: Path) -> Check:
     problems, evidence = component_problems(contract, contract_path)
     return _check("fw.sbom", contract.name, problems, evidence)
@@ -606,6 +650,9 @@ def run_gates(
             )
         )
     checks.append(check_power_modes(contract, profile))
+    if contract.flow is not None:
+        checks.append(check_hcp(contract))
+        checks.append(check_hcp_lint(contract))
     checks.append(check_pins_header(contract, profile, contract_path))
     if contract.cues is not None:
         checks.append(check_bard_cues(contract, contract_path))
@@ -818,6 +865,14 @@ def write_outputs(
     except ValueError:  # broken firmware decision log: no sidecar, consumers fail closed
         sidecar_path(pinmap_path).unlink(missing_ok=True)
     written.append(write_text(out_dir / f"{contract.name}.pinmap.md", pinmap_markdown(pinmap)))
+    if contract.flow is not None:
+        written += write_hcp_artifacts(
+            contract.flow,
+            contract.name,
+            out_dir,
+            report.contract_sha256,
+            render_errors,
+        )
     try:
         written.append(
             write_bytes(

@@ -6,8 +6,10 @@ and the firmware MCP server.
 ## firmware-architect
 
 Designs the contract: picks the MCU profile, assigns pads, peripherals and
-power modes in `<name>.fw.json`, proves the pin map against the circuit
-netlist (`firmware check`, `circuit firmware-check` hand-off).
+power modes in `<name>.fw.json`, authors the optional `flow` HCP chart
+(`firmware-hcp` skill; `fw.hcp`/`fw.hcp_lint` gates), proves the pin map
+against the circuit netlist (`firmware check`, `circuit firmware-check`
+hand-off).
 Tools: terminal, file_editor, grep, glob, task_tracker; MCP `firmware`.
 At session start calls `firmware_ux_inbox` and answers every ux-creator
 request (`new`, `stale`, `blocked` → `needs_info`/`deferred` with reason)

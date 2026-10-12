@@ -14,6 +14,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from .hcp import HcpFlow
+
 SCHEMA_VERSION = 1
 IDENT = r"^[a-z][a-z0-9_]*$"
 
@@ -329,6 +331,7 @@ class FirmwareContract(_Strict):
     security: Security | None = None
     components: list[Component] = Field(default_factory=list[Component])
     unit_tests: UnitTests | None = None
+    flow: HcpFlow | None = None
 
     @model_validator(mode="after")
     def _unique(self) -> FirmwareContract:

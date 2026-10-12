@@ -24,6 +24,7 @@ EXPECTED_AGENTS = {
 EXPECTED_SKILLS = {
     "firmware-contract",
     "firmware-contract-rules",
+    "firmware-hcp",
     "firmware-mcu-pinmap",
     "firmware-out-rules",
     "firmware-power-modes",
@@ -36,6 +37,7 @@ EXPECTED_COMMANDS = {
     "design",
     "doctor",
     "gates",
+    "hcp",
     "liaison",
     "pinmap",
     "render",
