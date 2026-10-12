@@ -15,9 +15,13 @@ endif()
 file(GLOB MRUBYC_CORE CONFIGURE_DEPENDS ${MRUBYC_DIR}/src/*.c)
 list(REMOVE_ITEM MRUBYC_CORE ${MRUBYC_DIR}/src/hal.c)
 
+file(GLOB FW_API CONFIGURE_DEPENDS generated/fw_api*.c)
+
 target_sources(app PRIVATE
   src/main.c
+  src/fw_api_handlers.c
   generated/ux_app_bytecode.c
+  ${FW_API}
   ${MRUBYC_DIR}/hal/zephyr/hal.c
   ${MRUBYC_CORE}
 )
