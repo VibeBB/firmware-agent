@@ -73,6 +73,11 @@ def _parser() -> argparse.ArgumentParser:
     request.add_argument("--failing-check", dest="failing_checks", action="append", default=[])
     request.add_argument("--decision-ref", dest="decision_refs", action="append", default=[])
     request.add_argument("--out", type=Path)
+    hcp = sub.add_parser(
+        "hcp", help="validate the flow section / *.hcp.json and write HCP artifacts"
+    )
+    hcp.add_argument("chart", type=Path, help="*.fw.json contract or *.hcp.json chart")
+    hcp.add_argument("--out", type=Path)
     sub.add_parser("profile").add_argument("id")
     record = sub.add_parser("record", help="append a VibeBB Record Protocol record")
     record.add_argument(
@@ -172,6 +177,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _emit(service.record_file_payload(args.kind, args.json))
     if command == "render":
         return _emit(service.render_payload(args.contract, args.out, args.views))
+    if command == "hcp":
+        return _emit(service.hcp_payload(args.chart, args.out))
     if command == "ux":
         if args.action == "inbox":
             return _emit(service.ux_inbox_payload(args.workspace))

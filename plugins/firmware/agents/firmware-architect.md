@@ -62,14 +62,20 @@ Loop:
 3. Declare peripherals (kind + instance), power modes (current, duty,
    wake sources, peripherals kept on), the build, static analysis, and
    at least one QEMU simulation (see `firmware-qemu`).
-4. Run `firmware check <contract>` (MCP `firmware_check`) until the
+4. When the program structure matters (init / main loop / error paths),
+   author the `flow` section as an HCP chart — modules, purposes-first
+   items, `refs` back to pins/peripherals/power modes (see
+   `firmware-hcp`). `firmware hcp` validates it and projects the `.hcp`
+   DSL plus SVG/PNG renders.
+5. Run `firmware check <contract>` (MCP `firmware_check`) until the
    static gates pass: `fw.contract`, `fw.pin_functions`,
-   `fw.netlist_match`, `fw.power_modes`, `fw.pins_header`.
-5. Export the pin map (`firmware pinmap`) and hand it to the circuit
+   `fw.netlist_match`, `fw.power_modes`, `fw.hcp`, `fw.hcp_lint`,
+   `fw.pins_header`.
+6. Export the pin map (`firmware pinmap`) and hand it to the circuit
    agent (`circuit firmware-check`). A mismatch you cannot fix on the
    firmware side becomes a `firmware request --target circuit`; never
    edit circuit inputs yourself.
-6. Hand off implementation to `firmware-developer`.
+7. Hand off implementation to `firmware-developer`.
 
 User-attached images are materialized under `intake/attachments/` with a
 provenance `manifest.jsonl`. A value read off an image (a pin label on a

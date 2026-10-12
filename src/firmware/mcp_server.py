@@ -152,19 +152,35 @@ TOOLS: dict[str, tuple[str, dict[str, object], bool]] = {
         True,
     ),
     "firmware_render": (
-        "Render pin map / gate report / sim timeline PNGs (report view reruns "
-        "static gates; sim view re-evaluates existing sim-*.log transcripts and "
-        "never runs QEMU)",
+        "Render pin map / gate report / sim timeline / HCP chart PNGs (report "
+        "view reruns static gates; sim view re-evaluates existing sim-*.log "
+        "transcripts and never runs QEMU; hcp view needs a flow section)",
         _schema(
             {
                 **_CONTRACT,
                 **_OUT,
                 "views": {
                     "type": "array",
-                    "items": {"type": "string", "enum": ["pinmap", "report", "sim"]},
+                    "items": {
+                        "type": "string",
+                        "enum": ["pinmap", "report", "sim", "hcp"],
+                    },
                 },
             },
             ["contract_path"],
+        ),
+        False,
+    ),
+    "firmware_hcp": (
+        "Validate a contract flow section or a standalone *.hcp.json HCP "
+        "chart; writes <name>.hcp DSL, .hcp.svg/.png renders and "
+        ".hcp-lint.json findings (deterministic; fail-closed on structure)",
+        _schema(
+            {
+                "chart_path": {"type": "string"},
+                **_OUT,
+            },
+            ["chart_path"],
         ),
         False,
     ),
@@ -425,6 +441,9 @@ def dispatch(name: str, arguments: dict[str, object]) -> service.Json:
             _opt_path(arguments, "out_dir"),
             _strs(arguments, "views"),
         ),
+        "firmware_hcp": lambda: service.hcp_payload(
+            _path(arguments, "chart_path"), _opt_path(arguments, "out_dir")
+        ),
     }
     handler = handlers.get(name)
     if handler is None:
@@ -438,6 +457,7 @@ _IMAGE_TOOLS = {
     "firmware_pinmap_export",
     "firmware_sim",
     "firmware_render",
+    "firmware_hcp",
 }
 _MAX_INLINE_IMAGES = 4
 _MAX_IMAGE_BYTES = 4 * 1024 * 1024

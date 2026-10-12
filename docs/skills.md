@@ -8,6 +8,7 @@
 | `firmware-contract` | `<name>.fw.json` field-by-field authoring guide: MCU/profile, pins, peripherals, power modes, build, analysis, simulations |
 | `firmware-mcu-pinmap` | pad functions, strapping/JTAG acknowledgment, peripheral routing rules for the bundled profiles |
 | `firmware-power-modes` | duty cycles, wake sources, average-current budgeting |
+| `firmware-hcp` | the `flow` section: HCP chart authoring (modules, forks, loops, returns, `refs`), `.hcp` DSL projection, `fw.hcp`/`fw.hcp_lint` gates |
 | `firmware-qemu` | QEMU runners (`qemu-arm` core fidelity, `qemu-esp` full image), expect/forbid transcripts, advisory GDB |
 | `firmware-sister-cooperation` | JSON artifact interchange with sister plugins: circuit `*.firmware.json` / `*.fw-pinmap.json`, `fw_request` v2, SLP v2 liaison, bard cues, UX producer plan |
 | `firmware-contract-rules` | path rule on `*.fw.json` / `*.firmware.json` — contract schema and provenance reminders injected when a contract or connectivity file is touched |

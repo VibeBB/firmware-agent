@@ -69,14 +69,19 @@
         "kind": "run",
         "current_ua": 40000,
         "duty": 0.3,
-        "peripherals_on": ["lamp_pwm", "console"]
+        "peripherals_on": [
+          "lamp_pwm",
+          "console"
+        ]
       },
       {
         "id": "off",
         "kind": "sleep",
         "current_ua": 2000,
         "duty": 0.7,
-        "wake": ["mode_button"]
+        "wake": [
+          "mode_button"
+        ]
       }
     ]
   },
@@ -95,9 +100,17 @@
   "analysis": {
     "tool": "cppcheck",
     "std": "c11",
-    "sources": ["fw/src"],
-    "includes": ["fw/include"],
-    "fail_on": ["error", "warning", "portability"]
+    "sources": [
+      "fw/src"
+    ],
+    "includes": [
+      "fw/include"
+    ],
+    "fail_on": [
+      "error",
+      "warning",
+      "portability"
+    ]
   },
   "simulations": [
     {
@@ -113,8 +126,132 @@
         "MODE OFF",
         "SELFTEST PASS"
       ],
-      "forbid": ["SELFTEST FAIL", "Guru Meditation", "abort()"],
+      "forbid": [
+        "SELFTEST FAIL",
+        "Guru Meditation",
+        "abort()"
+      ],
       "timeout_s": 60
     }
-  ]
+  ],
+  "flow": {
+    "header": {
+      "title": "Desk lamp firmware",
+      "author": "VibeBB firmware-agent",
+      "version": "1.0"
+    },
+    "modules": [
+      {
+        "name": "app_main",
+        "data": [
+          "lamp_state",
+          "brightness",
+          "selftest_log"
+        ],
+        "items": [
+          {
+            "label": "power-on self test",
+            "refs": {
+              "simulations": [
+                "lamp_selftest"
+              ],
+              "peripherals": [
+                "console"
+              ]
+            },
+            "data_out": [
+              "selftest_log"
+            ]
+          },
+          {
+            "kind": "repeat",
+            "label": "event loop",
+            "children": [
+              {
+                "label": "poll mode button",
+                "refs": {
+                  "pins": [
+                    "mode_button"
+                  ]
+                }
+              },
+              {
+                "kind": "fork",
+                "label": "lamp state change",
+                "children": [
+                  {
+                    "kind": "true",
+                    "label": "mode pressed",
+                    "children": [
+                      {
+                        "kind": "mod",
+                        "label": "lamp_step"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "false",
+                    "label": "idle"
+                  }
+                ]
+              },
+              {
+                "label": "refresh pwm duty",
+                "refs": {
+                  "peripherals": [
+                    "lamp_pwm"
+                  ],
+                  "power_modes": [
+                    "lit"
+                  ]
+                },
+                "data_in": [
+                  "brightness"
+                ]
+              },
+              {
+                "kind": "ec",
+                "label": "pwm fault",
+                "children": [
+                  {
+                    "label": "enter off mode",
+                    "refs": {
+                      "power_modes": [
+                        "off"
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "return"
+          }
+        ]
+      },
+      {
+        "name": "lamp_step",
+        "items": [
+          {
+            "label": "cycle brightness step",
+            "data_out": [
+              "brightness"
+            ]
+          },
+          {
+            "label": "log level on console",
+            "refs": {
+              "peripherals": [
+                "console"
+              ]
+            },
+            "data_in": [
+              "brightness"
+            ]
+          }
+        ]
+      }
+    ]
+  }
 }

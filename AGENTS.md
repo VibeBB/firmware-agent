@@ -10,7 +10,8 @@ firmware sister in the VibeBB OpenHands plugin family.
   `plugins/firmware/` are Markdown and delegate every step to
   `python -m firmware` through `plugins/firmware/scripts/firmware_launcher.py`.
 - The contract `<name>.fw.json` is the source of truth. `fw_pins.h`,
-  `*.fw-pinmap.json`, `*.pinmap.md`, `*.fw-report.*`, `sim-*.log`,
+  `*.fw-pinmap.json`, `*.pinmap.md`, `*.fw-report.*`, `*.hcp`,
+  `*.hcp.svg`, `*.hcp.png`, `*.hcp-lint.json`, `sim-*.log`,
   `debug-*.advisory.json`, `observations/firmware/*.jsonl` and
   `intake/attachments/manifest.jsonl` are generated; never edit them by hand.
 - The plugin is Docker-only: `firmware_launcher.py` fails closed when no
