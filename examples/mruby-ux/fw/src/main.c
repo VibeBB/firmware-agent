@@ -8,6 +8,7 @@
 
 #include "fw_mruby.h"
 #include "mrubyc.h"
+#include "fw_api.h"
 
 extern const uint8_t ux_app[];
 
@@ -16,9 +17,11 @@ static uint8_t memory_pool[FW_MRUBY_MEMORY_SIZE];
 int
 main(void)
 {
+	fw_api_init_all();
 	mrbc_init_alloc(memory_pool, FW_MRUBY_MEMORY_SIZE);
 	mrbc_init_global();
 	mrbc_init_class();
+	fw_api_define_all();
 
 	mrbc_tcb *tcb = mrbc_create_task(ux_app, 0);
 	if (tcb == NULL) {

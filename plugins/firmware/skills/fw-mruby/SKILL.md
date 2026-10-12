@@ -135,3 +135,52 @@ re-authored manifest changes the hash and fails the gate until re-pinned.
 Targets without MCU emulation still verify the UX logic: the
 `emscripten` HAL runs under `node`, and a `mps2/an385` Zephyr leg covers
 cortex-m execution. Always keep at least one such leg.
+
+## Device API (`*.mruby-api.json`)
+
+UX-creator authors `api/<name>.mruby-api.json` (artifact_kind `mruby_api`)
+describing device classes: methods with positional/keyword params,
+`**rest` kwargs, trailing blocks, constants, instance classes
+(data/destructor), and access levels (`any` | `system_task` | `expert`).
+Pin it in the contract:
+
+```json
+"device_api": {
+  "spec": "api/<name>.mruby-api.json",
+  "sha256": "<spec sha256>",
+  "handlers_header": "fw/include/fw_api_handlers.h"
+}
+```
+
+`firmware mrubyc` then regenerates `fw_api_<class>.{c,h}`,
+`fw_api_symbols.{c,h}` and `fw_api.{c,h}` beside the bytecode, exposing
+`fw_api_init_all()` (driver init, call before `mrbc_init_alloc`) and
+`fw_api_define_all()` (class defines, call after `mrbc_init_class`).
+
+Generated C follows the OpenBlink idiom: `MRBC_KW_ARG` /
+`do { ... } while (0)` / `MRBC_KW_DELETE` guard blocks between
+`// ====` separators, symid→const dispatch for `symbol` params, bounded
+array copies, `**rest` via `MRBC_KW_DICT`, and blocks taken from
+`v[argc+1]` (or `v[argc+2]` when a kw-hash precedes them). Mandatory
+keywords raise `ArgumentError` via `MRBC_KW_MANDATORY`; generated code
+stops before the handler when `mrbc_israised(vm)`.
+
+Handlers are hand-written driver functions declared in
+`handlers_header` — the gate requires every spec
+`handler`/`init`/`constructor`/`destructor` name to appear there. ABI:
+`mrbc_int_t`/`mrbc_float_t` (not `int32_t`/`float`), data pointer first
+for instance classes, `a_<name>` params in order (plus `a_<name>_n` for
+string/array lengths), `const mrbc_value *rest`/`const mrbc_value *blk`
+trailing when declared. Return marshalling: `int` (0=failure→nil),
+`bool` (non-zero→true), `float`/`string`(buf,cap→bytes or -1)/
+`array<int|float>`(buf,cap→count or -1).
+
+Config flags that matter: `use_float` (any float/array<float> member),
+`use_string`, `use_int64`/`use_int16` (int width), `use_unicode_case`
+(requires `use_utf8`), `max_symbols` (symbol budget — the gate adds
+declared symbols + class/method/const/kwarg names + `new` against it),
+`max_vm_count` (`system_task.vm_id` must fit), `expert_define`
+(the C macro that gates expert methods, e.g. `FW_DEBUG_API`).
+
+See `examples/mruby-ux/` for a working spec, handler stub, and the
+`fw_api_*` generated output.

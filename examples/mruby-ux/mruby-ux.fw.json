@@ -55,7 +55,9 @@
         "kind": "run",
         "current_ua": 15000,
         "duty": 1.0,
-        "peripherals_on": ["console"]
+        "peripherals_on": [
+          "console"
+        ]
       }
     ]
   },
@@ -89,13 +91,31 @@
       }
     ],
     "generated_dir": "fw/generated",
-    "config_header": "fw/include/fw_mruby.h"
+    "config_header": "fw/include/fw_mruby.h",
+    "device_api": {
+      "spec": "api/mruby-ux.mruby-api.json",
+      "sha256": "f011c9e2fba8db3c359f698a14d55b4e739d91bc6c22d4b9b4fd8b9926a5a81b",
+      "handlers_header": "fw/include/fw_api_handlers.h"
+    }
   },
   "analysis": {
     "tool": "cppcheck",
-    "sources": ["fw/src/main.c", "fw/generated/ux_app_bytecode.c"],
-    "includes": ["fw/include", "fw/generated"],
-    "defines": ["CONFIG_SERIAL=1"]
+    "sources": [
+      "fw/src/main.c",
+      "fw/generated/ux_app_bytecode.c",
+      "fw/generated/fw_api.c",
+      "fw/generated/fw_api_led.c",
+      "fw/generated/fw_api_sample.c",
+      "fw/generated/fw_api_symbols.c",
+      "fw/src/fw_api_handlers.c"
+    ],
+    "includes": [
+      "fw/include",
+      "fw/generated"
+    ],
+    "defines": [
+      "CONFIG_SERIAL=1"
+    ]
   },
   "simulations": [
     {

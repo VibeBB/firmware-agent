@@ -22,6 +22,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from .contract import FirmwareContract, MrubycConfig, resolve
 from .interchange import sha256_file
+from .mruby_api import MrubyApiDoc, api_problems, generate_api
 from .profiles import McuProfile
 from .projections import write_bytes, write_text
 
@@ -120,7 +121,15 @@ def config_header(cfg: MrubycConfig, contract_name: str) -> str:
         f"#define MRBC_USE_MATH {1 if cfg.use_math else 0}",
         f"#define MRBC_USE_STRING {1 if cfg.use_string else 0}",
         f"#define MRBC_USE_STRING_UTF8 {1 if cfg.use_utf8 else 0}",
+        f"#define MRBC_USE_UNICODE_CASE {1 if cfg.use_unicode_case else 0}",
         f"#define MAX_VM_COUNT {cfg.max_vm_count}",
+        f"#define MAX_SYMBOLS_COUNT {cfg.max_symbols}",
+    ]
+    if cfg.use_int64:
+        lines.append("#define MRBC_INT64")
+    if cfg.use_int16:
+        lines.append("#define MRBC_INT16")
+    lines += [
         "",
         "#endif /* FW_MRUBY_H */",
         "",
@@ -201,6 +210,18 @@ def generate(contract: FirmwareContract, contract_path: Path) -> tuple[list[Path
         )
     manifest = resolve(contract_path, f"{cfg.generated_dir}/{MANIFEST_NAME}")
     written.append(write_text(manifest, ruby_manifest(files, cfg, contract.name)))
+    if cfg.device_api is not None:
+        spec_path = resolve(contract_path, cfg.device_api.spec)
+        if not spec_path.is_file():
+            problems.append(f"device api spec {cfg.device_api.spec} missing")
+        else:
+            try:
+                spec = MrubyApiDoc.model_validate(json.loads(spec_path.read_text(encoding="utf-8")))
+            except Exception as exc:
+                problems.append(f"device api spec invalid: {exc}")
+            else:
+                out_dir = resolve(contract_path, cfg.generated_dir)
+                written += generate_api(spec, contract.name, cfg.device_api.spec, out_dir)
     return written, problems
 
 
@@ -365,4 +386,8 @@ def mrubyc_problems(
                                 problems.append(
                                     f"{entry.file}: sha256 {actual} differs from ux manifest pin"
                                 )
+    if cfg.device_api is not None:
+        api_errs, api_ev = api_problems(contract, cfg.device_api, contract_path)
+        problems += api_errs
+        evidence += api_ev
     return problems, evidence

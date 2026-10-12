@@ -36,6 +36,7 @@ ARTIFACT_SUFFIXES = (
     ".fw-report.md",
     "_bytecode.c",
     "fw_ruby_manifest.json",
+    ".mruby-api.json",
     ".fw-report.png",
     ".advisory.json",
     ".ux-response.json",
@@ -53,6 +54,7 @@ ARTIFACT_NAMES = (
     "vision-reviews.jsonl",
     "records-status.json",
 )
+ARTIFACT_PREFIXES_GENERATED = ("fw_api_",)
 ARTIFACT_PREFIXED = (("sim-", ".log"), ("sim-", ".png"))
 WRITE_TOOLS = {"file_editor", "apply_patch"}
 VIEW_ACTIONS = {"view", "read", "undo_edit"}
@@ -129,6 +131,8 @@ def _patch_paths(tool_input: dict[str, Any]) -> list[str]:
 def _is_protected(value: str) -> bool:
     normalized = value.replace("\\", "/").lower()
     base = normalized.rsplit("/", 1)[-1]
+    if base.startswith(ARTIFACT_PREFIXES_GENERATED) and base.endswith((".c", ".h")):
+        return True
     if base in ARTIFACT_NAMES:
         return True
     if any(base.startswith(head) and base.endswith(tail) for head, tail in ARTIFACT_PREFIXED):

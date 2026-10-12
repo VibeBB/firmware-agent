@@ -15,7 +15,9 @@ CFLAGS := -O2 -Wall -Wextra \
 
 all: $(BUILD_DIR)/ux.js
 
-$(BUILD_DIR)/ux.js: main.c ../fw/generated/ux_app_bytecode.c $(MRUBYC_SRCS) $(MRUBYC_DIR)/hal/emscripten/hal.c
+FW_API_SRCS := $(wildcard ../fw/generated/fw_api*.c) ../fw/src/fw_api_handlers.c
+
+$(BUILD_DIR)/ux.js: main.c ../fw/generated/ux_app_bytecode.c $(FW_API_SRCS) $(MRUBYC_SRCS) $(MRUBYC_DIR)/hal/emscripten/hal.c
 	@mkdir -p $(BUILD_DIR)
 	$(EMCC) $(CFLAGS) -sASYNCIFY -sALLOW_MEMORY_GROWTH=1 \
 		-o $@ $^

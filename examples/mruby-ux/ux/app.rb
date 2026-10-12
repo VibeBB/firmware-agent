@@ -17,6 +17,12 @@ class Ux
   end
 end
 
+# Exercise the generated device API bindings the same way a product would.
+LED.set(part: :led1, state: true)
+puts "API LED1 #{LED.toggle(:led1) ? 'on' : 'off'}"
+puts "API ALL #{LED.all([1, 0, 1])}"
+LED.on_change(period_ms: 100) {}
+
 ux = Ux.new
 puts "STATE #{ux.state}"
 ux.advance

@@ -5,7 +5,7 @@
     {
       "bytecode": "fw/generated/ux_app_bytecode.c",
       "file": "ux/app.rb",
-      "sha256": "79f6cf0be3a42538248c7ec7fc2561d9d213d8893a3f791b0c6ea5a61d21ba4d",
+      "sha256": "a10e5ffb54913c92cddcff31b0717f3957c049a34b16a70ffa680af09d110557",
       "symbol": "ux_app"
     }
   ],
