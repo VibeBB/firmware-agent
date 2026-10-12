@@ -14,7 +14,6 @@ from firmware.hcp import (
     HcpItem,
     HcpModule,
     HcpRefs,
-    _text_width,
     chart_flow,
     dsl_to_flow,
     error_mixing_findings,
@@ -241,6 +240,8 @@ def test_numeric_boundary_sites() -> None:
                 items=[
                     HcpItem(kind="return", levels=1),
                     HcpItem(kind="return", levels=2),
+                    # ``ord(ch) < 128`` exact neighbours 127/128/129.
+                    HcpItem(label="neigh" + chr(127) + chr(128) + chr(129)),
                 ],
             )
         ]
@@ -285,9 +286,6 @@ def test_numeric_boundary_sites() -> None:
 
     # Indent-scan loops: tab-only and space-only lines hit below/on.
     dsl_to_flow("\\module m\n\t\n \n\tok\n")
-
-    # ``ord(ch) < 128`` exact neighbours 127/128/129.
-    assert _text_width(chr(127) + chr(128) + chr(129)) > 0
 
 
 def test_gates_hcp_checks(lamp: Path) -> None:
