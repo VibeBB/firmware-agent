@@ -31,7 +31,7 @@ while IFS='|' read -r name url sha dest; do
     archive="$work/$name.tar.gz"
     echo "fetch $name -> $dest"
     curl --fail --location --silent --show-error \
-        --retry 5 --retry-delay 10 --retry-all-errors \
+        --retry 8 --retry-delay 20 --retry-max-time 600 --retry-all-errors \
         --output "$archive" "$url"
     echo "$sha  $archive" | sha256sum --check >/dev/null
     mkdir -p "$dest"

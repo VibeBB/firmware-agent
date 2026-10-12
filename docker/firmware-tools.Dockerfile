@@ -110,7 +110,7 @@ RUN apt-sources-fallback \
 
 # Espressif QEMU (esp32 / esp32s3 machines), GPL-2.0, checksum-pinned.
 RUN curl --fail --location --silent --show-error \
-        --retry 5 --retry-delay 10 --retry-all-errors \
+        --retry 8 --retry-delay 20 --retry-max-time 600 --retry-all-errors \
         --output /tmp/esp-qemu.tar.xz \
         "https://github.com/espressif/qemu/releases/download/${ESP_QEMU_RELEASE}/${ESP_QEMU_ASSET}" \
     && echo "${ESP_QEMU_SHA256}  /tmp/esp-qemu.tar.xz" | sha256sum --check \
@@ -187,7 +187,7 @@ RUN test -x /opt/emsdk/upstream/emscripten/emcc \
 # .deb: the sid pin reaches upstream 2.22 while the resolute apt channel is
 # stuck at 2.19. GPL-3.0; runs as a subprocess only.
 RUN curl --fail --location --silent --show-error \
-        --retry 5 --retry-delay 10 --retry-all-errors \
+        --retry 8 --retry-delay 20 --retry-max-time 600 --retry-all-errors \
         --output /tmp/cppcheck.deb \
         "${CPPCHECK_DEB_URL}" \
     && echo "${CPPCHECK_DEB_SHA256}  /tmp/cppcheck.deb" | sha256sum --check \
