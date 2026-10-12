@@ -54,7 +54,7 @@ static void c_sample_read(mrb_vm *vm, mrb_value *v, int argc) {
 	// ==============================
 	int ok = 0;
 	do {
-		if (argc < 2) break;
+		if (argc < 1) break;
 		if (!MRBC_ISNUMERIC(v[1])) { break; }
 		a_ch = mrbc_integer(v[1]);
 		ok = 1;

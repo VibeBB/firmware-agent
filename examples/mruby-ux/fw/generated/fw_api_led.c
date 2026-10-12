@@ -124,7 +124,7 @@ static void c_led_toggle(mrb_vm *vm, mrb_value *v, int argc) {
 	// ==============================
 	int ok = 0;
 	do {
-		if (argc < 2) break;
+		if (argc < 1) break;
 		if (MRBC_TT_SYMBOL != v[1].tt) { break; }
 		a_part = fw_api_symbol_const(v[1].sym_id);
 		if (a_part < 0) { break; }
@@ -154,7 +154,7 @@ static void c_led_all(mrb_vm *vm, mrb_value *v, int argc) {
 	// ==============================
 	int ok = 0;
 	do {
-		if (argc < 2) break;
+		if (argc < 1) break;
 		if (MRBC_TT_ARRAY != v[1].tt) { break; }
 		if (v[1].array->n_stored > 4u) { break; }
 		{
@@ -218,10 +218,10 @@ static void c_led_raw(mrb_vm *vm, mrb_value *v, int argc) {
 	// ==============================
 	int ok = 0;
 	do {
-		if (argc < 2) break;
+		if (argc < 1) break;
 		if (!MRBC_ISNUMERIC(v[1])) { break; }
 		a_idx = mrbc_integer(v[1]);
-		if (argc < 3) break;
+		if (argc < 2) break;
 		if (!MRBC_ISNUMERIC(v[2])) { break; }
 		a_level = mrbc_float(v[2]);
 		ok = 1;

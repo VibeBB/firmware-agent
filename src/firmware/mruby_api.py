@@ -473,10 +473,10 @@ def _emit_method(method: ApiMethod, cls: ApiClass, spec: MrubyApiDoc) -> list[st
         out += ["", _SEP, "\tint ok = 0;", "\tdo {"]
         for i, param in enumerate(method.params, start=1):
             if param.required:
-                out.append(f"\t\tif (argc < {i + 1}) break;")
+                out.append(f"\t\tif (argc < {i}) break;")
                 out += _decode_slot(f"v[{i}]", param, "\t\t")
             else:
-                out.append(f"\t\tif (argc >= {i + 1}) {{")
+                out.append(f"\t\tif (argc >= {i}) {{")
                 out += _decode_slot(f"v[{i}]", param, "\t\t\t")
                 out.append("\t\t}")
         out += [
