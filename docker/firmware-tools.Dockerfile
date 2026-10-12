@@ -1,10 +1,10 @@
-ARG UV_VERSION=0.12.23
-ARG UV_DIGEST=sha256:61d393e44e249f2e4b526b6c7ddcecce245946826e608e11c93ad4f5bba55b21
+ARG UV_VERSION=0.13.0
+ARG UV_DIGEST=sha256:cdc6093146eb3ff6a40107b38f008b789e050e77ad87865e381d9917da55a168
 # Emscripten SDK stage: digest-pinned, shared with the dashboard tools image
 # so the .mrb/WASM legs use one proven toolchain. ARGs used in FROM must be
 # declared before the first FROM.
-ARG EMSDK_VERSION=6.0.10
-ARG EMSDK_DIGEST=sha256:e077d54e2b8970575ebc4f185ac1de0b95c05f2b266134d4ba27449af7aebf65
+ARG EMSDK_VERSION=6.0.12
+ARG EMSDK_DIGEST=sha256:77638e6c215a65f25a704c0c831d5c2463a8c0468a58c6cb82489dbe621dfa05
 FROM ghcr.io/astral-sh/uv:${UV_VERSION}@${UV_DIGEST} AS uv
 FROM emscripten/emsdk:${EMSDK_VERSION}@${EMSDK_DIGEST} AS emscripten
 

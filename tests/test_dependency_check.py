@@ -59,7 +59,7 @@ def test_docker_args_report_fetch_failed_on_timeout():
 
 def test_docker_platformio_pin_uses_pypi_latest() -> None:
     def tags(url: str) -> list[str]:
-        return ["0.12.23"]
+        return ["0.13.0"]
 
     def platformio(_url: str) -> dict[str, object]:
         return {"info": {"version": "6.3.0"}}

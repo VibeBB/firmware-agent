@@ -86,7 +86,9 @@ Remaining publish-gate findings are vendored upstream payloads that
 runtime tooling requires, covered by `.trivyignore` waivers that expire
 2027-01-03 and a matching deferral in
 `scripts/dependency_update_deferrals.json` (re-scan and drop cleared
-waivers at the next `ESPRESSIF32_PLATFORM` / ESP-IDF bump):
+waivers at the next `ESPRESSIF32_PLATFORM` / ESP-IDF bump; the
+pebble/emsdk entries expire 2027-01-12 and re-verify at each
+`ubuntu:26.04` base-digest / `EMSDK_VERSION` bump):
 
 - `cryptography` 46.0.7 in `tool-esptoolpy/_contrib` and the ESP-IDF
   helper venv (CVE-2026-69247, CVE-2026-69249, GHSA-537c-gmf6-5ccf) —
@@ -106,6 +108,22 @@ waivers at the next `ESPRESSIF32_PLATFORM` / ESP-IDF bump):
   released fix upstream; recorded as expiring acceptances so the
   unfixed count is deliberate, re-evaluated at each ubuntu:26.04
   base-digest and `ESPRESSIF32_PLATFORM` / `ESP_QEMU` bump.
+- `/usr/bin/pebble` — Ubuntu archive pebble 2.6.0+ds1-1build1 built
+  with Go 1.26.7 (CVE-2026-78667, CVE-2026-78669, CVE-2026-97031); the
+  resolute archive still ships that build (verified 2026-10-12), so
+  the stdlib HIGHs are unfixable until Ubuntu rebuilds against Go
+  >=1.26.9. Waived to 2027-01-12; re-verified on each base-digest
+  bump (same posture as circuit-agent's identical binary).
+- emsdk vendored payloads — `@typescript/typescript-linux-x64`
+  (tsgo) built with Go 1.26.4 (CVE-2026-33818/39821/39822/46600/
+  56852/56853/56858/56859/56860/56862 plus the three stdlib 1.26.9
+  fixes) and node/npm's upstream bundled deps (brace-expansion,
+  browserslist, fast-uri, flatted, ip-address, js-yaml, nanoid,
+  picomatch, postcss, source-map-js, tar, undici). emsdk bumped to
+  6.0.12 in this change, but 6.0.12 vendors the same Go/node payload
+  versions (verified by scanning `emscripten/emsdk:6.0.12` directly)
+  — fix lands only when emscripten revendors. Waived to 2027-01-12;
+  re-verified on each `EMSDK_VERSION` bump.
 
 The weekly audit runs Lynis as container root (`--user 0`) with the
 committed `docker/lynis-container.prf` profile, which skips tests that

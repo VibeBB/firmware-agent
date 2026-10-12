@@ -64,3 +64,62 @@ private-key exp:2027-01-03
 # ubuntu:26.04 base-digest and ESPRESSIF32_PLATFORM / ESP-QEMU bump.
 CVE-2026-3886 exp:2027-01-03
 CVE-2024-23342 exp:2027-01-03
+
+# --- Vendored upstream payloads (no fix on our side) ----------------------
+# /usr/bin/pebble is the Ubuntu-archive pebble 2.6.0+ds1-1build1 binary,
+# built with Go 1.26.7; the resolute archive still ships the same build
+# (checked 2026-10-12) so the Go stdlib HIGHs are unfixable until Ubuntu
+# rebuilds against >=1.26.9. Re-verified on each base-digest bump.
+CVE-2026-78667 exp:2027-01-12
+CVE-2026-78669 exp:2027-01-12
+CVE-2026-97031 exp:2027-01-12
+# emsdk's vendored @typescript/typescript-linux-x64 (tsgo) is built with
+# Go 1.26.4 — including emsdk 6.0.12, verified by scanning
+# emscripten/emsdk:6.0.12 directly — so its stdlib and x/text HIGHs are
+# unfixable until emscripten revendors a tsgo built on Go >=1.27.2 (or the
+# stdlib/x-text fix lines). Re-verified on each EMSDK_VERSION bump.
+CVE-2026-33818 exp:2027-01-12
+CVE-2026-39821 exp:2027-01-12
+CVE-2026-39822 exp:2027-01-12
+CVE-2026-46600 exp:2027-01-12
+CVE-2026-56852 exp:2027-01-12
+CVE-2026-56853 exp:2027-01-12
+CVE-2026-56858 exp:2027-01-12
+CVE-2026-56859 exp:2027-01-12
+CVE-2026-56860 exp:2027-01-12
+CVE-2026-56862 exp:2027-01-12
+# emsdk's vendored node/npm trees ship their upstream bundled dependency
+# versions (node 24.19.0 in both 6.0.10 and 6.0.12): brace-expansion,
+# browserslist, fast-uri, flatted, ip-address, js-yaml, nanoid, picomatch,
+# postcss, source-map-js, tar, undici — all fixable only by a node/npm
+# revendoring upstream. Re-verified on each EMSDK_VERSION bump.
+CVE-2026-102276 exp:2027-01-12
+CVE-2026-102278 exp:2027-01-12
+CVE-2026-13149 exp:2027-01-12
+CVE-2026-14257 exp:2027-01-12
+CVE-2026-69152 exp:2027-01-12
+CVE-2026-73088 exp:2027-01-12
+CVE-2026-73089 exp:2027-01-12
+CVE-2026-16221 exp:2027-01-12
+CVE-2026-18446 exp:2027-01-12
+CVE-2026-75899 exp:2027-01-12
+CVE-2026-75931 exp:2027-01-12
+CVE-2026-75975 exp:2027-01-12
+CVE-2026-76172 exp:2027-01-12
+CVE-2026-84292 exp:2027-01-12
+CVE-2026-32141 exp:2027-01-12
+CVE-2026-33228 exp:2027-01-12
+CVE-2026-69192 exp:2027-01-12
+CVE-2026-59869 exp:2027-01-12
+CVE-2026-84375 exp:2027-01-12
+GHSA-5p4m-2wfm-xmqj exp:2027-01-12
+CVE-2026-67213 exp:2027-01-12
+CVE-2026-67214 exp:2027-01-12
+CVE-2026-33671 exp:2027-01-12
+CVE-2026-73646 exp:2027-01-12
+CVE-2026-93749 exp:2027-01-12
+CVE-2026-59873 exp:2027-01-12
+CVE-2026-59874 exp:2027-01-12
+CVE-2026-73566 exp:2027-01-12
+CVE-2026-12151 exp:2027-01-12
+CVE-2026-19534 exp:2027-01-12
