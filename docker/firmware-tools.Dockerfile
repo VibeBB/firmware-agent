@@ -160,6 +160,13 @@ RUN rm -rf /opt/mruby-src /tmp/pins \
     && printf '%s\n' "${ZEPHYR_VERSION}" > /opt/zephyr/ZEPHYR_VERSION \
     && printf '%s\n' "${NCS_VERSION}" > /opt/nrf/NCS_VERSION
 
+# Zephyr build system needs pyyaml (list_boards), pyelftools (gen_isr_tables)
+# and packaging on whichever interpreter CMake resolves — the project venv is
+# first on PATH. west pulls pyyaml/pykwalify/colorama transitively.
+RUN uv pip install --python /opt/firmware/.venv \
+        "west==1.5.0" "pyelftools==0.32" "packaging==25.0" \
+    && python -c "import yaml, elftools, packaging, west"
+
 # Emscripten SDK: reuse the digest-pinned stage so dashboard/firmware share
 # the exact emcc + node pair.
 COPY --from=emscripten /emsdk /opt/emsdk

@@ -102,12 +102,12 @@
       "id": "ux_wasm",
       "runner": "node",
       "fidelity": "core",
-      "image": "wasm/build/ux.mjs",
+      "image": "wasm/build/ux.js",
       "build": {
         "backend": "make",
         "dir": "wasm",
         "target": "all",
-        "elf": "wasm/build/ux.mjs",
+        "elf": "wasm/build/ux.js",
         "timeout_s": 600
       },
       "args": [],

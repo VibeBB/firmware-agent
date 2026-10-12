@@ -1,0 +1,10 @@
+{
+  "artifact": {
+    "name": "mruby-ux.firmware.json",
+    "sha256": "7e5b6ad6f37f3b3407fb8fbbe092211448e8ddfff84ac269f499e5935f612ede"
+  },
+  "decision_refs": [],
+  "envelope_version": 3,
+  "producer": "circuit",
+  "sources": []
+}

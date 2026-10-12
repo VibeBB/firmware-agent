@@ -13,9 +13,9 @@ CFLAGS := -O2 -Wall -Wextra \
 	-I$(MRUBYC_DIR)/src -I$(MRUBYC_DIR)/hal/emscripten \
 	-include fw_mruby.h
 
-all: $(BUILD_DIR)/ux.mjs
+all: $(BUILD_DIR)/ux.js
 
-$(BUILD_DIR)/ux.mjs: main.c ../fw/generated/ux_app_bytecode.c $(MRUBYC_SRCS) $(MRUBYC_DIR)/hal/emscripten/hal.c
+$(BUILD_DIR)/ux.js: main.c ../fw/generated/ux_app_bytecode.c $(MRUBYC_SRCS) $(MRUBYC_DIR)/hal/emscripten/hal.c
 	@mkdir -p $(BUILD_DIR)
 	$(EMCC) $(CFLAGS) -sASYNCIFY -sALLOW_MEMORY_GROWTH=1 \
 		-o $@ $^
