@@ -483,7 +483,7 @@ jobs:
       - name: Upload Trivy SARIF
         # A rehearsal must not file code-scanning alerts.
         if: always() && inputs.dry_run != true && hashFiles('trivy-image.sarif') != ''
-        uses: github/codeql-action/upload-sarif@cee97f86b972a3ded3c58d04148362b193ddc518 # v4.38.3
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           sarif_file: trivy-image.sarif
           category: trivy-firmware-tools
