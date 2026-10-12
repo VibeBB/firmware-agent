@@ -69,9 +69,7 @@ def _zephyr_module_dirs(sdk_root: str) -> list[str]:
         pattern = "/".join(["*"] * depth + ["zephyr", "module.yml"])
         candidates.extend(root.glob(pattern))
     return sorted(
-        yml.parent.parent.as_posix()
-        for yml in candidates
-        if yml.parent.parent != root / "zephyr"
+        yml.parent.parent.as_posix() for yml in candidates if yml.parent.parent != root / "zephyr"
     )
 
 
