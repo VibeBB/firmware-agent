@@ -343,6 +343,22 @@ class MrubyUxManifest(_Strict):
     sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
 
 
+class MrubyDeviceApi(_Strict):
+    """Pinned ``*.mruby-api.json`` the device C bindings are generated from.
+
+    The spec is authored by ux-creator-agent (it owns the API surface's
+    Ruby-ness); ``sha256`` pins the exact document so an API change is
+    reviewed before the generated ``fw_api_*`` bindings change.
+    ``handlers_header`` is the hand-written C header declaring every
+    ``handler``/``init`` symbol the spec references — the gate requires a
+    word-level declaration for each so a missing driver entry fails fast.
+    """
+
+    spec: str
+    sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    handlers_header: str
+
+
 class MrubycConfig(_Strict):
     """Embedded mruby/c VM configuration.
 
@@ -363,9 +379,14 @@ class MrubycConfig(_Strict):
     use_math: bool = False
     use_string: bool = True
     use_utf8: bool = False
+    use_unicode_case: bool = False
+    use_int64: bool = False
+    use_int16: bool = False
     max_vm_count: int = Field(default=5, ge=1, le=255)
+    max_symbols: int = Field(default=255, ge=64, le=65535)
     sources: list[MrubySource] = Field(min_length=1)
     ux_manifest: MrubyUxManifest | None = None
+    device_api: MrubyDeviceApi | None = None
     generated_dir: str = "fw/generated"
     config_header: str = "fw/include/fw_mruby.h"
 
@@ -373,6 +394,10 @@ class MrubycConfig(_Strict):
     def _utf8_needs_string(self) -> MrubycConfig:
         if self.use_utf8 and not self.use_string:
             raise ValueError("mrubyc: use_utf8 requires use_string")
+        if self.use_unicode_case and not self.use_utf8:
+            raise ValueError("mrubyc: use_unicode_case requires use_utf8")
+        if self.use_int64 and self.use_int16:
+            raise ValueError("mrubyc: use_int64 and use_int16 are exclusive")
         symbols = [s.symbol for s in self.sources]
         if len(set(symbols)) != len(symbols):
             raise ValueError("mrubyc: duplicate source symbols")

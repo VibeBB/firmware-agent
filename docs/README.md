@@ -35,6 +35,7 @@
 - [ADR-0011](adr/ADR-0011-product-unit-coverage.md) — product unit tests with host gcc and gcov (`fw.unit_coverage`)
 - [ADR-0012](adr/ADR-0012-vrp-v2-records.md) — VRP v2 records, blind render review, bard song receipts
 - [ADR-0013](adr/ADR-0013-hcp-chart-flow.md) — HCP chart `flow` contract section, projections and renderer
+- [ADR-0014](adr/ADR-0014-mruby-device-api.md) — UX-authored `*.mruby-api.json` device API, generated C bindings, gate
 
 ## Research
 

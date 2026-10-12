@@ -1,0 +1,94 @@
+{
+  "artifact_kind": "mruby_api",
+  "schema_version": 1,
+  "product": "mruby-ux",
+  "symbols": [
+    { "name": "led1", "const": "kFwHwLed1" },
+    { "name": "led2", "const": "kFwHwLed2" },
+    { "name": "led3", "const": "kFwHwLed3" }
+  ],
+  "system_task": { "vm_id": 1 },
+  "expert_define": "FW_DEBUG_API",
+  "classes": [
+    {
+      "name": "LED",
+      "doc": "On-board status LEDs driven by the UX state machine.",
+      "init": "fw_hw_led_init",
+      "constants": [
+        { "name": "OFF", "value": 0 },
+        { "name": "ON", "value": 1 }
+      ],
+      "methods": [
+        {
+          "name": "set",
+          "doc": "Set one LED state by part.",
+          "kwargs": [
+            { "name": "part", "type": "symbol", "enum": ["led1", "led2", "led3"] },
+            { "name": "state", "type": "bool", "required": false, "default": false }
+          ],
+          "returns": { "type": "bool" },
+          "handler": "fw_hw_led_set"
+        },
+        {
+          "name": "toggle",
+          "doc": "Toggle one LED, returning the new state.",
+          "params": [{ "name": "part", "type": "symbol", "enum": ["led1", "led2", "led3"] }],
+          "returns": { "type": "bool" },
+          "handler": "fw_hw_led_toggle"
+        },
+        {
+          "name": "all",
+          "doc": "Set every LED from a state array.",
+          "params": [{ "name": "states", "type": "array<int>", "max_len": 4 }],
+          "returns": { "type": "int" },
+          "handler": "fw_hw_led_all"
+        },
+        {
+          "name": "dump",
+          "doc": "Dump LED state for the system task.",
+          "access": "system_task",
+          "returns": { "type": "string", "cap": 64 },
+          "handler": "fw_hw_led_dump"
+        },
+        {
+          "name": "raw",
+          "doc": "Expert-only raw brightness control.",
+          "access": "expert",
+          "params": [
+            { "name": "idx", "type": "int" },
+            { "name": "level", "type": "float" }
+          ],
+          "returns": { "type": "nil" },
+          "handler": "fw_hw_led_raw"
+        },
+        {
+          "name": "on_change",
+          "doc": "Register a change callback block.",
+          "block": "optional",
+          "rest_kwargs": true,
+          "returns": { "type": "nil" },
+          "arg_errors": "silent",
+          "handler": "fw_hw_led_on_change"
+        }
+      ]
+    },
+    {
+      "name": "Sample",
+      "doc": "ADC sample source with per-instance driver state.",
+      "instance": {
+        "data_size": 16,
+        "constructor": "fw_hw_sample_open",
+        "destructor": "fw_hw_sample_close"
+      },
+      "methods": [
+        {
+          "name": "read",
+          "doc": "Read a channel, returning float samples.",
+          "params": [{ "name": "ch", "type": "int" }],
+          "returns": { "type": "array<float>", "cap": 8 },
+          "handler": "fw_hw_sample_read"
+        }
+      ]
+    }
+  ]
+}

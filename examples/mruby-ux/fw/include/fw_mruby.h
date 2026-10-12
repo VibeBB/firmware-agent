@@ -14,6 +14,8 @@
 #define MRBC_USE_MATH 0
 #define MRBC_USE_STRING 1
 #define MRBC_USE_STRING_UTF8 0
+#define MRBC_USE_UNICODE_CASE 0
 #define MAX_VM_COUNT 2
+#define MAX_SYMBOLS_COUNT 255
 
 #endif /* FW_MRUBY_H */
