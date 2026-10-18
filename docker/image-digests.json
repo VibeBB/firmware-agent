@@ -1,12 +1,12 @@
 {
   "firmware_tools": {
-    "attestation": "https://github.com/VibeBB/firmware-agent/attestations/57123590",
-    "digest": "sha256:9d8daab87ef2e2609b08a4487e13834fbfc4e87b6972a3e82bf7aa97858f05ff",
+    "attestation": "https://github.com/VibeBB/firmware-agent/attestations/57145617",
+    "digest": "sha256:c5971f890127013f136b7e3eeb8ef7c0982c3bb3bb46283a251e78de546f6709",
     "dockerfile": "docker/firmware-tools.Dockerfile",
     "image": "ghcr.io/vibebb/firmware-tools",
-    "published_at": "2026-10-18T12:34:05Z",
-    "sbom_attestation": "https://github.com/VibeBB/firmware-agent/attestations/57124113",
-    "tag": "a9ba36f08ce842e7a9c3f71cd44e30d6f30839ca-tools",
+    "published_at": "2026-10-18T15:27:06Z",
+    "sbom_attestation": "https://github.com/VibeBB/firmware-agent/attestations/57146357",
+    "tag": "57940b29f3c068970bc6d2a3ad4be72761951c59-tools",
     "tools": {
       "cppcheck": "cppcheck --version: Cppcheck 2.22.0",
       "espressif32": "python -c 'import json; from pathlib import Path; print(\"espressif32=\" + json.loads(Path(\"/opt/platformio/platforms/espressif32/platform.json\").read_text())[\"version\"])': 7.1.3",
@@ -19,6 +19,6 @@
       "sdcc": "sdcc --version: SDCC : mcs51/z80/z180/r2k/r2ka/r3ka/r4k/r5k/r6k/sm83/tlcs90/ez80/z80n/r800/ds390/pic16/pic14/TININative/ds400/hc08/s08/stm8/pdk13/pdk14/pdk15/mos6502/mos65c02/f8/f8l TD- 4.6.0 #16555 (Linux)",
       "uv": "uv --version: 0.13.1 (x86_64-unknown-linux-musl)"
     },
-    "workflow_run": "https://github.com/VibeBB/firmware-agent/actions/runs/39125450053"
+    "workflow_run": "https://github.com/VibeBB/firmware-agent/actions/runs/39138257243"
   }
 }
