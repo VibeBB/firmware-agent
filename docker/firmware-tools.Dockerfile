@@ -164,6 +164,10 @@ RUN apt-sources-fallback \
         python3-jinja2 \
         python3-packaging \
         python3-jsonschema \
+    # Apply every Debian/Ubuntu security fix published after the pinned
+    # base digest so the publish Trivy gate cannot trip on fixable
+    # findings (apt always pulls the latest published fix).
+    && apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 upgrade -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # SDCC + gputils: the pic14 backend invokes gpasm/gplink at compile time,

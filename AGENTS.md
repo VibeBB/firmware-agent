@@ -42,6 +42,9 @@ firmware sister in the VibeBB OpenHands plugin family.
   absent from UX and Production Engineering. Change copies together and update
   `EXPECTED` in `scripts/check_shared_hooks.py`.
   `intake_attachments.py` and `record_*` hooks are intentionally repo-specific.
+- Version expectations and pins in source code must derive from files
+  the dependency-update checker covers (pyproject pins, lockfiles,
+  Dockerfiles, workflow pins); do not hardcode a second copy.
 - New dependencies or tools need an ADR under `docs/adr/`.
 
 ## Voice and commit policy
