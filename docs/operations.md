@@ -116,10 +116,11 @@ pebble/emsdk entries expire 2027-01-12 and re-verify at each
   bump (same posture as circuit-agent's identical binary).
 - emsdk vendored payloads — `@typescript/typescript-linux-x64`
   (tsgo) built with Go 1.26.4 (CVE-2026-33818/39821/39822/46600/
-  56852/56853/56858/56859/56860/56862 plus the three stdlib 1.26.9
-  fixes) and node/npm's upstream bundled deps (brace-expansion,
-  browserslist, fast-uri, flatted, ip-address, js-yaml, nanoid,
-  picomatch, postcss, source-map-js, tar, undici). emsdk bumped to
+  56851/56852/56853/56858/56859/56860/56862 plus the three stdlib 1.26.9
+  fixes; 56851 is `golang.org/x/text` v0.38.0 → v0.41.0, surfaced by the
+  refreshed Trivy DB on 2026-10-18) and node/npm's upstream bundled deps
+  (brace-expansion, browserslist, fast-uri, flatted, ip-address, js-yaml,
+  nanoid, picomatch, postcss, source-map-js, tar, undici). emsdk bumped to
   6.0.12 in this change, but 6.0.12 vendors the same Go/node payload
   versions (verified by scanning `emscripten/emsdk:6.0.12` directly)
   — fix lands only when emscripten revendors. Waived to 2027-01-12;
