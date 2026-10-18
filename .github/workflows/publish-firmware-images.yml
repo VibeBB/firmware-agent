@@ -153,6 +153,25 @@ jobs:
           # on dry_run.
           TOOLS_TAG="${GITHUB_SHA}-tools"
           printf 'TOOLS_REF=%s\nTOOLS_DIGEST=%s\nTOOLS_TAG=%s\n' "$SCAN_IMAGE_REF" "$BUILT_DIGEST" "$TOOLS_TAG" >> "$GITHUB_ENV"
+      # Pre-pull the vulnerability and java DBs through a retry loop:
+      # a transient stream error mid-scan is fatal inside trivy-action
+      # and cannot be retried there, so warm each leg's private cache-dir
+      # first (the java DB is cached for 3 days once downloaded).
+      - name: Warm Trivy DB caches
+        run: |
+          set -euo pipefail
+          for dir in trivy-cache trivy-tools-json; do
+            mkdir -p "$RUNNER_TEMP/$dir"
+            for attempt in 1 2 3; do
+              if docker run --rm -v "$RUNNER_TEMP/$dir:/cache" aquasec/trivy:0.76.0 \
+                  --cache-dir /cache image --download-db-only --download-java-db-only; then
+                break
+              fi
+              [ "$attempt" = 3 ] && exit 1
+              echo "::warning::trivy DB warm-up attempt $attempt failed; retrying"
+              sleep $((attempt * 20))
+            done
+          done
       - name: Scan tools image (Trivy SARIF)
         id: trivy-scan
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
@@ -169,6 +188,9 @@ jobs:
           # override the action's cache-dir input.
           cache-dir: ${{ runner.temp }}/trivy-cache
           version: v0.76.0
+          # NXP MCUX periph headers (14-16 MB each) slow the secret
+          # scanner to a crawl and only ever produce noise findings.
+          skip-files: 'opt/zephyr/modules/hal/nxp/mcux/mcux-sdk-ng/devices/**/periph/*.h'
           # The tools image carries multi-hundred-MB toolchain archives
           # (platformio/xtensa); Trivy's default 5m analysis deadline is
           # not enough and aborts the scan.
@@ -199,7 +221,10 @@ jobs:
       - parallel:
           - name: Scan tools image (Trivy JSON)
             # Runs even when the SARIF gate above found fixable CVEs, so the
-            # full report is still emitted on a gate failure.
+            # full report is still emitted on a gate failure. Diagnostic
+            # leg, not a gate: an infra-level scan failure must not fail
+            # the publish while the SARIF gate is green.
+            continue-on-error: true
             if: always() && steps.tools.outcome == 'success'
             uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
             with:
@@ -211,6 +236,8 @@ jobs:
               # on concurrent writes.
               cache-dir: ${{ runner.temp }}/trivy-tools-json
               version: v0.76.0
+              # Same NXP header exclusion as the SARIF leg.
+              skip-files: 'opt/zephyr/modules/hal/nxp/mcux/mcux-sdk-ng/devices/**/periph/*.h'
               timeout: '20m'
               scanners: vuln,secret,misconfig,license
               ignore-unfixed: false
