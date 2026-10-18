@@ -60,6 +60,15 @@ Deferrals and their review dates are tracked in
 an owner to revisit it by the listed date; deferrals do not change source
 pins.
 
+## 2026-10-18 update (sdk 1.55.1, uv 0.13.1)
+
+sdk `==1.54.0` -> `==1.55.1` (sdk + tools), uv `==0.13.0` -> `==0.13.1`,
+zizmor `1.30.1` -> `1.31.1`, trivy `v0.75.0` -> `v0.76.0`, codeql-action
+v4.38.3 -> v4.39.0. Full changelog review:
+[SDK v1.55.1 feature evaluation](research/sdk-v1.55.1-feature-evaluation.md).
+Deferrals unchanged (mcp 2.x, Python 3.15 default, Tauri 3.0.0-alpha where
+applicable); reasons refreshed to cite SDK 1.55.1.
+
 ## 2026-10-08 update (GitHub Actions pins)
 
 Bumped `step-security/harden-runner` v2.21.1 -> v2.22.1,
