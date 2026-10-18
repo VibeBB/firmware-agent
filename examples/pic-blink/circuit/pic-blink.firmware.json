@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "system": "circuit",
+  "artifact_kind": "circuit_firmware_connectivity",
+  "design": "pic-blink",
+  "source": "brief",
+  "brief_sha256": "c46e22549804e21694c4f89c73151a0bd32c1e18a7b89695c5274fee93b0f160",
+  "netlist_sha256": null,
+  "mcus": [
+    {
+      "ref": "U1",
+      "lib_id": "MCU_Microchip_PIC16:PIC16HV753-I/P",
+      "value": "PIC16HV753",
+      "footprint": "Package_DIP:DIP-14_W7.62mm",
+      "pins": [
+        { "pin": "1", "function": "VDD", "net": "+5V", "signal_class": "power", "voltage_v": 5.0 },
+        { "pin": "2", "function": "RA5", "net": null, "signal_class": "signal", "voltage_v": 5.0 },
+        { "pin": "3", "function": "RA4", "net": null, "signal_class": "signal", "voltage_v": 5.0 },
+        { "pin": "4", "function": "RA3", "net": "RESET", "signal_class": "signal", "voltage_v": 5.0 },
+        { "pin": "5", "function": "RC5", "net": "LED_OUT", "signal_class": "signal", "voltage_v": 5.0 },
+        { "pin": "6", "function": "RC4", "net": null, "signal_class": "signal", "voltage_v": 5.0 },
+        { "pin": "7", "function": "RC3", "net": null, "signal_class": "signal", "voltage_v": 5.0 },
+        { "pin": "8", "function": "RC2", "net": null, "signal_class": "signal", "voltage_v": 5.0 },
+        { "pin": "9", "function": "RC1", "net": null, "signal_class": "signal", "voltage_v": 5.0 },
+        { "pin": "10", "function": "RC0", "net": null, "signal_class": "signal", "voltage_v": 5.0 },
+        { "pin": "11", "function": "RA2", "net": "BTN_WAKE", "signal_class": "signal", "voltage_v": 5.0 },
+        { "pin": "12", "function": "RA1", "net": null, "signal_class": "signal", "voltage_v": 5.0 },
+        { "pin": "13", "function": "RA0", "net": "SENSE", "signal_class": "signal", "voltage_v": 5.0 },
+        { "pin": "14", "function": "VSS", "net": "GND", "signal_class": "ground", "voltage_v": 0.0 }
+      ]
+    }
+  ]
+}

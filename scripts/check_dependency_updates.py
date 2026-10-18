@@ -623,6 +623,43 @@ def check_docker_args(
                 fetch_failed=not latest,
             )
         )
+    # SDCC releases live on SourceForge, not GitHub: best_release.json names
+    # the newest installer asset, whose directory embeds the version
+    # (/sdcc-win64/4.6.0/sdcc-4.6.0-x64-setup.exe).
+    current = values.get("SDCC_VERSION")
+    if current is None:
+        statuses.append(
+            DependencyStatus(
+                "docker-arg", "SDCC_VERSION", "-", "?", _DOCKERFILES[0], False, "ARG missing"
+            )
+        )
+    else:
+        latest = ""
+        try:
+            payload = _dict(
+                fetch_json("https://sourceforge.net/projects/sdcc/best_release.json"),
+                "sourceforge best_release response is invalid for sdcc",
+            )
+            release = _dict(
+                payload.get("release"), "sourceforge best_release has no release object"
+            )
+            filename = release.get("filename")
+            match = re.search(r"/(\d+\.\d+\.\d+)/", filename) if isinstance(filename, str) else None
+            latest = match.group(1) if match else ""
+        except (OSError, ValueError):
+            latest = ""
+        statuses.append(
+            DependencyStatus(
+                "docker-arg",
+                "SDCC_VERSION",
+                current,
+                latest or "?",
+                _DOCKERFILES[0],
+                bool(latest) and latest != current,
+                "" if latest else "fetch failed",
+                fetch_failed=not latest,
+            )
+        )
     # The PlatformIO registry pin `espressif32@X.Y.Z` tracks
     # platformio/platform-espressif32 releases (vX.Y.Z tags).
     current = values.get("ESPRESSIF32_PLATFORM")

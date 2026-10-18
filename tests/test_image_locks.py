@@ -224,6 +224,7 @@ def test_measure_records_required_probe_commands(
         "QEMU emulator version 8.2.2 (Debian)\n"
         "QEMU emulator version 9.2.2 (Espressif)\n"
         "GNU gdb (Ubuntu 16.2-1ubuntu1) 16.2\n"
+        "SDCC : pic14/pic16 4.6.0 #0 (Linux)\n"
         "firmware=0.1.0\n"
     )
 
@@ -238,6 +239,7 @@ def test_measure_records_required_probe_commands(
             "qemu-system-arm --version",
             "qemu-system-xtensa --version",
             "gdb-multiarch --version",
+            "sdcc --version",
             "import firmware",
         ):
             assert probe in script
@@ -256,6 +258,7 @@ def test_measure_records_required_probe_commands(
         "python",
         "qemu_arm",
         "qemu_xtensa",
+        "sdcc",
         "uv",
     }
     assert "3.12.14" in values["python"]

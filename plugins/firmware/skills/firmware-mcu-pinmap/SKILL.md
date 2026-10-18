@@ -15,8 +15,8 @@ triggers:
 
 # MCU profiles and pin maps
 
-Built-in profiles: `rp2040`, `esp32s3` (`firmware profile <id>` prints
-one). A profile declares the part, core, flash/RAM capacity, memory
+Built-in profiles: `rp2040`, `esp32s3`, `pic16hv753` (SDCC pic14,
+no `sim_machine`), ... (`firmware profile <id>` prints one). A profile declares the part, core, flash/RAM capacity, memory
 regions, peripheral instance counts, the QEMU machine (if any), and per-pad
 `functions` tokens `<kind><instance|*>.<role>` such as `i2c0.sda`,
 `uart*.tx`, `pwm3.a`, `adc0.ch0`.

@@ -1,9 +1,13 @@
-"""Minimal ELF program-header reader for flash/RAM accounting (stdlib only).
+"""Minimal ELF/Intel HEX reader for flash/RAM accounting (stdlib only).
 
 Loadable segments are charged by address: a segment whose virtual address
 lies in a RAM region costs ``p_memsz`` of RAM, and its file-backed bytes
 (``p_filesz``) also cost flash when the load address is in flash or the RAM
 region is marked ``image_backed`` (copied from the flash image at boot).
+
+Intel HEX images (sdcc/gputils ``.hex`` output) carry only file-backed
+bytes, so each contiguous address run becomes one segment with
+``filesz == memsz`` and the pseudo machine ``ihex``.
 """
 
 from __future__ import annotations
@@ -81,6 +85,67 @@ def read_elf(path: Path) -> ElfImage:
         if p_type == PT_LOAD and memsz > 0:
             segments.append(Segment(vaddr, paddr, filesz, memsz))
     return ElfImage(MACHINES.get(machine, f"e_machine={machine}"), tuple(segments))
+
+
+def read_ihex(path: Path) -> ElfImage:
+    """Intel HEX image: contiguous data runs become loadable segments.
+
+    Type-02/04 records set the base address; other record types carry no
+    payload. ``machine`` reports ``ihex`` so gates can check the artifact
+    kind a profile expects.
+    """
+    try:
+        text = path.read_text(encoding="ascii")
+    except UnicodeDecodeError as exc:
+        raise ElfError(f"{path}: not an Intel HEX file") from exc
+    segments: list[Segment] = []
+    base = 0
+    run_start: int | None = None
+    run_end = 0
+    for lineno, line in enumerate(text.splitlines(), 1):
+        line = line.strip()
+        if not line:
+            continue
+        if not line.startswith(":") or len(line) < 11:
+            raise ElfError(f"{path}:{lineno}: malformed Intel HEX record")
+        try:
+            raw = bytes.fromhex(line[1:])
+        except ValueError:
+            raise ElfError(f"{path}:{lineno}: malformed Intel HEX record") from None
+        count, offset, rectype = raw[0], (raw[1] << 8) | raw[2], raw[3]
+        if len(raw) != count + 5 or sum(raw) & 0xFF:
+            raise ElfError(f"{path}:{lineno}: Intel HEX checksum/length mismatch")
+        if rectype == 0x00 and count:
+            start = base + offset
+            if run_start is None:
+                run_start, run_end = start, start + count
+            elif start == run_end:
+                run_end += count
+            else:
+                segments.append(
+                    Segment(run_start, run_start, run_end - run_start, run_end - run_start)
+                )
+                run_start, run_end = start, start + count
+        elif rectype == 0x01:  # end of file
+            break
+        elif rectype in (0x02, 0x04):  # extended segment/linear address
+            if count != 2:
+                raise ElfError(f"{path}:{lineno}: Intel HEX base-address record malformed")
+            shift = 4 if rectype == 0x02 else 16
+            base = ((raw[4] << 8) | raw[5]) << shift
+    if run_start is not None:
+        segments.append(Segment(run_start, run_start, run_end - run_start, run_end - run_start))
+    if not segments:
+        raise ElfError(f"{path}: Intel HEX carries no data records")
+    return ElfImage("ihex", tuple(segments))
+
+
+def read_image(path: Path) -> ElfImage:
+    """Dispatch on magic: ELF program headers or Intel HEX records."""
+    with path.open("rb") as stream:
+        if stream.read(4) == b"\x7fELF":
+            return read_elf(path)
+    return read_ihex(path)
 
 
 def _region(regions: list[MemoryRegion], address: int) -> MemoryRegion | None:

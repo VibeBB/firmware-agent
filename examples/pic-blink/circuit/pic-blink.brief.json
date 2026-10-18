@@ -1,0 +1,31 @@
+{
+  "name": "pic-blink",
+  "description": "PIC16HV753 blink board: LED on RC5, wake button on RA2, analog sense on AN0, ICSP header.",
+  "parts": [
+    {
+      "reference": "U1",
+      "lib_id": "MCU_Microchip_PIC16:PIC16HV753-I/P",
+      "footprint": "Package_DIP:DIP-14_W7.62mm",
+      "value": "PIC16HV753",
+      "mcu": true
+    },
+    {
+      "reference": "D1",
+      "lib_id": "Device:LED",
+      "footprint": "LED_THT:LED_D3.0mm",
+      "value": "LED"
+    },
+    {
+      "reference": "SW1",
+      "lib_id": "Switch:SW_PUSH",
+      "footprint": "Button_Switch_THT:SW_PUSH_6mm",
+      "value": "PUSH"
+    },
+    {
+      "reference": "J1",
+      "lib_id": "Connector_Generic:Conn_01x05",
+      "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical",
+      "value": "ICSP"
+    }
+  ]
+}

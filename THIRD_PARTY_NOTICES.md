@@ -31,6 +31,8 @@ into `firmware` (ADR-0004).
 | Raspberry Pi Pico SDK | `2.2.0`, sha256 `dbd8db79015aced4ef35cbaa88051b0d451775010d20202e1c7d2bee69c25b35` | BSD-3-Clause | `hal rp2040` cmake builds (`PICO_SDK_PATH`) |
 | Emscripten SDK | `emscripten/emsdk:6.0.10@sha256:e077d54e2b8970575ebc4f185ac1de0b95c05f2b266134d4ba27449af7aebf65` | MIT / LLVM | `hal emscripten` WASM legs + `node` runner |
 | AVR GCC + avr-libc | Ubuntu 26.04 packages | GPL-3.0 / BSD-3-Clause | `hal avr` builds |
+| SDCC | `4.6.0` source build, sha256 `5fd6a93e5997ce01756868fe35e441095cfb637894a80c262514a634094973b6` (Ubuntu sdcc drops `device/non-free` PIC support, so the tarball is built in a separate stage) | GPL-2.0-or-later | PIC14/PIC16 builds (pic16hv753) |
+| gputils (gpasm/gplink) | Ubuntu 26.04 package | GPL-2.0-or-later | PIC assembler/linker invoked by sdcc |
 | RISC-V GCC (`gcc-riscv64-unknown-elf`) | Ubuntu 26.04 packages | GPL-3.0 | `cross-compile` Zephyr legs (HiFive1, ESP32-C3, Nios V, Mi-V, MicroBlaze) |
 | Ruby | Ubuntu 26.04 package | Ruby license / BSD-2-Clause | mruby `minirake` build driver |
 | Node.js, device-tree-compiler, Zephyr Python deps | Ubuntu 26.04 packages | MIT / GPL-2.0 / various | `node` sim runner; Zephyr devicetree/kconfig tooling |

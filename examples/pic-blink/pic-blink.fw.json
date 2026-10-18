@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "system": "firmware",
+  "artifact_kind": "firmware_contract",
+  "name": "pic-blink",
+  "description": "PIC16HV753 blink controller firmware (SDCC pic14, bare-metal C).",
+  "mcu": {
+    "profile": "pic16hv753",
+    "ref": "U1",
+    "clock_mhz": 0.5
+  },
+  "circuit": {
+    "connectivity": "circuit/pic-blink.firmware.json"
+  },
+  "pins": [
+    {
+      "signal": "status_led",
+      "pad": "RC5",
+      "net": "LED_OUT",
+      "function": "gpio_out",
+      "initial": "low",
+      "rationale": "Status LED driven high from reset-off."
+    },
+    {
+      "signal": "wake_button",
+      "pad": "RA2",
+      "net": "BTN_WAKE",
+      "function": "gpio_in",
+      "pull": "up",
+      "active": "low",
+      "rationale": "Interrupt-on-change input wakes the part from sleep."
+    },
+    {
+      "signal": "sense_in",
+      "pad": "RA0",
+      "net": "SENSE",
+      "function": "adc",
+      "peripheral": "sense_adc",
+      "rationale": "AN0 analog input sampled while active."
+    }
+  ],
+  "peripherals": [
+    {
+      "id": "sense_adc",
+      "kind": "adc",
+      "instance": 0
+    }
+  ],
+  "power": {
+    "supply_net": "+5V",
+    "average_budget_ua": 100,
+    "modes": [
+      {
+        "id": "active",
+        "kind": "run",
+        "current_ua": 600,
+        "duty": 0.05,
+        "peripherals_on": [
+          "sense_adc"
+        ]
+      },
+      {
+        "id": "standby",
+        "kind": "deep_sleep",
+        "current_ua": 0.05,
+        "duty": 0.95,
+        "wake": [
+          "wake_button"
+        ]
+      }
+    ]
+  },
+  "build": {
+    "backend": "make",
+    "dir": "fw",
+    "target": "all",
+    "elf": "fw/build/pic-blink.hex",
+    "pins_header": "fw/include/fw_pins.h",
+    "budget": {
+      "flash_pct": 50,
+      "ram_pct": 80
+    },
+    "timeout_s": 300
+  },
+  "analysis": {
+    "tool": "cppcheck",
+    "std": "c11",
+    "sources": [
+      "fw/src"
+    ],
+    "includes": [
+      "fw/include"
+    ],
+    "fail_on": [
+      "error",
+      "warning",
+      "portability"
+    ]
+  }
+}

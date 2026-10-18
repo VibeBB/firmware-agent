@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "mcu_profile",
+  "id": "pic16hv753",
+  "vendor": "Microchip",
+  "part": "PIC16HV753",
+  "core": "pic14 enhanced mid-range 8-bit",
+  "package": "PDIP-14",
+  "source": "PIC16(L)F753/HV753 Datasheet DS41656 (Microchip) 14-pin pinout, analog/peripheral map; hex byte addressing: flash words 0x0000-0x07FF map to 0x0000-0x0FFF, config words map to 0x4000-0x400F",
+  "io_voltage_max_v": 5.5,
+  "flash_kb": 4,
+  "ram_kb": 1,
+  "memory_regions": [
+    {
+      "name": "flash",
+      "kind": "flash",
+      "origin": 0,
+      "length_kb": 4,
+      "image_backed": true
+    },
+    {
+      "name": "config",
+      "kind": "flash",
+      "origin": 16384,
+      "length_kb": 1
+    },
+    {
+      "name": "sram",
+      "kind": "ram",
+      "origin": 8192,
+      "length_kb": 1
+    }
+  ],
+  "peripherals": {
+    "adc": [
+      0
+    ],
+    "pwm": [
+      1
+    ]
+  },
+  "sim_machine": null,
+  "pads": [
+    {
+      "name": "VDD",
+      "pin": "1",
+      "functions": [],
+      "reserved": "power"
+    },
+    {
+      "name": "RA5",
+      "pin": "2",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "RA4",
+      "pin": "3",
+      "functions": [
+        "gpio",
+        "adc0.ch3"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "RA3",
+      "pin": "4",
+      "functions": [],
+      "reserved": "reset",
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "RC5",
+      "pin": "5",
+      "functions": [
+        "gpio",
+        "pwm1.out"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "RC4",
+      "pin": "6",
+      "functions": [
+        "gpio"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "RC3",
+      "pin": "7",
+      "functions": [
+        "gpio",
+        "adc0.ch7"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "RC2",
+      "pin": "8",
+      "functions": [
+        "gpio",
+        "adc0.ch6"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "RC1",
+      "pin": "9",
+      "functions": [
+        "gpio",
+        "adc0.ch5"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "RC0",
+      "pin": "10",
+      "functions": [
+        "gpio",
+        "adc0.ch4"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "RA2",
+      "pin": "11",
+      "functions": [
+        "gpio",
+        "adc0.ch2"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "RA1",
+      "pin": "12",
+      "functions": [
+        "gpio",
+        "adc0.ch1"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "RA0",
+      "pin": "13",
+      "functions": [
+        "gpio",
+        "adc0.ch0"
+      ],
+      "wake_deep_sleep": true
+    },
+    {
+      "name": "VSS",
+      "pin": "14",
+      "functions": [],
+      "reserved": "power"
+    }
+  ]
+}
