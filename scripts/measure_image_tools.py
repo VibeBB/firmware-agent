@@ -30,6 +30,7 @@ def measure(image_ref: str) -> dict[str, str]:
         "qemu-system-arm --version | head -1; "
         "qemu-system-xtensa --version | head -1; "
         "gdb-multiarch --version | head -1; "
+        "sdcc --version | head -1; "
         "python -c 'import firmware; print(\"firmware=\" + firmware.__version__)'"
     )
     result = subprocess.run(
@@ -73,6 +74,8 @@ def measure(image_ref: str) -> dict[str, str]:
                 values["qemu_xtensa"] = f"qemu-system-xtensa --version: {line}"
         elif line.startswith("GNU gdb"):
             values["gdb_multiarch"] = f"gdb-multiarch --version: {line}"
+        elif line.startswith("SDCC "):
+            values["sdcc"] = f"sdcc --version: {line}"
         elif line.startswith("firmware="):
             values["firmware"] = (
                 "python -c 'import firmware; print(firmware.__version__)': "
@@ -87,6 +90,7 @@ def measure(image_ref: str) -> dict[str, str]:
         "qemu_arm",
         "qemu_xtensa",
         "gdb_multiarch",
+        "sdcc",
         "firmware",
     }
     if required - values.keys():

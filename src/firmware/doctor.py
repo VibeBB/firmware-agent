@@ -23,6 +23,7 @@ OPTIONAL: tuple[tuple[str, list[str]], ...] = (
     ("xtensa-esp32s3-elf-gdb", ["xtensa-esp32s3-elf-gdb", "--version"]),
     ("mrbc", ["mrbc", "-v"]),
     ("avr-gcc", ["avr-gcc", "--version"]),
+    ("sdcc", ["sdcc", "--version"]),
     ("emcc", ["emcc", "--version"]),
     ("node", ["node", "--version"]),
     ("dtc", ["dtc", "--version"]),

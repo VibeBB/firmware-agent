@@ -26,7 +26,7 @@ from .contract import (
     load_contract,
     resolve,
 )
-from .elf import ElfError, account, read_elf
+from .elf import ElfError, account, read_image
 from .hcp import (
     dsl_to_flow,
     error_mixing_findings,
@@ -73,7 +73,7 @@ FAIL: Verdict = "fail"
 POWER_CLASSES = frozenset({"power", "ground"})
 FTM_TRANSPORT_KIND = {"uart": "uart", "usb_cdc": "usb", "i2c": "i2c", "spi": "spi"}
 DEBUG_TRANSPORTS = frozenset({"swd", "jtag"})
-CORE_MACHINE = {"cortex": "arm", "xtensa": "xtensa", "riscv": "riscv"}
+CORE_MACHINE = {"cortex": "arm", "xtensa": "xtensa", "riscv": "riscv", "pic14": "ihex"}
 
 
 class Check(BaseModel):
@@ -544,7 +544,7 @@ def _memory_check(
     contract: FirmwareContract, profile: McuProfile, elf_path: Path
 ) -> tuple[Check, dict[str, float]]:
     try:
-        image = read_elf(elf_path)
+        image = read_image(elf_path)
     except (ElfError, OSError) as exc:
         return _check("fw.memory_budget", contract.build.elf, [str(exc)]), {}
     problems: list[str] = []

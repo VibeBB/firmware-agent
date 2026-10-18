@@ -9,7 +9,7 @@ import pytest
 from firmware import analysis as analysis_module
 from firmware.analysis import Finding, parse_findings, run_cppcheck
 from firmware.contract import load_contract
-from firmware.elf import ElfError, account, read_elf
+from firmware.elf import ElfError, account, read_elf, read_image
 from firmware.profiles import load_profile
 
 
@@ -104,3 +104,87 @@ def test_cppcheck_version_timeout(kettle: Path, monkeypatch: pytest.MonkeyPatch)
     result = run_cppcheck(contract.analysis, kettle.parent)
     assert result.ok is False
     assert result.detail == "cppcheck --version timed out after 20s"
+
+
+# ------------------------------------------------------------- Intel HEX reader
+
+
+def _ihex_record(address: int, rectype: int, data: bytes) -> str:
+    row = bytes((len(data), address >> 8, address & 0xFF, rectype)) + data
+    return ":" + row.hex().upper() + f"{(-sum(row)) & 0xFF:02X}"
+
+
+def _ihex(path: Path, records: list[str]) -> Path:
+    path.write_text("\n".join([*records, _ihex_record(0, 1, b"")]) + "\n")
+    return path
+
+
+def test_ihex_accounts_flash_and_config(tmp_path: Path) -> None:
+    # PIC16HV753 gpasm output shape: code at 0x0000+, config word at 0x400E.
+    path = _ihex(
+        tmp_path / "a.hex",
+        [
+            _ihex_record(0x0000, 0, bytes(range(16))),
+            _ihex_record(0x0010, 0, bytes(range(16))),
+            _ihex_record(0x400E, 0, b"\xff\x3f"),
+        ],
+    )
+    image = read_image(path)
+    assert image.machine == "ihex"
+    usage = account(image, load_profile("pic16hv753").memory_regions)
+    assert usage.flash == 34
+    assert usage.per_region["config"] == 2
+    assert not usage.unplaced
+
+
+def test_ihex_gap_splits_runs_and_reports_unplaced(tmp_path: Path) -> None:
+    path = _ihex(
+        tmp_path / "a.hex",
+        [_ihex_record(0x0000, 0, b"\x00" * 4), _ihex_record(0x6000, 0, b"\x00" * 4)],
+    )
+    image = read_image(path)
+    assert len(image.segments) == 2
+    usage = account(image, load_profile("pic16hv753").memory_regions)
+    assert usage.flash == 4
+    assert usage.unplaced == ["0x00006000+4"]
+
+
+def test_ihex_extended_linear_base(tmp_path: Path) -> None:
+    path = _ihex(
+        tmp_path / "a.hex",
+        [_ihex_record(0, 4, b"\x00\x02"), _ihex_record(0x0000, 0, b"\x00" * 8)],
+    )
+    usage = account(read_image(path), load_profile("pic16hv753").memory_regions)
+    assert usage.unplaced == ["0x00020000+8"]
+
+
+def test_ihex_rejects_bad_checksum(tmp_path: Path) -> None:
+    path = tmp_path / "a.hex"
+    path.write_text(":10000000000102030405060708090A0B0C0D0E0F0F00\n:00000001FF\n")
+    with pytest.raises(ElfError, match="checksum"):
+        read_image(path)
+
+
+def test_ihex_rejects_length_mismatch(tmp_path: Path) -> None:
+    path = tmp_path / "a.hex"
+    path.write_text(":08000000AABBFF\n:00000001FF\n")
+    with pytest.raises(ElfError, match="checksum/length"):
+        read_image(path)
+
+
+def test_ihex_rejects_empty(tmp_path: Path) -> None:
+    path = _ihex(tmp_path / "a.hex", [])
+    with pytest.raises(ElfError, match="no data records"):
+        read_image(path)
+
+
+def test_ihex_rejects_malformed_base_record(tmp_path: Path) -> None:
+    path = _ihex(tmp_path / "a.hex", [_ihex_record(0, 4, b"")])
+    with pytest.raises(ElfError, match="base-address"):
+        read_image(path)
+
+
+def test_read_image_dispatches_on_magic(tmp_path: Path) -> None:
+    elf_path = tmp_path / "a.elf"
+    _elf32(elf_path, [(0x10000000, 0x10000000, 16, 16)])
+    assert read_image(elf_path).machine == "arm"

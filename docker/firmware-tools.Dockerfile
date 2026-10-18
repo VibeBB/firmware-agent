@@ -5,14 +5,70 @@ ARG UV_DIGEST=sha256:cdc6093146eb3ff6a40107b38f008b789e050e77ad87865e381d9917da5
 # declared before the first FROM.
 ARG EMSDK_VERSION=6.0.12
 ARG EMSDK_DIGEST=sha256:77638e6c215a65f25a704c0c831d5c2463a8c0468a58c6cb82489dbe621dfa05
+# SDCC is built from the pinned upstream source release: Debian/Ubuntu
+# packages drop the PIC device files under device/non-free, so the apt
+# build cannot target pic14/pic16 at all. Upstream labels the PIC ports
+# "unmaintained"; the pic14 port is verified here against PIC16HV753.
+ARG SDCC_VERSION=4.6.0
+ARG SDCC_SHA256=5fd6a93e5997ce01756868fe35e441095cfb637894a80c262514a634094973b6
 FROM ghcr.io/astral-sh/uv:${UV_VERSION}@${UV_DIGEST} AS uv
 FROM emscripten/emsdk:${EMSDK_VERSION}@${EMSDK_DIGEST} AS emscripten
+
+# SDCC toolchain stage: gputils (gpasm/gplink) backs the pic14 assembler
+# and linker both when the device libraries build and when sdcc later
+# compiles PIC firmware. All upstream ports are built so renamed/disabled
+# configure flags across sdcc releases cannot break the image.
+FROM ubuntu:26.04@sha256:da6fc2be547864451aa253836dd926da33623312df4a9a243e35dc877c378a78 AS sdcc
+ARG SDCC_VERSION
+ARG SDCC_SHA256
+ARG DEBIAN_FRONTEND=noninteractive
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+COPY --chmod=0755 docker/apt-sources-fallback /usr/local/bin/
+RUN apt-sources-fallback \
+        ca-certificates \
+        curl \
+        bzip2 \
+        gcc \
+        g++ \
+        make \
+        bison \
+        flex \
+        gputils \
+        zlib1g-dev \
+        python3 \
+        libboost-graph-dev \
+    && rm -rf /var/lib/apt/lists/*
+RUN curl --fail --location --silent --show-error \
+        --retry 8 --retry-delay 20 --retry-max-time 600 --retry-all-errors \
+        --output /tmp/sdcc-src.tar.bz2 \
+        "https://downloads.sourceforge.net/project/sdcc/sdcc/${SDCC_VERSION}/sdcc-src-${SDCC_VERSION}.tar.bz2" \
+    && echo "${SDCC_SHA256}  /tmp/sdcc-src.tar.bz2" | sha256sum --check \
+    && mkdir -p /usr/src \
+    && tar -xjf /tmp/sdcc-src.tar.bz2 -C /usr/src \
+    && rm -f /tmp/sdcc-src.tar.bz2
+WORKDIR /usr/src/sdcc-${SDCC_VERSION}
+RUN ./configure --prefix=/opt/sdcc \
+    && make -j"$(nproc)" \
+    && make install \
+    && /opt/sdcc/bin/sdcc --version | head -1
+# PIC16HV753 smoke check inside the toolchain stage: compile a config word
+# plus a reset loop to a .hex through gpasm/gplink.
+RUN printf '%s\n' \
+        '__code unsigned int __at(0x2007) config1 = 0x3fff;' \
+        'int main(void) { for (;;) { } return 0; }' \
+        > /tmp/pic16hv753-smoke.c \
+    && /opt/sdcc/bin/sdcc -mpic14 -p16hv753 --use-non-free \
+        -o /tmp/pic16hv753-smoke /tmp/pic16hv753-smoke.c \
+    && test -s /tmp/pic16hv753-smoke.hex \
+    && grep -q '^:02400E00FF3F' /tmp/pic16hv753-smoke.hex \
+    && rm -f /tmp/pic16hv753-smoke*
 
 # ubuntu:26.04 (resolute)
 FROM ubuntu:26.04@sha256:da6fc2be547864451aa253836dd926da33623312df4a9a243e35dc877c378a78
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG IMAGE_REVISION=unknown
+ARG SDCC_VERSION
 ARG PLATFORMIO_VERSION=6.2.0
 ARG ESPRESSIF32_PLATFORM=espressif32@7.1.3
 ARG ESP_QEMU_RELEASE=esp-develop-9.2.2-20260417
@@ -50,7 +106,7 @@ ENV PLATFORMIO_CORE_DIR=/opt/platformio
 ENV PLATFORMIO_SETTING_ENABLE_TELEMETRY=no
 ENV PLATFORMIO_SETTING_CHECK_PLATFORMIO_INTERVAL=0
 ENV PLATFORMIO_SETTING_CHECK_PRUNE_SYSTEM_THRESHOLD=0
-ENV PATH="/opt/firmware/.venv/bin:/opt/esp-qemu/bin:/opt/platformio/packages/tool-xtensa-esp-elf-gdb/bin:/opt/pio/bin:/opt/mruby/bin:/opt/emsdk:/opt/emsdk/upstream/emscripten:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ENV PATH="/opt/firmware/.venv/bin:/opt/esp-qemu/bin:/opt/platformio/packages/tool-xtensa-esp-elf-gdb/bin:/opt/pio/bin:/opt/mruby/bin:/opt/sdcc/bin:/opt/emsdk:/opt/emsdk/upstream/emscripten:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 ENV PYTHONPYCACHEPREFIX=/tmp/firmware-pycache
 ENV FW_MRUBYC_DIR=/opt/mrubyc \
     PICO_SDK_PATH=/opt/pico-sdk \
@@ -63,7 +119,8 @@ LABEL org.opencontainers.image.source="https://github.com/VibeBB/firmware-agent"
       firmware.platformio.version="${PLATFORMIO_VERSION}" \
       firmware.espressif32.platform="${ESPRESSIF32_PLATFORM}" \
       firmware.esp-qemu.release="${ESP_QEMU_RELEASE}" \
-      firmware.cppcheck.version="${CPPCHECK_VERSION}"
+      firmware.cppcheck.version="${CPPCHECK_VERSION}" \
+      firmware.sdcc.version="${SDCC_VERSION}"
 
 COPY --from=uv /uv /uvx /usr/local/bin/
 COPY --chmod=0755 docker/apt-sources-fallback /usr/local/bin/
@@ -97,6 +154,7 @@ RUN apt-sources-fallback \
         gcc-avr \
         avr-libc \
         gcc-riscv64-unknown-elf \
+        gputils \
         device-tree-compiler \
         nodejs \
         ruby \
@@ -107,6 +165,11 @@ RUN apt-sources-fallback \
         python3-packaging \
         python3-jsonschema \
     && rm -rf /var/lib/apt/lists/*
+
+# SDCC + gputils: the pic14 backend invokes gpasm/gplink at compile time,
+# so the assembler package must ship in the runtime image, not just the
+# build stage.
+COPY --from=sdcc /opt/sdcc /opt/sdcc
 
 # Espressif QEMU (esp32 / esp32s3 machines), GPL-2.0, checksum-pinned.
 RUN curl --fail --location --silent --show-error \
@@ -204,6 +267,8 @@ RUN arm-none-eabi-gcc --version | head -1 \
     && gcc --version | head -1 \
     && gcov --version | head -1 \
     && cppcheck --version \
+    && sdcc --version | head -1 \
+    && gpasm --version | head -1 \
     && qemu-system-arm --version | head -1 \
     && qemu-system-xtensa --version | head -1 \
     && avr-gcc --version | head -1 \
@@ -212,6 +277,15 @@ RUN arm-none-eabi-gcc --version | head -1 \
     && gdb-multiarch --version | head -1 \
     && xtensa-esp32s3-elf-gdb --version | head -1 \
     && pio --version \
+    && printf '%s\n' \
+        '__code unsigned int __at(0x2007) config1 = 0x3fff;' \
+        'int main(void) { for (;;) { } return 0; }' \
+        > /tmp/pic16hv753-smoke.c \
+    && sdcc -mpic14 -p16hv753 --use-non-free \
+        -o /tmp/pic16hv753-smoke /tmp/pic16hv753-smoke.c \
+    && test -s /tmp/pic16hv753-smoke.hex \
+    && grep -q '^:02400E00FF3F' /tmp/pic16hv753-smoke.hex \
+    && rm -f /tmp/pic16hv753-smoke* \
     && python -m firmware doctor
 
 # The uv-managed CPython and the ESP-IDF helper venvs bundle pip with

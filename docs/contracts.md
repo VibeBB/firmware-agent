@@ -94,7 +94,8 @@ contract there are no `refs` to resolve.
 `profiles::McuProfile`: `part`, `package`, `io_voltage_max_v`,
 `flash_bytes`, `ram_bytes`, `pads[]` (`name`, `aliases`, `package_pin`,
 `functions[]`, `reserved` power/flash/debug/clock/reset/test,
-`caution` strapping/jtag). Bundled: `esp32s3`, `rp2040`.
+`caution` strapping/jtag). Bundled: `esp32s3`, `rp2040`,
+`pic16hv753`, ... (all JSON files under `src/firmware/profiles/`).
 
 ## `circuit_firmware_connectivity` — `<design>.firmware.json` (schema 1)
 

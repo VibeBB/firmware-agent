@@ -359,3 +359,24 @@ def test_build_timeout_bounds(timeout: int, ok: bool) -> None:
     else:
         with pytest.raises(ValidationError):
             BuildStep.model_validate(payload)
+
+
+# ------------------------------------------------------------- Intel HEX reader
+
+
+@pytest.mark.parametrize(
+    ("record", "ok"),
+    [(":00000000", False), (":0000000000", True), (":0100000000FF", True)],
+)
+def test_ihex_minimum_record_length(tmp_path: Path, record: str, ok: bool) -> None:
+    # 11 chars is the shortest well-formed record (a zero-byte data record);
+    # below that is malformed, above parses normally.
+    from firmware.elf import read_image
+
+    path = tmp_path / "a.hex"
+    path.write_text(record + "\n:10000000000102030405060708090A0B0C0D0E0F78\n:00000001FF\n")
+    if ok:
+        read_image(path)
+    else:
+        with pytest.raises(ElfError, match="malformed"):
+            read_image(path)

@@ -118,6 +118,7 @@ BUILTIN: tuple[str, ...] = (
     "nrf54l15",
     "nrf54lm20",
     "nrf9151",
+    "pic16hv753",
     "pic24fj256gb110",
     "rp2040",
     "rp2350",

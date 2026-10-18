@@ -1,0 +1,10 @@
+{
+  "artifact": {
+    "name": "pic-blink.firmware.json",
+    "sha256": "12919666540433fa3b1e00a6421d92872a66e753cf0f29e05508fd02ffeff5f6"
+  },
+  "decision_refs": [],
+  "envelope_version": 3,
+  "producer": "circuit",
+  "sources": []
+}
