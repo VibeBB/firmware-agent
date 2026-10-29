@@ -283,3 +283,12 @@ When sweeping dependencies to latest releases:
    "latest" is not always adoptable.
 5. Newly fixable Debian CVEs can land between PR CI and the publish
    gate; done means post-merge publish and CI runs are green.
+
+- 2026-10-29: Added a `pull_request` dry-run rehearsal
+  to `publish-firmware-images.yml` and `scripts/trivy_gate_triage.py`.
+  Extended the dependency checker with a "bundled" surface tracking the
+  undici version vendored inside the latest npm tarball (flags when the
+  UNDICI_VERSION swap becomes removable) and newer undici releases.
+- 2026-10-29: Added `scripts/lint_workflows_local.sh`, which runs
+  the same pinned actionlint + zizmor checks as workflow-lint.yml locally
+  before pushing workflow edits.

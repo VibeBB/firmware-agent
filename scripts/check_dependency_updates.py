@@ -24,10 +24,12 @@ for the update procedure.
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import re
 import subprocess
 import sys
+import tarfile
 import tomllib
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, replace
@@ -52,6 +54,7 @@ DEPENDENCY_SURFACES = (
     "docker-base",
     "git-clone",
     "direct-download",
+    "bundled",
 )
 
 FetchJson = Callable[[str], Any]
@@ -988,6 +991,133 @@ def apply_deferrals(
     return applied
 
 
+
+def _default_fetch_bytes(url: str) -> bytes:
+    request = Request(url, headers={"User-Agent": "vibebb-dependency-check"})
+    with urlopen(request, timeout=HTTP_TIMEOUT_SECONDS) as response:
+        return response.read()
+
+
+_NPM_LATEST_URL = "https://registry.npmjs.org/npm/latest"
+_UNDICI_PACKUMENT_URL = "https://registry.npmjs.org/undici"
+_UNDICI_ARG = re.compile(r"^ARG\s+UNDICI_VERSION=(\S+)", re.M)
+
+
+
+def _dict_get(payload: object, key: str) -> Any:
+    if not isinstance(payload, dict):
+        return None
+    return cast("dict[str, Any]", payload).get(key)
+
+def _bundled_undici_version(tarball: bytes) -> str:
+    """undici version vendored inside an npm release tarball."""
+    with tarfile.open(fileobj=io.BytesIO(tarball), mode="r:gz") as archive:
+        member = archive.extractfile("package/node_modules/undici/package.json")
+        if member is None:
+            raise ValueError("npm tarball has no bundled undici/package.json")
+        data = json.loads(member.read().decode("utf-8"))
+    version = data.get("version")
+    if not isinstance(version, str) or not version:
+        raise ValueError("bundled undici package.json has no version")
+    return version
+
+
+def _latest_in_major(packument: dict[str, Any], major: str) -> str:
+    versions: list[str] = [
+        v
+        for v in packument.get("versions", {})
+        if isinstance(v, str) and v.startswith(f"{major}.")
+    ]
+    versions.sort(key=lambda v: [int(p) for p in v.split(".")])
+    return versions[-1] if versions else ""
+
+
+def check_bundled_undici(
+    repo_root: Path,
+    *,
+    fetch_json: FetchJson = _default_fetch_json,
+    fetch_bytes: Callable[[str], bytes] = _default_fetch_bytes,
+) -> list[DependencyStatus]:
+    """npm's vendored undici vs. the Dockerfile's UNDICI_VERSION swap pin.
+
+    The tools image swaps npm's bundled undici tarball for a fixed release
+    (UNDICI_VERSION + UNDICI_SHA256). When upstream npm vendors a version
+    >= the pin, the swap is removable.
+    """
+    statuses: list[DependencyStatus] = []
+    source = "docker/"
+    pin = ""
+    for dockerfile in sorted((repo_root / "docker").glob("*.Dockerfile")):
+        match = _UNDICI_ARG.search(dockerfile.read_text(encoding="utf-8"))
+        if match is not None:
+            pin = match.group(1)
+            source = str(dockerfile.relative_to(repo_root))
+            break
+    if not pin:
+        return statuses
+
+    bundled = ""
+    npm_version = ""
+    try:
+        latest_npm = fetch_json(_NPM_LATEST_URL)
+        npm_version = str(_dict_get(latest_npm, "version"))
+        tarball = fetch_bytes(
+            f"https://registry.npmjs.org/npm/-/npm-{npm_version}.tgz"
+        )
+        bundled = _bundled_undici_version(tarball)
+    except (OSError, ValueError, KeyError, tarfile.TarError):
+        bundled = ""
+    removable = (
+        bool(bundled) and _pkg_version_tuple(bundled) >= _pkg_version_tuple(pin)
+    )
+    statuses.append(
+        DependencyStatus(
+            "bundled",
+            "npm-bundled-undici",
+            pin,
+            f"{bundled} (npm {npm_version})" if bundled else "?",
+            source,
+            removable,
+            (
+                "npm now vendors a fixed undici - the UNDICI_VERSION tarball "
+                "swap is removable (drop the swap and UNDICI_SHA256)"
+                if removable
+                else "swap still required while npm vendors an older undici"
+                if bundled
+                else "fetch failed"
+            ),
+            fetch_failed=not bundled,
+        )
+    )
+
+    latest = ""
+    try:
+        packument = fetch_json(_UNDICI_PACKUMENT_URL)
+        latest = _latest_in_major(packument, pin.split(".")[0])
+    except (OSError, ValueError, AttributeError):
+        latest = ""
+    statuses.append(
+        DependencyStatus(
+            "bundled",
+            "undici",
+            pin,
+            latest or "?",
+            "npmjs.com",
+            bool(latest) and latest != pin,
+            (
+                ""
+                if latest
+                else "fetch failed"
+            ),
+            fetch_failed=not latest,
+        )
+    )
+    return statuses
+
+
+def _pkg_version_tuple(version: str) -> tuple[int, ...]:
+    return tuple(int(part) for part in version.split("."))
+
 def check_dependency_updates(
     repo_root: Path,
     *,
@@ -1015,6 +1145,7 @@ def check_dependency_updates(
         *check_git_clones(repo_root, list_remote_tags=cached_tags),
         *check_docker_base(repo_root, fetch_json=fetch_json),
         *check_python_versions(repo_root, list_remote_tags=cached_tags),
+        *check_bundled_undici(repo_root, fetch_json=fetch_json),
     ]
 
 
@@ -1031,6 +1162,7 @@ def render_markdown(statuses: list[DependencyStatus]) -> str:
         "docker-base": "Docker base image",
         "git-clone": "Workflow git clones",
         "direct-download": "Direct downloads (workflow-pinned artifacts)",
+        "bundled": "Bundled payloads (vendored in upstream artifacts)",
     }
     lines = ["# Dependency update check report", ""]
     for surface, label in labels.items():

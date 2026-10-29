@@ -23,6 +23,29 @@ on:
       # merged pin PR does not trigger another publish.
       - "!plugins/firmware/tools-image.json"
       - "!docker/README.md"
+  pull_request:
+    # Dry-run rehearsal: build --load + Trivy gates only; every irreversible
+    # step below is normalized to skip on pull_request events.
+    paths:
+      - "docker/**"
+      - ".dockerignore"
+      - "src/**"
+      - "plugins/firmware/**"
+      - "examples/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "scripts/measure_image_tools.py"
+      - "scripts/print_locked_image.py"
+      - "scripts/pull_locked_image.py"
+      - "scripts/update_image_digest_lock.py"
+      - ".github/workflows/publish-firmware-images.yml"
+      - "scripts/publish_image_pin_pr.sh"
+      - "scripts/package_level_sbom.py"
+      - "!docker/image-digests.json"
+      # The plugin pin is written by this workflow itself; exclude it so a
+      # merged pin PR does not trigger another publish.
+      - "!plugins/firmware/tools-image.json"
+      - "!docker/README.md"
   # dry_run=true rehearses the gate chain (Trivy scans, SBOM chain, tool
   # measurement, launcher smoke) against the locally loaded image while
   # push, :latest promotion, attestations, code-scanning SARIF, and the
@@ -89,8 +112,8 @@ jobs:
             IMAGE_REVISION=${{ github.sha }}
           # dry_run loads the image into the local daemon (single-platform
           # build) instead of pushing so the gate chain can rehearse it.
-          push: ${{ inputs.dry_run != true }}
-          load: ${{ inputs.dry_run == true }}
+          push: ${{ (inputs.dry_run != true && github.event_name != 'pull_request') }}
+          load: ${{ (inputs.dry_run == true || github.event_name == 'pull_request') }}
           # Immutable tag only: a failing image must never serve :latest;
           # the tag is promoted after every gate passes.
           tags: |
@@ -127,7 +150,7 @@ jobs:
         id: scan-ref
         env:
           BUILT_DIGEST: ${{ steps.tools.outputs.digest }}
-          DRY_RUN: ${{ inputs.dry_run }}
+          DRY_RUN: ${{ (inputs.dry_run == true || github.event_name == 'pull_request') }}
         run: |
           set -euo pipefail
           # Push runs scan the exact pushed digest — the content the SBOM
@@ -210,7 +233,7 @@ jobs:
       # step overlapping every post-gate leg and join it before the
       # :latest promotion that consumes the attested image.
       - name: Attest tools image provenance
-        if: inputs.dry_run != true
+        if: (inputs.dry_run != true && github.event_name != 'pull_request')
         id: attest
         background: true
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
@@ -254,7 +277,7 @@ jobs:
             env:
               # Registry pulls on publish; a dry_run image exists only in the
               # local docker daemon.
-              SYFT_SOURCE_IMAGE_DEFAULT_PULL_SOURCE: ${{ inputs.dry_run == true && 'docker' || 'registry' }}
+              SYFT_SOURCE_IMAGE_DEFAULT_PULL_SOURCE: ${{ (inputs.dry_run == true || github.event_name == 'pull_request') && 'docker' || 'registry' }}
               TMPDIR: ${{ runner.temp }}
               SYFT_FILE_METADATA_SELECTION: none
             with:
@@ -327,7 +350,7 @@ jobs:
       # background step overlapping the upload + smoke legs and join it
       # before the :latest promotion.
       - name: Attest tools SBOM
-        if: inputs.dry_run != true
+        if: (inputs.dry_run != true && github.event_name != 'pull_request')
         id: attest_sbom
         background: true
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
@@ -346,7 +369,7 @@ jobs:
       - name: Verify published tools smoke
         env:
           TOOLS_REF: ${{ env.TOOLS_REF }}
-          DRY_RUN: ${{ inputs.dry_run }}
+          DRY_RUN: ${{ (inputs.dry_run == true || github.event_name == 'pull_request') }}
         run: |
           set -euo pipefail
           # A dry_run image already exists in the local daemon; there is no
@@ -425,7 +448,7 @@ jobs:
         # Every gate above passed: copy the verified manifest to :latest
         # server-side (attestations and the SBOM keep binding the digest).
         # A gate failure leaves the previous good :latest untouched.
-        if: inputs.dry_run != true
+        if: (inputs.dry_run != true && github.event_name != 'pull_request')
         run: |
           docker buildx imagetools create \
             --tag "ghcr.io/${IMAGE_OWNER}/firmware-tools:latest" \
@@ -441,7 +464,7 @@ jobs:
             echo "- **workflow run**: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Update digest lock and merge PR
-        if: inputs.dry_run != true
+        if: (inputs.dry_run != true && github.event_name != 'pull_request')
         env:
           GH_TOKEN: ${{ github.token }}
           ATTESTATION_URL: ${{ steps.attest.outputs.attestation-url }}
@@ -518,13 +541,13 @@ jobs:
           bash scripts/publish_image_pin_pr.sh "$pr_url" "$branch" "" "ci.yml locked-image-check.yml"
       - name: Upload Trivy SARIF
         # A rehearsal must not file code-scanning alerts.
-        if: always() && inputs.dry_run != true && hashFiles('trivy-image.sarif') != ''
+        if: always() && (inputs.dry_run != true && github.event_name != 'pull_request') && hashFiles('trivy-image.sarif') != ''
         uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
           sarif_file: trivy-image.sarif
           category: trivy-firmware-tools
       - name: Dry-run rehearsal summary
-        if: always() && inputs.dry_run == true
+        if: always() && (inputs.dry_run == true || github.event_name == 'pull_request')
         run: |
           {
             echo "## Publish dry-run rehearsal"
