@@ -991,7 +991,6 @@ def apply_deferrals(
     return applied
 
 
-
 def _default_fetch_bytes(url: str) -> bytes:
     request = Request(url, headers={"User-Agent": "vibebb-dependency-check"})
     with urlopen(request, timeout=HTTP_TIMEOUT_SECONDS) as response:
@@ -1003,11 +1002,11 @@ _UNDICI_PACKUMENT_URL = "https://registry.npmjs.org/undici"
 _UNDICI_ARG = re.compile(r"^ARG\s+UNDICI_VERSION=(\S+)", re.M)
 
 
-
 def _dict_get(payload: object, key: str) -> Any:
     if not isinstance(payload, dict):
         return None
     return cast("dict[str, Any]", payload).get(key)
+
 
 def _bundled_undici_version(tarball: bytes) -> str:
     """undici version vendored inside an npm release tarball."""
@@ -1024,9 +1023,7 @@ def _bundled_undici_version(tarball: bytes) -> str:
 
 def _latest_in_major(packument: dict[str, Any], major: str) -> str:
     versions: list[str] = [
-        v
-        for v in packument.get("versions", {})
-        if isinstance(v, str) and v.startswith(f"{major}.")
+        v for v in packument.get("versions", {}) if isinstance(v, str) and v.startswith(f"{major}.")
     ]
     versions.sort(key=lambda v: [int(p) for p in v.split(".")])
     return versions[-1] if versions else ""
@@ -1061,15 +1058,11 @@ def check_bundled_undici(
     try:
         latest_npm = fetch_json(_NPM_LATEST_URL)
         npm_version = str(_dict_get(latest_npm, "version"))
-        tarball = fetch_bytes(
-            f"https://registry.npmjs.org/npm/-/npm-{npm_version}.tgz"
-        )
+        tarball = fetch_bytes(f"https://registry.npmjs.org/npm/-/npm-{npm_version}.tgz")
         bundled = _bundled_undici_version(tarball)
     except (OSError, ValueError, KeyError, tarfile.TarError):
         bundled = ""
-    removable = (
-        bool(bundled) and _pkg_version_tuple(bundled) >= _pkg_version_tuple(pin)
-    )
+    removable = bool(bundled) and _pkg_version_tuple(bundled) >= _pkg_version_tuple(pin)
     statuses.append(
         DependencyStatus(
             "bundled",
@@ -1104,11 +1097,7 @@ def check_bundled_undici(
             latest or "?",
             "npmjs.com",
             bool(latest) and latest != pin,
-            (
-                ""
-                if latest
-                else "fetch failed"
-            ),
+            ("" if latest else "fetch failed"),
             fetch_failed=not latest,
         )
     )
@@ -1117,6 +1106,7 @@ def check_bundled_undici(
 
 def _pkg_version_tuple(version: str) -> tuple[int, ...]:
     return tuple(int(part) for part in version.split("."))
+
 
 def check_dependency_updates(
     repo_root: Path,

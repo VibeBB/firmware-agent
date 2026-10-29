@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import subprocess
 from pathlib import Path
+from typing import Any
 
 import pytest
 import scripts.check_dependency_updates as check_dependency_updates_module
@@ -388,23 +389,21 @@ def test_check_bundled_undici_flags_removable_swap(tmp_path: Path):
     (tmp_path / "docker" / "tools.Dockerfile").write_text(
         "FROM scratch\nARG UNDICI_VERSION=6.29.1\n", encoding="utf-8"
     )
-    payloads = {
+    payloads: dict[str, dict[str, Any]] = {
         "https://registry.npmjs.org/npm/latest": {"version": "12.3.0"},
         "https://registry.npmjs.org/undici": {
             "versions": {"6.29.0": {}, "6.29.1": {}, "6.30.0": {}, "7.0.0": {}}
         },
     }
 
-    def fetch_json(url: str):
+    def fetch_json(url: str) -> dict[str, Any]:
         return payloads[url]
 
     def fetch_bytes(url: str) -> bytes:
         assert url == "https://registry.npmjs.org/npm/-/npm-12.3.0.tgz"
         return _npm_tarball("6.30.0")
 
-    statuses = check_bundled_undici(
-        tmp_path, fetch_json=fetch_json, fetch_bytes=fetch_bytes
-    )
+    statuses = check_bundled_undici(tmp_path, fetch_json=fetch_json, fetch_bytes=fetch_bytes)
     by_name = {status.name: status for status in statuses}
     bundled = by_name["npm-bundled-undici"]
     assert bundled.outdated
@@ -419,7 +418,7 @@ def test_check_bundled_undici_reports_required_swap(tmp_path: Path):
     (tmp_path / "docker" / "tools.Dockerfile").write_text(
         "FROM scratch\nARG UNDICI_VERSION=6.29.1\n", encoding="utf-8"
     )
-    payloads = {
+    payloads: dict[str, dict[str, Any]] = {
         "https://registry.npmjs.org/npm/latest": {"version": "12.2.1"},
         "https://registry.npmjs.org/undici": {"versions": {"6.29.1": {}}},
     }
