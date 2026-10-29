@@ -250,6 +250,34 @@ RUN test -x /opt/emsdk/upstream/emscripten/emcc \
     && node --version \
     && emcc --version | head -1
 
+# The pinned emsdk stage vendors vite 8.3.1 inside the emscripten
+# toolchain (CVE-2026-112942, fixed in 8.3.5) and undici < 6.29.1 inside
+# its bundled npm (CVE-2026-109383, CVE-2026-109869, CVE-2026-87018);
+# patch both — vite via npm --prefix (same pattern as dashboard-agent's
+# emsdk patches), undici via a sha256-verified tarball swap — and fail
+# the build if a landed version is still vulnerable.
+ARG UNDICI_VERSION=6.29.1
+# sha256 of https://registry.npmjs.org/undici/-/undici-6.29.1.tgz
+ARG UNDICI_SHA256=29c4b8e0b2d86cb8795571c1959012ce057a14ecfd34858335f47c31e770a04f
+RUN for node_dir in /opt/emsdk/node/*/bin; do \
+        PATH="$node_dir:$PATH"; break; \
+    done; \
+    npm --prefix /opt/emsdk/upstream/emscripten install --no-save --no-audit --no-fund vite@8.3.5 \
+    && node -p "require('/opt/emsdk/upstream/emscripten/node_modules/vite/package.json').version" | grep -qx '8.3.5' \
+    && for npm_root in /opt/emsdk/node/*/lib/node_modules/npm/node_modules; do \
+        test -d "$npm_root/undici" \
+        && curl --fail --location --silent --show-error \
+            --retry 8 --retry-delay 20 --retry-max-time 600 --retry-all-errors \
+            --output /tmp/undici.tgz \
+            "https://registry.npmjs.org/undici/-/undici-${UNDICI_VERSION}.tgz" \
+        && echo "${UNDICI_SHA256}  /tmp/undici.tgz" | sha256sum --check \
+        && rm -rf "${npm_root}/undici" \
+        && mkdir -p "${npm_root}/undici" \
+        && tar -xzf /tmp/undici.tgz -C "${npm_root}/undici" --strip-components=1 \
+        && rm -f /tmp/undici.tgz \
+        && grep -F "\"version\": \"${UNDICI_VERSION}\"" "${npm_root}/undici/package.json"; \
+    done
+
 # cppcheck (static analysis gate tool) from the checksum-pinned Debian sid
 # .deb: the sid pin reaches upstream 2.22 while the resolute apt channel is
 # stuck at 2.19. GPL-3.0; runs as a subprocess only.
