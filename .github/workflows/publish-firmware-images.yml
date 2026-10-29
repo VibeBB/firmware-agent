@@ -60,19 +60,19 @@ jobs:
       pull-requests: write
       security-events: write # uploads the Trivy SARIF scan to code scanning
     steps:
-      - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: audit
           disable-telemetry: true
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: true
-      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           python-version: "3.14"
           cache-suffix: publish
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -165,9 +165,9 @@ jobs:
             for attempt in 1 2 3; do
               # The two download-only flags are mutually exclusive, so the
               # DBs are fetched in two runs inside the same attempt.
-              if docker run --rm -v "$RUNNER_TEMP/$dir:/cache" aquasec/trivy:0.76.0 \
+              if docker run --rm -v "$RUNNER_TEMP/$dir:/cache" aquasec/trivy:0.76.1 \
                   --cache-dir /cache image --download-db-only \
-              && docker run --rm -v "$RUNNER_TEMP/$dir:/cache" aquasec/trivy:0.76.0 \
+              && docker run --rm -v "$RUNNER_TEMP/$dir:/cache" aquasec/trivy:0.76.1 \
                   --cache-dir /cache image --download-java-db-only; then
                 break
               fi
@@ -191,7 +191,7 @@ jobs:
           # cwd, which races the same way. TRIVY_CACHE_DIR env does NOT
           # override the action's cache-dir input.
           cache-dir: ${{ runner.temp }}/trivy-cache
-          version: v0.76.0
+          version: v0.76.1
           # NXP MCUX periph headers (14-16 MB each) slow the secret
           # scanner to a crawl and only ever produce noise findings.
           skip-files: 'opt/zephyr/modules/hal/nxp/mcux/mcux-sdk-ng/devices/**/periph/*.h'
@@ -239,7 +239,7 @@ jobs:
               # share the DB with other legs and corrupt db/metadata.json
               # on concurrent writes.
               cache-dir: ${{ runner.temp }}/trivy-tools-json
-              version: v0.76.0
+              version: v0.76.1
               # Same NXP header exclusion as the SARIF leg.
               skip-files: 'opt/zephyr/modules/hal/nxp/mcux/mcux-sdk-ng/devices/**/periph/*.h'
               timeout: '20m'
@@ -519,7 +519,7 @@ jobs:
       - name: Upload Trivy SARIF
         # A rehearsal must not file code-scanning alerts.
         if: always() && inputs.dry_run != true && hashFiles('trivy-image.sarif') != ''
-        uses: github/codeql-action/upload-sarif@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
+        uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
           sarif_file: trivy-image.sarif
           category: trivy-firmware-tools

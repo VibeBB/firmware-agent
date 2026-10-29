@@ -1,10 +1,10 @@
-ARG UV_VERSION=0.13.1
-ARG UV_DIGEST=sha256:4a1f3666816dafadd20ceb71eac9a7d56d7ef30279f7d64048519ab901ada336
+ARG UV_VERSION=0.13.6
+ARG UV_DIGEST=sha256:af22a52f5eafef3d78e551599d405c02df61919d18028f0cea8eda93bc9986d0
 # Emscripten SDK stage: digest-pinned, shared with the dashboard tools image
 # so the .mrb/WASM legs use one proven toolchain. ARGs used in FROM must be
 # declared before the first FROM.
-ARG EMSDK_VERSION=6.0.12
-ARG EMSDK_DIGEST=sha256:77638e6c215a65f25a704c0c831d5c2463a8c0468a58c6cb82489dbe621dfa05
+ARG EMSDK_VERSION=6.0.13
+ARG EMSDK_DIGEST=sha256:fb7864e398acfda863dfcea78b8bc8adad359fa60c6a0bbeb845931de64aa68a
 # SDCC is built from the pinned upstream source release: Debian/Ubuntu
 # packages drop the PIC device files under device/non-free, so the apt
 # build cannot target pic14/pic16 at all. Upstream labels the PIC ports
@@ -18,7 +18,7 @@ FROM emscripten/emsdk:${EMSDK_VERSION}@${EMSDK_DIGEST} AS emscripten
 # and linker both when the device libraries build and when sdcc later
 # compiles PIC firmware. All upstream ports are built so renamed/disabled
 # configure flags across sdcc releases cannot break the image.
-FROM ubuntu:26.04@sha256:da6fc2be547864451aa253836dd926da33623312df4a9a243e35dc877c378a78 AS sdcc
+FROM ubuntu:26.04@sha256:6a06111c3b0a8600feadb270aec771dc239bf407b25625f93f44ab00e11f4d3c AS sdcc
 ARG SDCC_VERSION
 ARG SDCC_SHA256
 ARG DEBIAN_FRONTEND=noninteractive
@@ -64,7 +64,7 @@ RUN printf '%s\n' \
     && rm -f /tmp/pic16hv753-smoke*
 
 # ubuntu:26.04 (resolute)
-FROM ubuntu:26.04@sha256:da6fc2be547864451aa253836dd926da33623312df4a9a243e35dc877c378a78
+FROM ubuntu:26.04@sha256:6a06111c3b0a8600feadb270aec771dc239bf407b25625f93f44ab00e11f4d3c
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG IMAGE_REVISION=unknown
