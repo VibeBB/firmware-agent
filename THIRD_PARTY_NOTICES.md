@@ -9,7 +9,7 @@ into `firmware` (ADR-0004).
 | Component | Version pin | License | Use |
 |---|---|---|---|
 | Ubuntu 26.04 | `ubuntu:26.04@sha256:da6fc2be…` | various | Base image |
-| uv | `ghcr.io/astral-sh/uv:0.12.23` | Apache-2.0 / MIT | Python and package manager |
+| uv | `ghcr.io/astral-sh/uv:0.13.6` | Apache-2.0 / MIT | Python and package manager |
 | CPython | 3.14.x via uv | PSF-2.0 | Runtime |
 | GNU Arm Embedded GCC, binutils, newlib | Ubuntu GCC 14.2.1 (`15:14.2.rel1-1`), binutils `2.45.50.20251209-1ubuntu1+23build1`, newlib `4.6.0.20260123-1` | GPL-3.0 with GCC Runtime Library Exception; newlib: BSD-style | ARM builds |
 | GNU Make, CMake, Ninja | Ubuntu Make 4.4.1, CMake 4.2.3, Ninja 1.13.2 | GPL-3.0 / BSD-3-Clause / Apache-2.0 | Build backends |
@@ -22,14 +22,14 @@ into `firmware` (ADR-0004).
 | Espressif QEMU (`qemu-system-xtensa`) | release `esp-develop-9.2.2-20260417`, asset `qemu-xtensa-softmmu-esp_develop_9.2.2_20260417-x86_64-linux-gnu.tar.xz`, sha256 `0eecb2a34a5586c0e59110f77b9343b7b336e82fdb0e1a30e1dc1bab8a547e35` | GPL-2.0-or-later | ESP32/ESP32-S3 simulation |
 | pydantic | `>=2` via `uv.lock` | MIT | Contract models |
 | mcp | `>=1.29,<2` via `uv.lock` | MIT | MCP server |
-| openhands-sdk / openhands-tools | `1.53.0` (sdk-check group) | MIT | Plugin-load verification |
+| openhands-sdk / openhands-tools | `1.59.0` (sdk-check group) | MIT | Plugin-load verification |
 | mruby | `4.0.0`, sha256 `e2ea271dbed14e9f2b33df773ae447b747dbc242ce2675022c0a57efea85a7b4` | MIT | `mrbc` bytecode compiler (build-time tool) |
 | mruby/c | master `2dec4802b09be1fc12f388d3c9267ffd9dc6c404`, sha256 `0860de6a2b4e8adf682e14f3e0f1df7114abdb8749be23ea39cf0133f5b16b84` | BSD-3-Clause | VM + HAL sources compiled into products (`/opt/mrubyc/REF`) |
 | Zephyr RTOS (Canonical 26.04 LTS) | `zephyr-manifest@26.04.0`, zephyr fork commit `2e4ba3e7c1823597ae82edf9f9406a6cdf262873` (Launchpad, git-clone verified) | Apache-2.0 | Non-Nordic `west` builds (`/opt/zephyr`) |
 | Zephyr modules | `cmsis`/`cmsis_6`/`picolibc`/`segger` + HAL modules `stm32`, `atmel`, `microchip`, `nxp`, `renesas`, `rpi_pico`, `silabs`, `ti`, `espressif` — revisions and sha256 in `docker/third_party.manifest` | Apache-2.0 and module licenses | Board support for non-Nordic Zephyr builds |
 | nRF Connect SDK | `v3.4.1` (LTS) `sdk-nrf` sha256 `cc280a045b3941d10867577f02875cac52204b0494f6ccfe71490c75efa739ee` + `sdk-zephyr`/`nrfxlib`/`sdk-hal_nordic` pinned in `docker/third_party.manifest` | Nordic 5-clause / Apache-2.0 | Nordic `west` builds (`/opt/nrf`) |
 | Raspberry Pi Pico SDK | `2.2.0`, sha256 `dbd8db79015aced4ef35cbaa88051b0d451775010d20202e1c7d2bee69c25b35` | BSD-3-Clause | `hal rp2040` cmake builds (`PICO_SDK_PATH`) |
-| Emscripten SDK | `emscripten/emsdk:6.0.10@sha256:e077d54e2b8970575ebc4f185ac1de0b95c05f2b266134d4ba27449af7aebf65` | MIT / LLVM | `hal emscripten` WASM legs + `node` runner |
+| Emscripten SDK | `emscripten/emsdk:6.0.13@sha256:fb7864e398acfda863dfcea78b8bc8adad359fa60c6a0bbeb845931de64aa68a` | MIT / LLVM | `hal emscripten` WASM legs + `node` runner |
 | AVR GCC + avr-libc | Ubuntu 26.04 packages | GPL-3.0 / BSD-3-Clause | `hal avr` builds |
 | SDCC | `4.6.0` source build, sha256 `5fd6a93e5997ce01756868fe35e441095cfb637894a80c262514a634094973b6` (Ubuntu sdcc drops `device/non-free` PIC support, so the tarball is built in a separate stage) | GPL-2.0-or-later | PIC14/PIC16 builds (pic16hv753) |
 | gputils (gpasm/gplink) | Ubuntu 26.04 package | GPL-2.0-or-later | PIC assembler/linker invoked by sdcc |
