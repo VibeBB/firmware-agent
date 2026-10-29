@@ -124,3 +124,11 @@ CVE-2026-59874 exp:2027-01-12
 CVE-2026-73566 exp:2027-01-12
 CVE-2026-12151 exp:2027-01-12
 CVE-2026-19534 exp:2027-01-12
+# emsdk/upstream/emscripten/node_modules/google-closure-compiler-java/
+# compiler.jar shades com.google.guava:guava 33.4.6-jre (CVE-2026-102554,
+# fixed in 33.7.2): classes inside the jar, not upgradeable without
+# revendoring emscripten's tooling — waived pending an emsdk release with
+# the fixed jar. CVE-2026-111943 joins the vendored-tsgo waiver set above
+# (same unfixable Go stdlib inside the tsc binary).
+CVE-2026-102554 exp:2027-01-28
+CVE-2026-111943 exp:2027-01-28

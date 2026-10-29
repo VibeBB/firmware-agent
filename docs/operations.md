@@ -82,6 +82,17 @@ layer. PlatformIO's own `/opt/pio` venv is uv-created without pip and
 its `/opt/platformio` runtime environment is pre-warmed at build; the
 weekly audit reports any new payload there as a normal finding.
 
+2026-10-29: the refreshed Trivy DB surfaced undici CVE-2026-109383,
+CVE-2026-109869 and CVE-2026-87018 inside the emsdk stage's bundled npm
+and vite CVE-2026-112942 inside its vendored emscripten node_modules.
+undici is patched in place to 6.29.1 (sha256-verified registry tarball;
+npm 12.2.1 still vendors 6.29.0) and vite upgraded to 8.3.5 via
+`npm --prefix`, following the dashboard-agent patch pattern. The
+jar-shaded guava inside `google-closure-compiler-java/compiler.jar`
+(CVE-2026-102554) and one new vendored-tsgo stdlib ID
+(CVE-2026-111943) cannot be fixed in-repo — both join the waiver set
+with `exp:2027-01-28` dates and re-verify on the next emsdk stage bump.
+
 Remaining publish-gate findings are vendored upstream payloads that
 runtime tooling requires, covered by `.trivyignore` waivers that expire
 2027-01-03 and a matching deferral in
