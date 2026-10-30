@@ -163,9 +163,16 @@ jobs:
               IMAGE: ${{ needs.check-lock.outputs.image }}
               DIGEST: ${{ needs.check-lock.outputs.digest }}
             run: |
-              gh attestation verify "oci://${IMAGE}@${DIGEST}" \
-                --repo "$GITHUB_REPOSITORY" \
-                --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/publish-firmware-images.yml"
+              # `gh attestation verify` intermittently fails to initialize
+              # the public-good Sigstore verifier; retry before failing.
+              for attempt in 1 2 3; do
+                if gh attestation verify "oci://${IMAGE}@${DIGEST}" \
+                  --repo "$GITHUB_REPOSITORY" \
+                  --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/publish-firmware-images.yml"; then
+                  break
+                fi
+                [ "$attempt" -lt 3 ] && sleep 15 || exit 1
+              done
           - name: Warn when tools image has no SBOM attestation
             if: needs.check-lock.outputs.sbom_attestation == ''
             run: echo "::warning::firmware_tools image lock has no SBOM attestation; continuing"
@@ -176,10 +183,17 @@ jobs:
               IMAGE: ${{ needs.check-lock.outputs.image }}
               DIGEST: ${{ needs.check-lock.outputs.digest }}
             run: |
-              gh attestation verify "oci://${IMAGE}@${DIGEST}" \
-                --repo "$GITHUB_REPOSITORY" \
-                --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/publish-firmware-images.yml" \
-                --predicate-type https://spdx.dev/Document/v2.3
+              # `gh attestation verify` intermittently fails to initialize
+              # the public-good Sigstore verifier; retry before failing.
+              for attempt in 1 2 3; do
+                if gh attestation verify "oci://${IMAGE}@${DIGEST}" \
+                  --repo "$GITHUB_REPOSITORY" \
+                  --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/publish-firmware-images.yml" \
+                  --predicate-type https://spdx.dev/Document/v2.3; then
+                  break
+                fi
+                [ "$attempt" -lt 3 ] && sleep 15 || exit 1
+              done
           - name: Pull locked image
             run: uv run python scripts/pull_locked_image.py --entry firmware_tools
       - name: Smoke locked image
