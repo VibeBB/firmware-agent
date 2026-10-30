@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import subprocess
 from pathlib import Path
+from typing import Any
 
 import pytest
 import scripts.check_dependency_updates as check_dependency_updates_module
@@ -14,6 +15,7 @@ from scripts.check_dependency_updates import (
     DependencyStatus,
     _action_repo,  # pyright: ignore[reportPrivateUsage]
     _github_latest_tag,  # pyright: ignore[reportPrivateUsage]
+    check_bundled_undici,
     check_docker_args,
     check_docker_base,
     check_docker_debs,
@@ -367,3 +369,67 @@ def test_python_versions_still_flag_source_without_latest(
     ci_statuses = [status for status in statuses if status.source.endswith("ci.yml")]
     assert ci_statuses
     assert all(status.outdated for status in ci_statuses)
+
+
+def _npm_tarball(undici_version: str) -> bytes:
+    import io
+    import tarfile
+
+    buffer = io.BytesIO()
+    with tarfile.open(fileobj=buffer, mode="w:gz") as archive:
+        payload = json.dumps({"version": undici_version}).encode("utf-8")
+        info = tarfile.TarInfo("package/node_modules/undici/package.json")
+        info.size = len(payload)
+        archive.addfile(info, io.BytesIO(payload))
+    return buffer.getvalue()
+
+
+def test_check_bundled_undici_flags_removable_swap(tmp_path: Path):
+    (tmp_path / "docker").mkdir()
+    (tmp_path / "docker" / "tools.Dockerfile").write_text(
+        "FROM scratch\nARG UNDICI_VERSION=6.29.1\n", encoding="utf-8"
+    )
+    payloads: dict[str, dict[str, Any]] = {
+        "https://registry.npmjs.org/npm/latest": {"version": "12.3.0"},
+        "https://registry.npmjs.org/undici": {
+            "versions": {"6.29.0": {}, "6.29.1": {}, "6.30.0": {}, "7.0.0": {}}
+        },
+    }
+
+    def fetch_json(url: str) -> dict[str, Any]:
+        return payloads[url]
+
+    def fetch_bytes(url: str) -> bytes:
+        assert url == "https://registry.npmjs.org/npm/-/npm-12.3.0.tgz"
+        return _npm_tarball("6.30.0")
+
+    statuses = check_bundled_undici(tmp_path, fetch_json=fetch_json, fetch_bytes=fetch_bytes)
+    by_name = {status.name: status for status in statuses}
+    bundled = by_name["npm-bundled-undici"]
+    assert bundled.outdated
+    assert "removable" in bundled.note
+    undici = by_name["undici"]
+    assert undici.latest == "6.30.0"
+    assert undici.outdated
+
+
+def test_check_bundled_undici_reports_required_swap(tmp_path: Path):
+    (tmp_path / "docker").mkdir()
+    (tmp_path / "docker" / "tools.Dockerfile").write_text(
+        "FROM scratch\nARG UNDICI_VERSION=6.29.1\n", encoding="utf-8"
+    )
+    payloads: dict[str, dict[str, Any]] = {
+        "https://registry.npmjs.org/npm/latest": {"version": "12.2.1"},
+        "https://registry.npmjs.org/undici": {"versions": {"6.29.1": {}}},
+    }
+
+    statuses = check_bundled_undici(
+        tmp_path,
+        fetch_json=lambda url: payloads[url],
+        fetch_bytes=lambda url: _npm_tarball("6.29.0"),
+    )
+    by_name = {status.name: status for status in statuses}
+    bundled = by_name["npm-bundled-undici"]
+    assert not bundled.outdated
+    assert "still required" in bundled.note
+    assert not by_name["undici"].outdated

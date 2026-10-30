@@ -88,11 +88,11 @@ def test_publish_dry_run_skips_only_irreversible_steps() -> None:
         "Update digest lock and merge PR",
     ):
         step = text.split(f"      - name: {name}\n", 1)[1].split("      - name:", 1)[0]
-        assert "if: inputs.dry_run != true" in step, name
-    assert "push: ${{ inputs.dry_run != true }}" in text
+        assert "if: (inputs.dry_run != true && github.event_name != 'pull_request')" in step, name
+    assert "push: ${{ (inputs.dry_run != true && github.event_name != 'pull_request') }}" in text
     # `load:` must evaluate to a real boolean on every event — `inputs.dry_run`
     # is empty on push, and build-push-action rejects a non-Core-Schema value.
-    assert "load: ${{ inputs.dry_run == true }}" in text
+    assert "load: ${{ (inputs.dry_run == true || github.event_name == 'pull_request') }}" in text
     sarif = text.split("      - name: Upload Trivy SARIF\n", 1)[1].split("      - name:", 1)[0]
     assert "inputs.dry_run != true" in sarif
     # The gate chain still runs: Trivy scans, SBOM generation, measurement,
