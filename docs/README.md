@@ -36,6 +36,7 @@
 - [ADR-0012](adr/ADR-0012-vrp-v2-records.md) — VRP v2 records, blind render review, bard song receipts
 - [ADR-0013](adr/ADR-0013-hcp-chart-flow.md) — HCP chart `flow` contract section, projections and renderer
 - [ADR-0014](adr/ADR-0014-mruby-device-api.md) — UX-authored `*.mruby-api.json` device API, generated C bindings, gate
+- [ADR-0015](adr/ADR-0015-jsonschema-tool-input-validation.md) — `jsonschema` restores the mcp 1.x inputSchema validation mcp 2.x dropped
 
 ## Research
 
@@ -49,4 +50,5 @@
 - [SDK v1.54.0 feature evaluation](research/sdk-v1.54.0-feature-evaluation.md)
 - [SDK v1.55.1 feature evaluation](research/sdk-v1.55.1-feature-evaluation.md)
 - [SDK v1.59.0 feature evaluation](research/sdk-v1.59.0-feature-evaluation.md)
+- [SDK v1.62.0 feature evaluation](research/sdk-v1.62.0-feature-evaluation.md)
 - [Agent Canvas v1.25 feature evaluation](research/ac-v1.25-feature-evaluation.md)

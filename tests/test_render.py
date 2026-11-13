@@ -166,7 +166,9 @@ def test_sim_timeline() -> None:
 
 def _call(name: str, arguments: dict[str, object]) -> mcp.types.CallToolResult:
     async def invoke() -> mcp.types.CallToolResult:
-        result = await mcp_server.call_tool(name, arguments)
+        result = await mcp_server.call_tool(
+            None, mcp.types.CallToolRequestParams(name=name, arguments=arguments)
+        )
         assert isinstance(result, mcp.types.CallToolResult)
         return result
 
@@ -184,11 +186,11 @@ def test_mcp_inline_image(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> No
 
     monkeypatch.setattr(service, "render_payload", fake_render)
     result = _call("firmware_render", {"contract_path": "c.fw.json"})
-    assert result.isError is False
+    assert result.is_error is False
     kinds = [type(c) for c in result.content]
     assert mcp.types.ImageContent in kinds
     image = next(c for c in result.content if isinstance(c, mcp.types.ImageContent))
-    assert image.mimeType == "image/png"
+    assert image.mime_type == "image/png"
     assert base64.b64decode(image.data) == png
 
 

@@ -60,6 +60,25 @@ Deferrals and their review dates are tracked in
 an owner to revisit it by the listed date; deferrals do not change source
 pins.
 
+## 2026-11-14 update (sdk 1.62.0, mcp 2.x, uv 0.13.8, ESP_QEMU)
+
+sdk `==1.59.0` -> `==1.62.0` (sdk + tools), `mcp>=1.29,<2` -> `>=2`
+(forced: SDK 1.62.0 requires `fastmcp>=4`, whose `fastmcp-slim[client]`
+extra pins `mcp>=2`), `jsonschema>=4` added (ADR-0015 restores the mcp
+1.x inputSchema validation mcp 2.x dropped), uv `==0.13.6` ->
+`==0.13.8`, ruff `0.17.3` -> `0.17.5`, pydantic `2.14.1` -> `2.14.3`,
+trivy `v0.76.1` -> `v0.76.2`, zizmor `1.31.1` -> `1.32.0`,
+harden-runner v2.22.x -> v2.22.4, docker/login-action v4.7.0 -> v4.8.0,
+codeql-action -> v4.39.3. Full changelog review:
+[SDK v1.62.0 feature evaluation](research/sdk-v1.62.0-feature-evaluation.md).
+
+ESP_QEMU `esp-develop-9.2.2-20260417` -> `esp-develop-9.2.2-20261109`
+(asset + sha256 re-pinned). The emsdk bundled-undici tarball swap was
+dropped: npm 12.2.2 already vendors undici 6.29.1, so the CVE fixes the
+swap supplied are upstream now (floor assert retained). The mcp 2.x
+deferral was consumed by this migration; remaining deferrals
+(ESPRESSIF32_PLATFORM, Python 3.15 default) are unchanged.
+
 ## 2026-10-29 update (sdk 1.59.0, uv 0.13.6, emsdk 6.0.13)
 
 sdk `==1.55.1` -> `==1.59.0` (sdk + tools), uv `==0.13.1` -> `==0.13.6`,

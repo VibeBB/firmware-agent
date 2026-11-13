@@ -1,13 +1,6 @@
 {
   "deferrals": [
     {
-      "surface": "pypi",
-      "name": "mcp",
-      "latest": "2.3.0",
-      "review_by": "2027-04-01",
-      "reason": "openhands-sdk 1.59.0 requires fastmcp>=3.2.0,<4, which requires mcp<2.0. Defer MCP 2.x until a supported SDK/fastmcp release removes that constraint."
-    },
-    {
       "surface": "docker-arg",
       "name": "ESPRESSIF32_PLATFORM",
       "latest": "any",
