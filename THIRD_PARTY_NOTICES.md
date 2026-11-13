@@ -9,7 +9,7 @@ into `firmware` (ADR-0004).
 | Component | Version pin | License | Use |
 |---|---|---|---|
 | Ubuntu 26.04 | `ubuntu:26.04@sha256:da6fc2be…` | various | Base image |
-| uv | `ghcr.io/astral-sh/uv:0.13.6` | Apache-2.0 / MIT | Python and package manager |
+| uv | `ghcr.io/astral-sh/uv:0.13.8` | Apache-2.0 / MIT | Python and package manager |
 | CPython | 3.14.x via uv | PSF-2.0 | Runtime |
 | GNU Arm Embedded GCC, binutils, newlib | Ubuntu GCC 14.2.1 (`15:14.2.rel1-1`), binutils `2.45.50.20251209-1ubuntu1+23build1`, newlib `4.6.0.20260123-1` | GPL-3.0 with GCC Runtime Library Exception; newlib: BSD-style | ARM builds |
 | GNU Make, CMake, Ninja | Ubuntu Make 4.4.1, CMake 4.2.3, Ninja 1.13.2 | GPL-3.0 / BSD-3-Clause / Apache-2.0 | Build backends |
@@ -19,10 +19,12 @@ into `firmware` (ADR-0004).
 | Cppcheck | Debian sid `cppcheck_2.22.0-1_amd64.deb`, sha256 `936dbeba9e147b2e9255c44b3c59c37f33373f118a271aac05799c85a45795c5` | GPL-3.0 | Static analysis |
 | PlatformIO Core | `6.2.0` (pip) | Apache-2.0 | ESP-IDF builds |
 | PlatformIO `espressif32` platform, ESP-IDF, Xtensa toolchain, esptool, `xtensa-esp-elf-gdb` | `espressif32@7.1.3` (ESP-IDF 6.1; toolchain 15.2.0+20251204) | Apache-2.0 (platform, ESP-IDF, esptool: GPL-2.0), GPL-3.0 (GCC, GDB) | ESP32-S3 builds and debugging |
-| Espressif QEMU (`qemu-system-xtensa`) | release `esp-develop-9.2.2-20260417`, asset `qemu-xtensa-softmmu-esp_develop_9.2.2_20260417-x86_64-linux-gnu.tar.xz`, sha256 `0eecb2a34a5586c0e59110f77b9343b7b336e82fdb0e1a30e1dc1bab8a547e35` | GPL-2.0-or-later | ESP32/ESP32-S3 simulation |
+| Espressif QEMU (`qemu-system-xtensa`) | release `esp-develop-9.2.2-20261109`, asset `qemu-xtensa-softmmu-esp_develop_9.2.2_20261109-x86_64-linux-gnu.tar.xz`, sha256 `fbc3bffa9fa71192847969a627a584aabe2e86d85bed4902a096ff06c2b8a815` | GPL-2.0-or-later | ESP32/ESP32-S3 simulation |
 | pydantic | `>=2` via `uv.lock` | MIT | Contract models |
-| mcp | `>=1.29,<2` via `uv.lock` | MIT | MCP server |
-| openhands-sdk / openhands-tools | `1.59.0` (sdk-check group) | MIT | Plugin-load verification |
+| mcp | `>=2` via `uv.lock` | MIT | MCP server |
+| jsonschema | `>=4` via `uv.lock` | MIT | MCP tool input validation |
+| undici | `6.29.1` tarball, sha256 `29c4b8e0b2d86cb8795571c1959012ce057a14ecfd34858335f47c31e770a04f` | MIT | Patches emsdk-bundled npm |
+| openhands-sdk / openhands-tools | `1.62.0` (sdk-check group) | MIT | Plugin-load verification |
 | mruby | `4.0.0`, sha256 `e2ea271dbed14e9f2b33df773ae447b747dbc242ce2675022c0a57efea85a7b4` | MIT | `mrbc` bytecode compiler (build-time tool) |
 | mruby/c | master `2dec4802b09be1fc12f388d3c9267ffd9dc6c404`, sha256 `0860de6a2b4e8adf682e14f3e0f1df7114abdb8749be23ea39cf0133f5b16b84` | BSD-3-Clause | VM + HAL sources compiled into products (`/opt/mrubyc/REF`) |
 | Zephyr RTOS (Canonical 26.04 LTS) | `zephyr-manifest@26.04.0`, zephyr fork commit `2e4ba3e7c1823597ae82edf9f9406a6cdf262873` (Launchpad, git-clone verified) | Apache-2.0 | Non-Nordic `west` builds (`/opt/zephyr`) |
