@@ -11,8 +11,9 @@ to 2.14.3 in the lock. `mcp` moves 1.x to 2.3.0 (forced by the SDK's
 fastmcp 4 requirement) and `jsonschema>=4` is added to restore the
 dropped tool input validation. ESP_QEMU moves
 `esp-develop-9.2.2-20260417` to `esp-develop-9.2.2-20261109`, and the
-emsdk bundled-undici tarball swap is dropped because npm 12.2.2 already
-vendors undici 6.29.1.
+emsdk bundled-undici tarball swap stays because the pinned emsdk image
+bundles npm 11.17.0 (undici 6.26.0); only the latest npm (12.2.2)
+vendors the fix.
 
 Primary sources:
 [v1.60.0 release](https://github.com/OpenHands/software-agent-sdk/releases/tag/v1.60.0),
@@ -80,5 +81,5 @@ Primary sources:
 | trivy v0.76.1 -> v0.76.2 | adopted | Patch release; version refs updated where pinned. |
 | pydantic 2.14.1 -> 2.14.3 | adopted implicitly | Lock-level patch upgrade via `uv lock --upgrade`; pydantic-core compat fixes only. |
 | ESP_QEMU esp-develop-9.2.2-20260417 -> esp-develop-9.2.2-20261109 | adopted | Latest esp-develop release; xtensa-softmmu asset re-pinned and sha256 verified (`fbc3bffa...`). QEMU device model used by gates; no plugin code change needed. |
-| emsdk bundled-undici swap | removed | npm 12.2.2 (bundled in the pinned emsdk node) already vendors undici 6.29.1 — the CVE fixes the swap supplied are upstream now. Swap and `UNDICI_*` ARGs dropped; a `sort -V` floor assert keeps the build failing if a landed version regresses. |
+| emsdk bundled-undici swap | kept | The pinned emsdk image bundles npm 11.17.0, which still vendors undici 6.26.0 — only the latest npm release (12.2.2) vendors the fixed 6.29.1. Swap and `UNDICI_*` ARGs retained; removal lands when the emsdk pin rebases onto an npm >= 12.2.2. |
 | mcp 1.x -> 2.3.0 | adopted (forced) + jsonschema>=4 | SDK requires `mcp>=2` transitively; `mcp_server.py` migrated to the 2.x API and `Draft202012Validator` restores the v1 request-layer inputSchema validation (ADR-0015). |

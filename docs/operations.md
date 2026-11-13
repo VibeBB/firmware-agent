@@ -314,7 +314,8 @@ the mcp 2.x API (`on_list_tools`/`on_call_tool`, snake_case params) and
 validates `arguments` against each tool's `input_schema` before
 dispatch. ESP_QEMU `esp-develop-9.2.2-20260417` →
 `esp-develop-9.2.2-20261109` (asset re-pinned, sha256 verified). The
-emsdk bundled-undici tarball swap is dropped: npm 12.2.2 already
-vendors undici 6.29.1 (the `check_bundled_undici` resolution now
-confirms it); a version floor assert stays. Full changelog review:
+emsdk bundled-undici tarball swap stays: the pinned emsdk image
+bundles npm 11.17.0, which still vendors undici 6.26.0 (only the
+latest npm release — 12.2.2 — vendors the fixed 6.29.1, which is what
+`check_bundled_undici` tracks). Full changelog review:
 `docs/research/sdk-v1.62.0-feature-evaluation.md`.

@@ -73,9 +73,9 @@ codeql-action -> v4.39.3. Full changelog review:
 [SDK v1.62.0 feature evaluation](research/sdk-v1.62.0-feature-evaluation.md).
 
 ESP_QEMU `esp-develop-9.2.2-20260417` -> `esp-develop-9.2.2-20261109`
-(asset + sha256 re-pinned). The emsdk bundled-undici tarball swap was
-dropped: npm 12.2.2 already vendors undici 6.29.1, so the CVE fixes the
-swap supplied are upstream now (floor assert retained). The mcp 2.x
+(asset + sha256 re-pinned). The emsdk bundled-undici tarball swap stays: the pinned emsdk
+image bundles npm 11.17.0 (undici 6.26.0); only the latest npm release
+(12.2.2) vendors the fixed 6.29.1 that `check_bundled_undici` tracks. The mcp 2.x
 deferral was consumed by this migration; remaining deferrals
 (ESPRESSIF32_PLATFORM, Python 3.15 default) are unchanged.
 
