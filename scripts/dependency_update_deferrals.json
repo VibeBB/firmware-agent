@@ -1,13 +1,6 @@
 {
   "deferrals": [
     {
-      "surface": "pypi",
-      "name": "mcp",
-      "latest": "2.3.0",
-      "review_by": "2027-04-01",
-      "reason": "openhands-sdk 1.59.0 requires fastmcp>=3.2.0,<4, which requires mcp<2.0. Defer MCP 2.x until a supported SDK/fastmcp release removes that constraint."
-    },
-    {
       "surface": "docker-arg",
       "name": "ESPRESSIF32_PLATFORM",
       "latest": "any",
@@ -20,6 +13,13 @@
       "latest": "3.15",
       "review_by": "2027-01-08",
       "reason": "Latest stable is 3.15, but the sdk-check group's openhands-sdk->litellm->fastuuid chain pins fastuuid 0.14.0 (sdist only, no cp315 wheel) and its bundled PyO3 fails to build on 3.15. pydantic-core has shipped cp315 wheels as of 2.50.1, so fastuuid is the sole blocker - re-check when fastuuid publishes a 3.15-capable release."
+    },
+    {
+      "surface": "bundled",
+      "name": "npm-bundled-undici",
+      "latest": "6.29.1 (npm 12.2.2)",
+      "review_by": "2027-01-08",
+      "reason": "The checker tracks the latest npm release (12.2.2 now vendors undici 6.29.1), but the UNDICI_VERSION swap exists because the pinned emsdk stage's bundled npm still vendors undici < 6.29.1. Keep the swap until the emsdk stage rebases onto npm>=12.2.2, then drop it together with UNDICI_SHA256."
     }
   ]
 }

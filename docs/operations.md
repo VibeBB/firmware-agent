@@ -292,3 +292,30 @@ When sweeping dependencies to latest releases:
 - 2026-10-29: Added `scripts/lint_workflows_local.sh`, which runs
   the same pinned actionlint + zizmor checks as workflow-lint.yml locally
   before pushing workflow edits.
+
+- 2026-11-14: Added `jsonschema>=4` as a runtime dependency.
+  `src/firmware/mcp_server.py` uses `Draft202012Validator` to restore the
+  mcp 1.x request-layer inputSchema validation that mcp 2.x dropped —
+  `call_tool` validates `arguments` against the tool's `input_schema`
+  and returns an `Input validation error` `CallToolResult` on failure.
+  The checker covers it as a direct PyPI dependency; no checker change
+  needed.
+
+### 2026-11-14 dependency sweep
+
+`openhands-sdk`/`openhands-tools` `==1.59.0` → `==1.62.0`; `mcp`
+`>=1.29,<2` → `>=2` (forced — SDK 1.62.0 requires `fastmcp>=4`, whose
+slim client extra pins `mcp>=2`); `jsonschema>=4` added (ADR-0015 —
+restores the mcp 1.x inputSchema validation mcp 2.x dropped); uv
+`0.13.6` → `0.13.8`; ruff → `0.17.5`; pydantic → `2.14.3`; zizmor
+`1.32.0`, trivy `0.76.2`; harden-runner v2.22.4; docker/login-action
+v4.8.0; codeql-action v4.39.3. `src/firmware/mcp_server.py` migrated to
+the mcp 2.x API (`on_list_tools`/`on_call_tool`, snake_case params) and
+validates `arguments` against each tool's `input_schema` before
+dispatch. ESP_QEMU `esp-develop-9.2.2-20260417` →
+`esp-develop-9.2.2-20261109` (asset re-pinned, sha256 verified). The
+emsdk bundled-undici tarball swap stays: the pinned emsdk image
+bundles npm 11.17.0, which still vendors undici 6.26.0 (only the
+latest npm release — 12.2.2 — vendors the fixed 6.29.1, which is what
+`check_bundled_undici` tracks). Full changelog review:
+`docs/research/sdk-v1.62.0-feature-evaluation.md`.

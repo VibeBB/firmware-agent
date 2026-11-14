@@ -1,5 +1,5 @@
-ARG UV_VERSION=0.13.6
-ARG UV_DIGEST=sha256:af22a52f5eafef3d78e551599d405c02df61919d18028f0cea8eda93bc9986d0
+ARG UV_VERSION=0.13.8
+ARG UV_DIGEST=sha256:5cc1805e2426484abca4ad46ea783bab281fdb225fd82d8ce6d66a81254bac85
 # Emscripten SDK stage: digest-pinned, shared with the dashboard tools image
 # so the .mrb/WASM legs use one proven toolchain. ARGs used in FROM must be
 # declared before the first FROM.
@@ -71,9 +71,9 @@ ARG IMAGE_REVISION=unknown
 ARG SDCC_VERSION
 ARG PLATFORMIO_VERSION=6.2.0
 ARG ESPRESSIF32_PLATFORM=espressif32@7.1.3
-ARG ESP_QEMU_RELEASE=esp-develop-9.2.2-20260417
-ARG ESP_QEMU_ASSET=qemu-xtensa-softmmu-esp_develop_9.2.2_20260417-x86_64-linux-gnu.tar.xz
-ARG ESP_QEMU_SHA256=0eecb2a34a5586c0e59110f77b9343b7b336e82fdb0e1a30e1dc1bab8a547e35
+ARG ESP_QEMU_RELEASE=esp-develop-9.2.2-20261109
+ARG ESP_QEMU_ASSET=qemu-xtensa-softmmu-esp_develop_9.2.2_20261109-x86_64-linux-gnu.tar.xz
+ARG ESP_QEMU_SHA256=fbc3bffa9fa71192847969a627a584aabe2e86d85bed4902a096ff06c2b8a815
 # cppcheck tracks Debian unstable (sid) instead of the resolute apt pin so
 # the image ships the newest release; the .deb is fetched from the permanent
 # snapshot.debian.org archive and verified before install. Its Depends are
@@ -251,11 +251,12 @@ RUN test -x /opt/emsdk/upstream/emscripten/emcc \
     && emcc --version | head -1
 
 # The pinned emsdk stage vendors vite 8.3.1 inside the emscripten
-# toolchain (CVE-2026-112942, fixed in 8.3.5) and undici < 6.29.1 inside
-# its bundled npm (CVE-2026-109383, CVE-2026-109869, CVE-2026-87018);
-# patch both — vite via npm --prefix (same pattern as dashboard-agent's
-# emsdk patches), undici via a sha256-verified tarball swap — and fail
-# the build if a landed version is still vulnerable.
+# toolchain (CVE-2026-112942, fixed in 8.3.5) and undici 6.26.0 inside
+# its bundled npm 11.17.0 (CVE-2026-109383, CVE-2026-109869,
+# CVE-2026-87018); patch both — vite via npm --prefix (same pattern as
+# dashboard-agent's emsdk patches), undici via a sha256-verified
+# tarball swap — and fail the build if a landed version is still
+# vulnerable.
 ARG UNDICI_VERSION=6.29.1
 # sha256 of https://registry.npmjs.org/undici/-/undici-6.29.1.tgz
 ARG UNDICI_SHA256=29c4b8e0b2d86cb8795571c1959012ce057a14ecfd34858335f47c31e770a04f

@@ -253,9 +253,9 @@ def test_workflow_downloads_cover_repo_pins() -> None:
 
     statuses = check_workflow_downloads(ROOT, fetch_json=fetch_json, list_remote_tags=latest_nines)
     rows = {(s.name, s.current) for s in statuses}
-    assert ("zizmor", "1.31.1") in rows
+    assert ("zizmor", "1.32.0") in rows
     assert ("rhysd/actionlint", "v1.7.12") in rows
-    assert ("aquasecurity/trivy", "0.76.1") in rows
+    assert ("aquasecurity/trivy", "0.76.2") in rows
 
 
 def test_uvx_statuses_deduplicated_on_name_and_pin(
