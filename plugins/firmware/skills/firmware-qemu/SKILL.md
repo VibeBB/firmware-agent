@@ -1,7 +1,7 @@
 ---
 name: firmware-qemu
 description: QEMU simulation gates (qemu-system-arm core fidelity, Espressif qemu-system-xtensa MCU fidelity for esp32/esp32s3) and advisory GDB debugging through the gdbstub.
-version: 0.1.0
+version: 1.0.0
 license: BSD-3-Clause
 triggers:
   - qemu

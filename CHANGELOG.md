@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 — unreleased
+## 1.0.0 — unreleased
 
 - Records move to VRP v2 (ADR-0012): hash-chained logs, grounded
   impressions with facets and claims, near-duplicate and dispute re-raise

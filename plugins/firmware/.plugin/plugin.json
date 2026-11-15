@@ -1,6 +1,6 @@
 {
   "name": "firmware",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "OpenHands plugin for firmware development (MCU, pin map, peripherals, power modes) gated by build, circuit netlist match, flash/RAM budget, static analysis, and QEMU simulation",
   "author": {
     "name": "VibeBB",
