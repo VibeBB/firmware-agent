@@ -41,5 +41,6 @@ glob, VisionInspectTool; 20 iterations, budget 1.5. Records: one
 `firmware_record_vision_review` with `reviewer: "blind"`/`"tiebreak"`;
 never reconciles and never issues a verdict.
 
-All four must leave the records described in
-[records-and-vision.md](records-and-vision.md); the Stop hook enforces it.
+Record duties are described in [records-and-vision.md](records-and-vision.md).
+Primary-capable roles have their own Stop enforcement; the blind reviewer returns
+one bound review for its caller to reconcile, without workspace-wide Stop debt.
