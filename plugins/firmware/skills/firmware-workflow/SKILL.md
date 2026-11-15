@@ -1,7 +1,7 @@
 ---
 name: firmware-workflow
 description: End-to-end firmware workflow — contract first, circuit-matched pin map, generated pin header, build, flash/RAM budget, cppcheck, QEMU simulation, advisory GDB — with deterministic fw.* gates.
-version: 0.1.0
+version: 1.0.0
 license: BSD-3-Clause
 triggers:
   - firmware

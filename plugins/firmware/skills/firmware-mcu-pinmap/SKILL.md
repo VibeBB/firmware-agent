@@ -1,7 +1,7 @@
 ---
 name: firmware-mcu-pinmap
 description: Choosing an MCU profile and assigning pads — function routing, peripheral instances, reserved and strapping/JTAG pads, pad aliases, and matching the circuit netlist.
-version: 0.1.0
+version: 1.0.0
 license: BSD-3-Clause
 triggers:
   - pin map

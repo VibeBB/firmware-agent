@@ -1,7 +1,7 @@
 ---
 name: firmware-sister-cooperation
 description: How firmware exchanges JSON artifacts with sister plugins — circuit firmware export/check, fw-request change proposals, bard product cues, and the UX producer plan.
-version: 0.1.0
+version: 1.0.0
 license: BSD-3-Clause
 triggers:
   - circuit

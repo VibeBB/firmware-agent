@@ -1,6 +1,6 @@
 [project]
 name = "firmware-agent"
-version = "0.1.0"
+version = "1.0.0"
 description = "OpenHands plugin for firmware development (MCU, pin map, peripherals, power modes) gated by build, netlist match, flash/RAM budget, static analysis, and QEMU simulation"
 license = "BSD-3-Clause"
 requires-python = ">=3.12"

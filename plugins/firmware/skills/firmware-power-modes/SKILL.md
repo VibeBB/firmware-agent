@@ -1,7 +1,7 @@
 ---
 name: firmware-power-modes
 description: Declaring run/idle/sleep/deep-sleep power modes with current, duty cycle, wake sources and powered peripherals, and the average-current budget gate.
-version: 0.1.0
+version: 1.0.0
 license: BSD-3-Clause
 triggers:
   - power mode
