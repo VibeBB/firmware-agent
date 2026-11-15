@@ -1116,3 +1116,36 @@ def test_blind_guard_denies_earlier_reviews(tool: str, tool_input: dict[str, Any
 )
 def test_blind_guard_allows_the_image_and_contract(tool: str, tool_input: dict[str, Any]) -> None:
     assert _guard(tool, tool_input) == 0
+
+
+def test_identical_image_paths_keep_separate_blind_rounds(workspace: Path) -> None:
+    image = workspace / _vision()["image_path"]
+    copied = image.with_name("copy.png")
+    copied.write_bytes(image.read_bytes())
+    copied_path = copied.relative_to(workspace).as_posix()
+    copied_claims = [{**claim, "artifact": copied_path} for claim in _vision()["claims"]]
+    first = records.record_vision_review(_vision())["record"]
+    second = records.record_vision_review(
+        _vision(image_path=copied_path, claims=copied_claims, impression=IMPRESSION_C + " W1.")
+    )["record"]
+    blind_first = records.record_vision_review(_vision("blind", impression=IMPRESSION_B))["record"]
+    blind_second = records.record_vision_review(
+        _vision(
+            "blind", image_path=copied_path, claims=copied_claims, impression=IMPRESSION_JA + " W1."
+        )
+    )["record"]
+    assert blind_first["image_sha256"] == blind_second["image_sha256"]
+    assert blind_first["image_path"] != blind_second["image_path"]
+    for primary, blind in ((first, blind_first), (second, blind_second)):
+        result = records.record_reconcile({"reviews": [primary["event_id"], blind["event_id"]]})
+        assert result["record"]["outcome"] == "agree"
+    with pytest.raises(ValueError, match="already has its blind review"):
+        records.record_vision_review(
+            _vision(
+                "blind",
+                image_path=copied_path,
+                claims=copied_claims,
+                impression=IMPRESSION_B,
+                delta="A duplicate.",
+            )
+        )
