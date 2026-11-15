@@ -21,6 +21,12 @@ when_to_use_examples:
   - Debug a failing QEMU simulation with GDB
   - ファームを実装してゲートを通す
 hooks:
+  session_start:
+    - matcher: "*"
+      hooks:
+        - type: command
+          name: require-records
+          command: "p=$(for c in  \"${FIRMWARE_PLUGIN_ROOT:-}\" \"${PLUGIN_ROOT:-}\" \"${OPENHANDS_PROJECT_DIR:-.}/plugins/firmware\" \"${HOME:-}/.agents/plugins/firmware\" \"${HOME:-}/.openhands/plugins/installed/firmware\" \"${HOME:-}/plugins/installed/firmware\" \"${OH_PERSISTENCE_DIR:-/nonexistent}/plugins/installed/firmware\"; do [ -f \"$c/hooks/scripts/require_records.py\" ] && printf %s \"$c\" && break; done); [ -n \"$p\" ] || exit 0; exec python3 \"$p/hooks/scripts/require_records.py\" session-start"
   pre_tool_use:
     - matcher: file_editor|apply_patch|terminal
       hooks:
@@ -107,3 +113,11 @@ Vision and impressions are advisory: they never override a deterministic
 gate verdict. Results do not have to be identical from run to run; the
 reasoning must be recorded every run. `firmware_records_status` shows
 what is still owed.
+
+
+Use the native `session_id` supplied by your SessionStart record context for VRP
+writes. For an independent blind/tiebreak review, pass `primary_event_id` from
+the delegation brief; the writer binds it to the same image path and SHA-256.
+When delegating, provide only that opaque ID, the image identity and task facts;
+never disclose the earlier review prose. Each reviewer keeps its own native
+session ID, and the primary's session performs reconciliation.
