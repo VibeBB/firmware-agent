@@ -44,7 +44,7 @@ hooks:
         - type: command
           name: record-vision-tool-event
           command: 'p=$(for c in  "${FIRMWARE_PLUGIN_ROOT:-}" "${PLUGIN_ROOT:-}" "${OPENHANDS_PROJECT_DIR:-.}/plugins/firmware" "${HOME:-}/.agents/plugins/firmware" "${HOME:-}/.openhands/plugins/installed/firmware"; do [ -f "$c/hooks/scripts/record_vision_tool_event.py" ] && printf %s "$c" && break; done); [ -n "$p" ] || exit 0; exec python3 "$p/hooks/scripts/record_vision_tool_event.py"'
-    - matcher: file_editor
+    - matcher: "file_editor|firmware_check|firmware_gates|firmware_pinmap_export|firmware_render|firmware_sim"
       hooks:
         - type: command
           name: record-image-observation
