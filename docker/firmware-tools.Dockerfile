@@ -1,5 +1,5 @@
-ARG UV_VERSION=0.13.8
-ARG UV_DIGEST=sha256:5cc1805e2426484abca4ad46ea783bab281fdb225fd82d8ce6d66a81254bac85
+ARG UV_VERSION=0.13.9
+ARG UV_DIGEST=sha256:d3b601f0c7b118bc1753febf7c41cc80981df678445e0254284eecf84db79a7d
 # Emscripten SDK stage: digest-pinned, shared with the dashboard tools image
 # so the .mrb/WASM legs use one proven toolchain. ARGs used in FROM must be
 # declared before the first FROM.

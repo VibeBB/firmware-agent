@@ -9,7 +9,7 @@ into `firmware` (ADR-0004).
 | Component | Version pin | License | Use |
 |---|---|---|---|
 | Ubuntu 26.04 | `ubuntu:26.04@sha256:da6fc2be…` | various | Base image |
-| uv | `ghcr.io/astral-sh/uv:0.13.8` | Apache-2.0 / MIT | Python and package manager |
+| uv | `ghcr.io/astral-sh/uv:0.13.9` | Apache-2.0 / MIT | Python and package manager |
 | CPython | 3.14.x via uv | PSF-2.0 | Runtime |
 | GNU Arm Embedded GCC, binutils, newlib | Ubuntu GCC 14.2.1 (`15:14.2.rel1-1`), binutils `2.45.50.20251209-1ubuntu1+23build1`, newlib `4.6.0.20260123-1` | GPL-3.0 with GCC Runtime Library Exception; newlib: BSD-style | ARM builds |
 | GNU Make, CMake, Ninja | Ubuntu Make 4.4.1, CMake 4.2.3, Ninja 1.13.2 | GPL-3.0 / BSD-3-Clause / Apache-2.0 | Build backends |
@@ -24,7 +24,7 @@ into `firmware` (ADR-0004).
 | mcp | `>=2` via `uv.lock` | MIT | MCP server |
 | jsonschema | `>=4` via `uv.lock` | MIT | MCP tool input validation |
 | undici | `6.29.1` tarball, sha256 `29c4b8e0b2d86cb8795571c1959012ce057a14ecfd34858335f47c31e770a04f` | MIT | Patches emsdk-bundled npm |
-| openhands-sdk / openhands-tools | `1.62.0` (sdk-check group) | MIT | Plugin-load verification |
+| openhands-sdk / openhands-tools | `1.63.1` (sdk-check group) | MIT | Plugin-load verification |
 | mruby | `4.0.0`, sha256 `e2ea271dbed14e9f2b33df773ae447b747dbc242ce2675022c0a57efea85a7b4` | MIT | `mrbc` bytecode compiler (build-time tool) |
 | mruby/c | master `2dec4802b09be1fc12f388d3c9267ffd9dc6c404`, sha256 `0860de6a2b4e8adf682e14f3e0f1df7114abdb8749be23ea39cf0133f5b16b84` | BSD-3-Clause | VM + HAL sources compiled into products (`/opt/mrubyc/REF`) |
 | Zephyr RTOS (Canonical 26.04 LTS) | `zephyr-manifest@26.04.0`, zephyr fork commit `2e4ba3e7c1823597ae82edf9f9406a6cdf262873` (Launchpad, git-clone verified) | Apache-2.0 | Non-Nordic `west` builds (`/opt/zephyr`) |
