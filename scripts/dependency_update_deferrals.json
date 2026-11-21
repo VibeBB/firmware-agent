@@ -19,7 +19,7 @@
       "name": "npm-bundled-undici",
       "latest": "6.29.1 (npm 12.2.3)",
       "review_by": "2027-01-08",
-      "reason": "The checker tracks the latest npm release (12.2.2 now vendors undici 6.29.1), but the UNDICI_VERSION swap exists because the pinned emsdk stage's bundled npm still vendors undici < 6.29.1. Keep the swap until the emsdk stage rebases onto npm>=12.2.2, then drop it together with UNDICI_SHA256."
+      "reason": "The checker tracks the latest npm release (12.2.3 now vendors undici 6.29.1), but the UNDICI_VERSION swap exists because the pinned emsdk stage's bundled npm still vendors undici < 6.29.1. Keep the swap until the emsdk stage rebases onto npm>=12.2.2, then drop it together with UNDICI_SHA256."
     }
   ]
 }
