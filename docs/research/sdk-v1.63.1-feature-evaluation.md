@@ -68,4 +68,3 @@ Primary sources:
 | ossf/scorecard-action | v2.5.0 -> v2.6.0 | adopted | Scorecard v5.7.0. New `fail_on_publish_error` input evaluated and not adopted: result publishing must never fail the required scorecard check. Example-workflow additions not applicable. |
 | npm-bundled-undici deferral | `latest` refreshed to `6.29.1 (npm 12.2.3)` | deferred (kept) | The checker compares the swap pin against latest npm's vendored undici; the pinned emsdk stage still bundles npm < 12.2.2, so `UNDICI_VERSION=6.29.1` + `UNDICI_SHA256` stay until the emsdk rebase. |
 | emsdk | stays 6.0.13 (latest 7.0.0) | deferred | Major base bump pending a Trivy re-scan of the new base, per the dashboard 7.0.0 precedent (waiver pruning). |
-
