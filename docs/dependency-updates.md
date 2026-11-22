@@ -58,6 +58,27 @@ version-specific checker target is needed when the Ubuntu LTS tag changes.
 | pydantic / ruff / transitive drift | -> 2.14.4 / 0.17.5-0.17.6 | Lock drift via `uv lock --upgrade`. |
 | undici swap | stays 6.29.1 | Deferral `latest` refreshed to `6.29.1 (npm 12.2.3)`; swap retained while the pinned emsdk stage bundles npm<12.2.2. emsdk 7.0.0 deferred pending Trivy re-scan. |
 
+## 2026-11-22 update (emsdk 7.0.1)
+
+Emscripten SDK `6.0.13` -> `7.0.1` (`EMSDK_VERSION` + `EMSDK_DIGEST`
+re-pinned). Upstream changelog 6.0.13..7.0.1 reviewed: JS tools rebundled
+with rolldown, embind link-time invokers, `struct_info.json` cDefines
+exposed as const JS symbols, zlib port 1.3.2 -> 1.4, Safari pthreads
+`emscripten_get_now` fix, JSPI minimum-browser defaults — no removal that
+touches the `hal emscripten` WASM legs or the bundled-node runner.
+
+Vendored-toolchain re-scan (Trivy 0.76.2, CRITICAL/HIGH,
+`emscripten/emsdk:7.0.1` scanned directly): the vendored tsgo binary is
+still built with Go 1.26.4 (all 15 stdlib/x/text waivers carry over),
+the google-closure-compiler jar still shades guava 33.4.6-jre
+(CVE-2026-102554 waiver carries over), and the bundled npm 11.17.0 tree
+still ships brace-expansion 5.0.6, tar 7.5.16 (CRITICAL), ip-address,
+picomatch and undici 6.26.0 — so every existing `.trivyignore` waiver
+stays, and the undici 6.29.1 in-place swap remains required. Vendored
+`vite` is 8.3.5 in the new stage — already the CVE-2026-112942 fix
+version — so the `npm --prefix ... vite@8.3.5` forced-install RUN was
+dropped (same outcome as dashboard-agent's emsdk 7.0.0 re-scan).
+
 ## Workflow git clone pins
 
 `container-audit.yml` clones `CISOfy/lynis` at `git clone --depth 1 --branch

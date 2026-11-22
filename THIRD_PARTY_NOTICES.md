@@ -31,7 +31,7 @@ into `firmware` (ADR-0004).
 | Zephyr modules | `cmsis`/`cmsis_6`/`picolibc`/`segger` + HAL modules `stm32`, `atmel`, `microchip`, `nxp`, `renesas`, `rpi_pico`, `silabs`, `ti`, `espressif` — revisions and sha256 in `docker/third_party.manifest` | Apache-2.0 and module licenses | Board support for non-Nordic Zephyr builds |
 | nRF Connect SDK | `v3.4.1` (LTS) `sdk-nrf` sha256 `cc280a045b3941d10867577f02875cac52204b0494f6ccfe71490c75efa739ee` + `sdk-zephyr`/`nrfxlib`/`sdk-hal_nordic` pinned in `docker/third_party.manifest` | Nordic 5-clause / Apache-2.0 | Nordic `west` builds (`/opt/nrf`) |
 | Raspberry Pi Pico SDK | `2.2.0`, sha256 `dbd8db79015aced4ef35cbaa88051b0d451775010d20202e1c7d2bee69c25b35` | BSD-3-Clause | `hal rp2040` cmake builds (`PICO_SDK_PATH`) |
-| Emscripten SDK | `emscripten/emsdk:6.0.13@sha256:fb7864e398acfda863dfcea78b8bc8adad359fa60c6a0bbeb845931de64aa68a` | MIT / LLVM | `hal emscripten` WASM legs + `node` runner |
+| Emscripten SDK | `emscripten/emsdk:7.0.1@sha256:73aece2e0ab748487945ad117b79fc4d277e9f656e54fc800a9b1a0a6562715b` | MIT / LLVM | `hal emscripten` WASM legs + `node` runner |
 | AVR GCC + avr-libc | Ubuntu 26.04 packages | GPL-3.0 / BSD-3-Clause | `hal avr` builds |
 | SDCC | `4.6.0` source build, sha256 `5fd6a93e5997ce01756868fe35e441095cfb637894a80c262514a634094973b6` (Ubuntu sdcc drops `device/non-free` PIC support, so the tarball is built in a separate stage) | GPL-2.0-or-later | PIC14/PIC16 builds (pic16hv753) |
 | gputils (gpasm/gplink) | Ubuntu 26.04 package | GPL-2.0-or-later | PIC assembler/linker invoked by sdcc |

@@ -74,8 +74,8 @@ CVE-2026-78667 exp:2027-01-12
 CVE-2026-78669 exp:2027-01-12
 CVE-2026-97031 exp:2027-01-12
 # emsdk's vendored @typescript/typescript-linux-x64 (tsgo) is built with
-# Go 1.26.4 — including emsdk 6.0.12, verified by scanning
-# emscripten/emsdk:6.0.12 directly — so its stdlib and x/text HIGHs are
+# Go 1.26.4 — including emsdk 7.0.1, verified by scanning
+# emscripten/emsdk:7.0.1 directly — so its stdlib and x/text HIGHs are
 # unfixable until emscripten revendors a tsgo built on Go >=1.27.2 (or the
 # stdlib/x-text fix lines). Re-verified on each EMSDK_VERSION bump.
 CVE-2026-33818 exp:2027-01-12
@@ -90,7 +90,7 @@ CVE-2026-56859 exp:2027-01-12
 CVE-2026-56860 exp:2027-01-12
 CVE-2026-56862 exp:2027-01-12
 # emsdk's vendored node/npm trees ship their upstream bundled dependency
-# versions (node 24.19.0 in both 6.0.10 and 6.0.12): brace-expansion,
+# versions (node 24.19.0, unchanged through emsdk 7.0.1): brace-expansion,
 # browserslist, fast-uri, flatted, ip-address, js-yaml, nanoid, picomatch,
 # postcss, source-map-js, tar, undici — all fixable only by a node/npm
 # revendoring upstream. Re-verified on each EMSDK_VERSION bump.
