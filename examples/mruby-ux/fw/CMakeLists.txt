@@ -31,4 +31,6 @@ target_include_directories(app PRIVATE
   ${MRUBYC_DIR}/src
   ${MRUBYC_DIR}/hal/zephyr
 )
-target_compile_definitions(app PRIVATE MRBC_SUPPORT_OP_EXT)
+# Force-include the generated VM config so MRBC_* flags (including
+# MRBC_SUPPORT_OP_EXT) reach the mruby/c core sources.
+target_compile_options(app PRIVATE -include fw_mruby.h)
