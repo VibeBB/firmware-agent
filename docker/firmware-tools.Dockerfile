@@ -3,8 +3,8 @@ ARG UV_DIGEST=sha256:d3b601f0c7b118bc1753febf7c41cc80981df678445e0254284eecf84db
 # Emscripten SDK stage: digest-pinned, shared with the dashboard tools image
 # so the .mrb/WASM legs use one proven toolchain. ARGs used in FROM must be
 # declared before the first FROM.
-ARG EMSDK_VERSION=6.0.13
-ARG EMSDK_DIGEST=sha256:fb7864e398acfda863dfcea78b8bc8adad359fa60c6a0bbeb845931de64aa68a
+ARG EMSDK_VERSION=7.0.1
+ARG EMSDK_DIGEST=sha256:73aece2e0ab748487945ad117b79fc4d277e9f656e54fc800a9b1a0a6562715b
 # SDCC is built from the pinned upstream source release: Debian/Ubuntu
 # packages drop the PIC device files under device/non-free, so the apt
 # build cannot target pic14/pic16 at all. Upstream labels the PIC ports
@@ -250,22 +250,17 @@ RUN test -x /opt/emsdk/upstream/emscripten/emcc \
     && node --version \
     && emcc --version | head -1
 
-# The pinned emsdk stage vendors vite 8.3.1 inside the emscripten
-# toolchain (CVE-2026-112942, fixed in 8.3.5) and undici 6.26.0 inside
-# its bundled npm 11.17.0 (CVE-2026-109383, CVE-2026-109869,
-# CVE-2026-87018); patch both — vite via npm --prefix (same pattern as
-# dashboard-agent's emsdk patches), undici via a sha256-verified
-# tarball swap — and fail the build if a landed version is still
-# vulnerable.
+# The pinned emsdk 7.0.1 stage already vendors vite 8.3.5 — the
+# CVE-2026-112942 fix version — so no forced install is needed (same
+# outcome as dashboard-agent's emsdk 7.0.0 re-scan). Its bundled npm
+# 11.17.0 still vendors undici 6.26.0 (CVE-2026-109383,
+# CVE-2026-109869, CVE-2026-87018); patched in place via a
+# sha256-verified tarball swap — and fail the build if a landed
+# version is still vulnerable.
 ARG UNDICI_VERSION=6.29.1
 # sha256 of https://registry.npmjs.org/undici/-/undici-6.29.1.tgz
 ARG UNDICI_SHA256=29c4b8e0b2d86cb8795571c1959012ce057a14ecfd34858335f47c31e770a04f
-RUN for node_dir in /opt/emsdk/node/*/bin; do \
-        PATH="$node_dir:$PATH"; break; \
-    done; \
-    npm --prefix /opt/emsdk/upstream/emscripten install --no-save --no-audit --no-fund vite@8.3.5 \
-    && node -p "require('/opt/emsdk/upstream/emscripten/node_modules/vite/package.json').version" | grep -qx '8.3.5' \
-    && for npm_root in /opt/emsdk/node/*/lib/node_modules/npm/node_modules; do \
+RUN for npm_root in /opt/emsdk/node/*/lib/node_modules/npm/node_modules; do \
         test -d "$npm_root/undici" \
         && curl --fail --location --silent --show-error \
             --retry 8 --retry-delay 20 --retry-max-time 600 --retry-all-errors \
