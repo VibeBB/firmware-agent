@@ -124,6 +124,7 @@ def config_header(cfg: MrubycConfig, contract_name: str) -> str:
         f"#define MRBC_USE_UNICODE_CASE {1 if cfg.use_unicode_case else 0}",
         f"#define MAX_VM_COUNT {cfg.max_vm_count}",
         f"#define MAX_SYMBOLS_COUNT {cfg.max_symbols}",
+        "#define MRBC_SUPPORT_OP_EXT",
     ]
     if cfg.use_int64:
         lines.append("#define MRBC_INT64")

@@ -31,3 +31,4 @@ target_include_directories(app PRIVATE
   ${MRUBYC_DIR}/src
   ${MRUBYC_DIR}/hal/zephyr
 )
+target_compile_definitions(app PRIVATE MRBC_SUPPORT_OP_EXT)

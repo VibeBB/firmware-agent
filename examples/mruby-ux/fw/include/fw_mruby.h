@@ -17,5 +17,6 @@
 #define MRBC_USE_UNICODE_CASE 0
 #define MAX_VM_COUNT 2
 #define MAX_SYMBOLS_COUNT 255
+#define MRBC_SUPPORT_OP_EXT
 
 #endif /* FW_MRUBY_H */
