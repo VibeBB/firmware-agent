@@ -131,6 +131,7 @@ class TestConfigHeader:
         assert "#define MRBC_USE_FLOAT 2" in text
         assert "#define MRBC_USE_STRING 1" in text
         assert "#define MRBC_TIMESLICE_TICK_COUNT 1" in text
+        assert "#define MRBC_SUPPORT_OP_EXT" in text
         assert "#define MRBC_NO_TIMER" not in text
 
 

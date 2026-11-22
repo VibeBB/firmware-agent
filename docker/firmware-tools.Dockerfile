@@ -220,7 +220,7 @@ RUN bash /tmp/pins/fetch-pins.sh /tmp/pins/third_party.manifest \
 WORKDIR /opt/mruby-src
 RUN ruby ./minirake -j"$(nproc)" \
     && cp build/host/bin/mrbc /opt/mruby/bin/mrbc \
-    && PATH=/opt/mruby/bin:$PATH make -C /opt/mrubyc
+    && PATH=/opt/mruby/bin:$PATH CFLAGS="-DMRBC_SUPPORT_OP_EXT=1" make -C /opt/mrubyc
 WORKDIR /
 RUN rm -rf /opt/mruby-src /tmp/pins \
     && printf '%s\n' "${MRUBYC_REF}" > /opt/mrubyc/REF \
